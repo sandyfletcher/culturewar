@@ -123,13 +123,3 @@ body {
 #play-again-button {
     margin-top: 30px;
 }
-
-/* Debug log styles */
-#debug-log {
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 5px;
-    border: 1px solid #333;
-    max-width: 300px;
-    max-height: 150px;
-    overflow-y: auto;
-}

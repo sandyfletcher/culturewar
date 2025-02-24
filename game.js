@@ -49,6 +49,10 @@ class Game {
         this.planets = [];
         this.troopMovements = [];
         this.selectedPlanet = null;
+        this.selectedPlanets = []; // Array to store multiple selected planets
+        this.isSelecting = false; // Flag for selection box
+        this.selectionStart = { x: 0, y: 0 }; // Starting point of selection box
+        this.selectionEnd = { x: 0, y: 0 }; // Ending point of selection box
         this.timeRemaining = 300; // 5 minutes in seconds
         this.lastUpdate = Date.now();
         this.mousePos = { x: 0, y: 0 };
@@ -74,8 +78,15 @@ class Game {
         this.resize();
         window.addEventListener('resize', () => this.resize());
         
-        this.canvas.addEventListener('click', (e) => this.handleClick(e));
+        // Add mouse event listeners
+        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        
+        // Add touch event listeners
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e));
         
         this.generatePlanets();
         this.gameLoop();
@@ -104,6 +115,206 @@ class Game {
         const rect = this.canvas.getBoundingClientRect();
         this.mousePos.x = e.clientX - rect.left;
         this.mousePos.y = e.clientY - rect.top;
+        
+        // Update selection box if currently selecting
+        if (this.isSelecting) {
+            this.selectionEnd.x = this.mousePos.x;
+            this.selectionEnd.y = this.mousePos.y;
+        }
+    }
+
+    handleMouseDown(e) {
+        if (this.gameOver) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Start selection box
+        this.selectionStart.x = x;
+        this.selectionStart.y = y;
+        this.selectionEnd.x = x;
+        this.selectionEnd.y = y;
+        this.isSelecting = true;
+    }
+
+    handleMouseUp(e) {
+        if (this.gameOver) return;
+        
+        this.isSelecting = false;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // If it's a small movement, treat it as a click
+        const distMoved = Math.sqrt(
+            Math.pow(this.selectionStart.x - x, 2) + 
+            Math.pow(this.selectionStart.y - y, 2)
+        );
+        
+        if (distMoved < 5) {
+            this.handleClick(e);
+            return;
+        }
+        
+        // Process selection box
+        this.processSelectionBox();
+    }
+
+    handleTouchStart(e) {
+        if (this.gameOver) return;
+        
+        e.preventDefault(); // Prevent scrolling
+        
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            this.selectionStart.x = x;
+            this.selectionStart.y = y;
+            this.selectionEnd.x = x;
+            this.selectionEnd.y = y;
+            this.isSelecting = true;
+            
+            // Store timestamp to detect tap vs drag
+            this.touchStartTime = Date.now();
+        }
+    }
+
+    handleTouchMove(e) {
+        if (this.gameOver) return;
+        
+        e.preventDefault(); // Prevent scrolling
+        
+        if (e.touches.length === 1 && this.isSelecting) {
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            
+            this.mousePos.x = touch.clientX - rect.left;
+            this.mousePos.y = touch.clientY - rect.top;
+            
+            this.selectionEnd.x = this.mousePos.x;
+            this.selectionEnd.y = this.mousePos.y;
+        }
+    }
+
+    handleTouchEnd(e) {
+        if (this.gameOver) return;
+        
+        e.preventDefault(); // Prevent default behavior
+        
+        this.isSelecting = false;
+        
+        // If it was a short touch with minimal movement, treat as a tap
+        const touchDuration = Date.now() - this.touchStartTime;
+        const distMoved = Math.sqrt(
+            Math.pow(this.selectionStart.x - this.selectionEnd.x, 2) + 
+            Math.pow(this.selectionStart.y - this.selectionEnd.y, 2)
+        );
+        
+        if (touchDuration < 300 && distMoved < 10) {
+            // Create a synthetic click event
+            const clickEvent = {
+                clientX: this.selectionEnd.x + this.canvas.getBoundingClientRect().left,
+                clientY: this.selectionEnd.y + this.canvas.getBoundingClientRect().top
+            };
+            this.handleClick(clickEvent);
+            return;
+        }
+        
+        // Process selection box for drag
+        this.processSelectionBox();
+    }
+
+    processSelectionBox() {
+        // Normalize selection box coordinates
+        const left = Math.min(this.selectionStart.x, this.selectionEnd.x);
+        const right = Math.max(this.selectionStart.x, this.selectionEnd.x);
+        const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
+        const bottom = Math.max(this.selectionStart.y, this.selectionEnd.y);
+        
+        // Clear previous selection if not holding shift
+        this.selectedPlanets = [];
+        
+        // Find all player planets within the selection box
+        for (const planet of this.planets) {
+            if (planet.owner === 'player') {
+                // Check if planet is within or touched by the selection box
+                if (planet.x + planet.size >= left && 
+                    planet.x - planet.size <= right && 
+                    planet.y + planet.size >= top && 
+                    planet.y - planet.size <= bottom) {
+                    this.selectedPlanets.push(planet);
+                }
+            }
+        }
+        
+        // If no planets selected, clear selection
+        if (this.selectedPlanets.length === 0) {
+            this.selectedPlanet = null;
+        } else {
+            // For backward compatibility, set selectedPlanet to the first selected planet
+            this.selectedPlanet = this.selectedPlanets[0];
+        }
+    }
+
+    handleClick(e) {
+        if (this.gameOver) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const clickedPlanet = this.planets.find(planet => {
+            const dx = x - planet.x;
+            const dy = y - planet.y;
+            return Math.sqrt(dx * dx + dy * dy) < planet.size;
+        });
+
+        // If clicking on empty space, clear selection
+        if (!clickedPlanet) {
+            this.selectedPlanet = null;
+            this.selectedPlanets = [];
+            return;
+        }
+
+        // If we have planets selected and click on a different planet
+        if (this.selectedPlanets.length > 0 && !this.selectedPlanets.includes(clickedPlanet)) {
+            if (this.selectedPlanets.every(planet => planet.owner === 'player')) {
+                // Send troops from all selected planets
+                for (const sourcePlanet of this.selectedPlanets) {
+                    // Calculate distance for proportional troop sending
+                    const dx = clickedPlanet.x - sourcePlanet.x;
+                    const dy = clickedPlanet.y - sourcePlanet.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Send fewer troops from further planets to arrive approximately together
+                    const troopsToSend = Math.floor(sourcePlanet.troops / 2);
+                    
+                    if (troopsToSend > 0) {
+                        sourcePlanet.troops -= troopsToSend;
+                        this.troopMovements.push(new TroopMovement(
+                            sourcePlanet,
+                            clickedPlanet,
+                            troopsToSend,
+                            'player'
+                        ));
+                    }
+                }
+                
+                // Clear selection after sending troops
+                this.selectedPlanet = null;
+                this.selectedPlanets = [];
+            }
+        } 
+        // If clicking on a player's planet, select it
+        else if (clickedPlanet.owner === 'player') {
+            this.selectedPlanet = clickedPlanet;
+            this.selectedPlanets = [clickedPlanet];
+        }
     }
 
     generatePlanets() {
@@ -163,45 +374,8 @@ class Game {
         return true;
     }
 
-    handleClick(e) {
-        if (this.gameOver) return;
-        
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const clickedPlanet = this.planets.find(planet => {
-            const dx = x - planet.x;
-            const dy = y - planet.y;
-            return Math.sqrt(dx * dx + dy * dy) < planet.size;
-        });
-
-        if (!clickedPlanet) {
-            this.selectedPlanet = null;
-            return;
-        }
-
-        if (this.selectedPlanet && this.selectedPlanet !== clickedPlanet) {
-            if (this.selectedPlanet.owner === 'player') {
-                const troopsToSend = Math.floor(this.selectedPlanet.troops / 2);
-                if (troopsToSend > 0) {
-                    this.selectedPlanet.troops -= troopsToSend;
-                    this.troopMovements.push(new TroopMovement(
-                        this.selectedPlanet,
-                        clickedPlanet,
-                        troopsToSend,
-                        'player'
-                    ));
-                }
-            }
-            this.selectedPlanet = null;
-        } else if (clickedPlanet.owner === 'player') {
-            this.selectedPlanet = clickedPlanet;
-        }
-    }
-
     drawTrajectory() {
-        if (this.selectedPlanet) {
+        if (this.selectedPlanets.length > 0) {
             // Find planet under mouse cursor
             const targetPlanet = this.planets.find(planet => {
                 const dx = this.mousePos.x - planet.x;
@@ -209,15 +383,17 @@ class Game {
                 return Math.sqrt(dx * dx + dy * dy) < planet.size;
             });
 
-            if (targetPlanet && targetPlanet !== this.selectedPlanet) {
-                // Draw trajectory line
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.selectedPlanet.x, this.selectedPlanet.y);
-                this.ctx.lineTo(targetPlanet.x, targetPlanet.y);
-                this.ctx.strokeStyle = '#ffffff44'; // Semi-transparent white
-                this.ctx.setLineDash([5, 5]); // Dashed line
-                this.ctx.lineWidth = 1;
-                this.ctx.stroke();
+            if (targetPlanet && !this.selectedPlanets.includes(targetPlanet)) {
+                // Draw trajectory lines from all selected planets
+                for (const selectedPlanet of this.selectedPlanets) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(selectedPlanet.x, selectedPlanet.y);
+                    this.ctx.lineTo(targetPlanet.x, targetPlanet.y);
+                    this.ctx.strokeStyle = '#ffffff44'; // Semi-transparent white
+                    this.ctx.setLineDash([5, 5]); // Dashed line
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                }
                 this.ctx.setLineDash([]); // Reset dash
             }
         }
@@ -288,10 +464,6 @@ class Game {
             this.endGame('ai', 'domination', timeTaken);
             return true;
         }
-
-        // Log current game state for debugging
-        this.log(`Player: ${playerHasPlanets ? 'Has planets' : 'No planets'}, ${playerHasTroops ? 'Has troops in movement' : 'No troops in movement'}`);
-        this.log(`AI: ${aiHasPlanets ? 'Has planets' : 'No planets'}, ${aiHasTroops ? 'Has troops in movement' : 'No troops in movement'}`);
         
         return false;
     }
@@ -410,8 +582,26 @@ class Game {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw trajectory line first (so it's behind everything)
+        // Draw trajectory lines first (so they're behind everything)
         this.drawTrajectory();
+
+        // Draw selection box if active
+        if (this.isSelecting) {
+            const left = Math.min(this.selectionStart.x, this.selectionEnd.x);
+            const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
+            const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
+            const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
+            
+            this.ctx.strokeStyle = '#ffff00';
+            this.ctx.lineWidth = 1;
+            this.ctx.setLineDash([5, 3]);
+            this.ctx.strokeRect(left, top, width, height);
+            this.ctx.setLineDash([]);
+            
+            // Semi-transparent fill
+            this.ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
+            this.ctx.fillRect(left, top, width, height);
+        }
 
         // Draw planets
         for (const planet of this.planets) {
@@ -423,7 +613,8 @@ class Game {
             this.ctx.lineWidth = 2;
             this.ctx.stroke();
 
-            if (planet === this.selectedPlanet) {
+            // Draw selection highlight for all selected planets
+            if (this.selectedPlanets.includes(planet)) {
                 this.ctx.beginPath();
                 this.ctx.arc(planet.x, planet.y, planet.size + 5, 0, Math.PI * 2);
                 this.ctx.strokeStyle = '#ffffff';
@@ -488,3 +679,5 @@ beginButton.addEventListener('click', () => {
     gameScreen.style.display = 'block';
     new Game();
 });
+
+export default Game;
