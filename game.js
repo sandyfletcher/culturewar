@@ -1,5 +1,6 @@
 import DummyAI from './dummyai.js';
 import { Planet, TroopMovement } from './entities.js';
+import SelectionHandler from './selectionHandler.js';
 
 class Game {
     constructor() {
@@ -7,15 +8,17 @@ class Game {
         this.ctx = this.canvas.getContext('2d');
         this.planets = [];
         this.troopMovements = [];
-        this.selectedPlanets = []; // Array to store multiple selected planets
-        this.isSelecting = false; // Flag for selection box
-        this.selectionStart = { x: 0, y: 0 }; // Starting point of selection box
-        this.selectionEnd = { x: 0, y: 0 }; // Ending point of selection box
+        this.mousePos = { x: 0, y: 0 };
         this.timeRemaining = 300; // 5 minutes in seconds
         this.lastUpdate = Date.now();
-        this.mousePos = { x: 0, y: 0 };
         this.gameOver = false;
         this.startTime = Date.now();
+        
+        // Share TroopMovement with SelectionHandler
+        this.TroopMovement = TroopMovement;
+        
+        // Initialize the selection handler
+        this.selectionHandler = new SelectionHandler(this);
         
         // Debug log element
         this.debugLog = document.createElement('div');
@@ -74,11 +77,8 @@ class Game {
         this.mousePos.x = e.clientX - rect.left;
         this.mousePos.y = e.clientY - rect.top;
         
-        // Update selection box if currently selecting
-        if (this.isSelecting) {
-            this.selectionEnd.x = this.mousePos.x;
-            this.selectionEnd.y = this.mousePos.y;
-        }
+        // Pass to selection handler
+        this.selectionHandler.handleMouseMove(this.mousePos.x, this.mousePos.y);
     }
 
     handleMouseDown(e) {
@@ -88,36 +88,24 @@ class Game {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        // Start selection box
-        this.selectionStart.x = x;
-        this.selectionStart.y = y;
-        this.selectionEnd.x = x;
-        this.selectionEnd.y = y;
-        this.isSelecting = true;
+        // Start selection with selection handler
+        this.selectionHandler.startSelection(x, y);
     }
 
     handleMouseUp(e) {
         if (this.gameOver) return;
         
-        this.isSelecting = false;
-        
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        // If it's a small movement, treat it as a click
-        const distMoved = Math.sqrt(
-            Math.pow(this.selectionStart.x - x, 2) + 
-            Math.pow(this.selectionStart.y - y, 2)
-        );
+        // End selection with selection handler
+        const result = this.selectionHandler.endSelection(x, y);
         
-        if (distMoved < 5) {
-            this.handleClick(e);
-            return;
+        // If it was a click, handle it
+        if (result.isClick) {
+            this.selectionHandler.handleClick(x, y);
         }
-        
-        // Process selection box
-        this.processSelectionBox();
     }
 
     handleTouchStart(e) {
@@ -131,14 +119,8 @@ class Game {
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
             
-            this.selectionStart.x = x;
-            this.selectionStart.y = y;
-            this.selectionEnd.x = x;
-            this.selectionEnd.y = y;
-            this.isSelecting = true;
-            
-            // Store timestamp to detect tap vs drag
-            this.touchStartTime = Date.now();
+            // Start selection with selection handler
+            this.selectionHandler.startSelection(x, y);
         }
     }
 
@@ -147,15 +129,15 @@ class Game {
         
         e.preventDefault(); // Prevent scrolling
         
-        if (e.touches.length === 1 && this.isSelecting) {
+        if (e.touches.length === 1) {
             const touch = e.touches[0];
             const rect = this.canvas.getBoundingClientRect();
             
             this.mousePos.x = touch.clientX - rect.left;
             this.mousePos.y = touch.clientY - rect.top;
             
-            this.selectionEnd.x = this.mousePos.x;
-            this.selectionEnd.y = this.mousePos.y;
+            // Pass to selection handler
+            this.selectionHandler.handleMouseMove(this.mousePos.x, this.mousePos.y);
         }
     }
 
@@ -164,27 +146,13 @@ class Game {
         
         e.preventDefault(); // Prevent default behavior
         
-        this.isSelecting = false;
+        // End selection with selection handler
+        const result = this.selectionHandler.endSelection(this.mousePos.x, this.mousePos.y);
         
-        // If it was a short touch with minimal movement, treat as a tap
-        const touchDuration = Date.now() - this.touchStartTime;
-        const distMoved = Math.sqrt(
-            Math.pow(this.selectionStart.x - this.selectionEnd.x, 2) + 
-            Math.pow(this.selectionStart.y - this.selectionEnd.y, 2)
-        );
-        
-        if (touchDuration < 300 && distMoved < 10) {
-            // Create a synthetic click event
-            const clickEvent = {
-                clientX: this.selectionEnd.x + this.canvas.getBoundingClientRect().left,
-                clientY: this.selectionEnd.y + this.canvas.getBoundingClientRect().top
-            };
-            this.handleClick(clickEvent);
-            return;
+        // If it was a tap, handle it
+        if (result.isClick) {
+            this.selectionHandler.handleClick(this.mousePos.x, this.mousePos.y);
         }
-        
-        // Process selection box for drag
-        this.processSelectionBox();
     }
 
     processSelectionBox() {
@@ -531,26 +499,11 @@ class Game {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw trajectory lines first (so they're behind everything)
-        this.drawTrajectory();
+// Draw trajectory lines using selection handler
+        this.selectionHandler.drawTrajectory(this.ctx, this.mousePos);
 
-        // Draw selection box if active
-        if (this.isSelecting) {
-            const left = Math.min(this.selectionStart.x, this.selectionEnd.x);
-            const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
-            const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
-            const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
-            
-            this.ctx.strokeStyle = '#ffff00';
-            this.ctx.lineWidth = 1;
-            this.ctx.setLineDash([5, 3]);
-            this.ctx.strokeRect(left, top, width, height);
-            this.ctx.setLineDash([]);
-            
-            // Semi-transparent fill
-            this.ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
-            this.ctx.fillRect(left, top, width, height);
-        }
+// Draw selection box using selection handler
+        this.selectionHandler.drawSelectionBox(this.ctx);
 
         // Draw planets
         for (const planet of this.planets) {
