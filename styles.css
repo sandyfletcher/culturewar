@@ -19,7 +19,6 @@ body {
     max-height: 800px;
     background: #000;
     overflow: hidden;
-    border: 1px white;
 }
 
 #menu-screen, #game-screen {
