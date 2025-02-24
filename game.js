@@ -52,6 +52,21 @@ class Game {
         this.timeRemaining = 300; // 5 minutes in seconds
         this.lastUpdate = Date.now();
         this.mousePos = { x: 0, y: 0 };
+        this.gameOver = false;
+        this.startTime = Date.now();
+        
+        // Debug log element
+        this.debugLog = document.createElement('div');
+        this.debugLog.id = 'debug-log';
+        this.debugLog.style.position = 'absolute';
+        this.debugLog.style.top = '50px';
+        this.debugLog.style.left = '10px';
+        this.debugLog.style.color = '#fff';
+        this.debugLog.style.fontSize = '10px';
+        this.debugLog.style.fontFamily = 'monospace';
+        this.debugLog.style.textAlign = 'left';
+        this.debugLog.style.pointerEvents = 'none'; // Don't interfere with clicks
+        document.getElementById('game-screen').appendChild(this.debugLog);
         
         // Initialize AI
         this.ai = new DummyAI(this);
@@ -64,6 +79,19 @@ class Game {
         
         this.generatePlanets();
         this.gameLoop();
+        
+        console.log("Game initialized");
+    }
+
+    // Debug logging function
+    log(message) {
+        console.log(message);
+        this.debugLog.innerHTML += message + '<br>';
+        // Keep only the last 10 messages
+        const lines = this.debugLog.innerHTML.split('<br>');
+        if (lines.length > 10) {
+            this.debugLog.innerHTML = lines.slice(lines.length - 10).join('<br>');
+        }
     }
 
     resize() {
@@ -136,6 +164,8 @@ class Game {
     }
 
     handleClick(e) {
+        if (this.gameOver) return;
+        
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -193,16 +223,140 @@ class Game {
         }
     }
 
+    // Check if a player has any planets
+    hasPlayerPlanets(player) {
+        return this.planets.some(planet => planet.owner === player);
+    }
+
+    // Check if a player has any troops in movement
+    hasPlayerTroopsInMovement(player) {
+        return this.troopMovements.some(movement => movement.owner === player);
+    }
+
+    // Calculate total troops for any player
+    calculateTotalTroops(player) {
+        // Sum troops from planets
+        const planetTroops = this.planets
+            .filter(planet => planet.owner === player)
+            .reduce((total, planet) => total + planet.troops, 0);
+        
+        // Sum troops from movements
+        const movementTroops = this.troopMovements
+            .filter(movement => movement.owner === player)
+            .reduce((total, movement) => total + movement.amount, 0);
+        
+        return planetTroops + movementTroops;
+    }
+
+    // Check win conditions
+    checkWinConditions() {
+        if (this.gameOver) return false;
+
+        // Check for time victory
+        if (this.timeRemaining <= 0) {
+            this.log("Time victory triggered");
+            // Find player with most troops
+            const playerTroops = this.calculateTotalTroops('player');
+            const aiTroops = this.calculateTotalTroops('ai');
+            
+            const winner = playerTroops >= aiTroops ? 'player' : 'ai';
+            
+            this.endGame(winner, 'time');
+            return true;
+        }
+
+        // Check for domination victories
+
+        // First check if AI is eliminated
+        const aiHasPlanets = this.hasPlayerPlanets('ai');
+        const aiHasTroops = this.hasPlayerTroopsInMovement('ai');
+        
+        if (!aiHasPlanets && !aiHasTroops) {
+            this.log("AI eliminated - player wins");
+            const timeTaken = (Date.now() - this.startTime) / 1000; // in seconds
+            this.endGame('player', 'domination', timeTaken);
+            return true;
+        }
+        
+        // Then check if player is eliminated
+        const playerHasPlanets = this.hasPlayerPlanets('player');
+        const playerHasTroops = this.hasPlayerTroopsInMovement('player');
+        
+        if (!playerHasPlanets && !playerHasTroops) {
+            this.log("Player eliminated - AI wins");
+            const timeTaken = (Date.now() - this.startTime) / 1000; // in seconds
+            this.endGame('ai', 'domination', timeTaken);
+            return true;
+        }
+
+        // Log current game state for debugging
+        this.log(`Player: ${playerHasPlanets ? 'Has planets' : 'No planets'}, ${playerHasTroops ? 'Has troops in movement' : 'No troops in movement'}`);
+        this.log(`AI: ${aiHasPlanets ? 'Has planets' : 'No planets'}, ${aiHasTroops ? 'Has troops in movement' : 'No troops in movement'}`);
+        
+        return false;
+    }
+
+    // End the game and show game over screen
+    endGame(winner, victoryType, timeTaken = null) {
+        this.log(`Game over! ${winner} wins by ${victoryType}`);
+        this.gameOver = true;
+        
+        // Calculate final stats
+        const playerTroops = Math.floor(this.calculateTotalTroops('player'));
+        const aiTroops = Math.floor(this.calculateTotalTroops('ai'));
+        
+        // Create game over screen
+        const gameOverScreen = document.createElement('div');
+        gameOverScreen.id = 'game-over-screen';
+        
+        let gameOverHTML = `
+            <h1>GAME OVER</h1>
+            <h2>${winner.toUpperCase()} WINS!</h2>
+            <h3>${victoryType.toUpperCase()} VICTORY</h3>
+        `;
+        
+        if (victoryType === 'domination' && timeTaken) {
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = Math.floor(timeTaken % 60);
+            gameOverHTML += `<p>Victory achieved in ${minutes}:${seconds.toString().padStart(2, '0')}</p>`;
+        }
+        
+        gameOverHTML += `<h3>FINAL STANDINGS</h3><ul>`;
+        
+        // Sort by troop count
+        const standings = [
+            { player: 'player', troops: playerTroops },
+            { player: 'ai', troops: aiTroops }
+        ].sort((a, b) => b.troops - a.troops);
+        
+        for (const stat of standings) {
+            gameOverHTML += `<li>${stat.player.toUpperCase()}: ${stat.troops} troops</li>`;
+        }
+        
+        gameOverHTML += `</ul><button class="menu-button" id="play-again-button">PLAY AGAIN</button>`;
+        
+        gameOverScreen.innerHTML = gameOverHTML;
+        document.getElementById('game-container').appendChild(gameOverScreen);
+        
+        // Add event listener to play again button
+        document.getElementById('play-again-button').addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
+
     update() {
+        if (this.gameOver) return;
+
         const now = Date.now();
         const dt = (now - this.lastUpdate) / 1000; // Convert to seconds
         this.lastUpdate = now;
 
         // Update timer
         this.timeRemaining -= dt;
-        if (this.timeRemaining <= 0) {
-            // Handle game over
-            return;
+        
+        // Check win conditions - do this before updating anything else
+        if (this.checkWinConditions()) {
+            return; // Game is over, stop updates
         }
 
         // Update planet troops
@@ -228,23 +382,28 @@ class Game {
                     }
                 }
                 this.troopMovements.splice(i, 1);
+                
+                // After troop movements complete, check win conditions again
+                this.checkWinConditions();
             }
         }
 
-        // Let AI make a decision
-        const aiDecision = this.ai.makeDecision({
-            planets: this.planets,
-            troopMovements: this.troopMovements
-        });
+        // Let AI make a decision if it's not eliminated
+        if (this.hasPlayerPlanets('ai') || this.hasPlayerTroopsInMovement('ai')) {
+            const aiDecision = this.ai.makeDecision({
+                planets: this.planets,
+                troopMovements: this.troopMovements
+            });
 
-        if (aiDecision) {
-            aiDecision.from.troops -= aiDecision.troops;
-            this.troopMovements.push(new TroopMovement(
-                aiDecision.from,
-                aiDecision.to,
-                aiDecision.troops,
-                'ai'
-            ));
+            if (aiDecision) {
+                aiDecision.from.troops -= aiDecision.troops;
+                this.troopMovements.push(new TroopMovement(
+                    aiDecision.from,
+                    aiDecision.to,
+                    aiDecision.troops,
+                    'ai'
+                ));
+            }
         }
     }
 
@@ -313,7 +472,9 @@ class Game {
     gameLoop() {
         this.update();
         this.draw();
-        requestAnimationFrame(() => this.gameLoop());
+        if (!this.gameOver) {
+            requestAnimationFrame(() => this.gameLoop());
+        }
     }
 }
 
