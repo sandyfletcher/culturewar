@@ -1,46 +1,5 @@
 import DummyAI from './dummyai.js';
-
-class Planet {
-    constructor(x, y, size, troops = 0, owner = 'neutral') {
-        this.x = x;
-        this.y = y;
-        this.size = size;
-        this.troops = troops;
-        this.owner = owner;
-        this.productionRate = size / 20; // Larger planets produce more troops
-    }
-}
-
-class TroopMovement {
-    constructor(from, to, amount, owner) {
-        this.from = from;
-        this.to = to;
-        this.amount = amount;
-        this.owner = owner;
-        this.progress = 0;
-        this.startX = from.x;
-        this.startY = from.y;
-        this.dx = to.x - from.x;
-        this.dy = to.y - from.y;
-        this.distance = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
-        // Adjusted speed calculation based on distance
-        this.speed = 150; // pixels per second
-        this.duration = this.distance / this.speed; // seconds to reach target
-    }
-
-    update(dt) {
-        this.progress += dt / this.duration;
-        return this.progress >= 1;
-    }
-
-    getCurrentPosition() {
-        const easedProgress = this.progress; // Can add easing function here if desired
-        return {
-            x: this.startX + this.dx * easedProgress,
-            y: this.startY + this.dy * easedProgress
-        };
-    }
-}
+import { Planet, TroopMovement } from './entities.js';
 
 class Game {
     constructor() {
@@ -48,7 +7,6 @@ class Game {
         this.ctx = this.canvas.getContext('2d');
         this.planets = [];
         this.troopMovements = [];
-        this.selectedPlanet = null;
         this.selectedPlanets = []; // Array to store multiple selected planets
         this.isSelecting = false; // Flag for selection box
         this.selectionStart = { x: 0, y: 0 }; // Starting point of selection box
@@ -236,8 +194,8 @@ class Game {
         const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
         const bottom = Math.max(this.selectionStart.y, this.selectionEnd.y);
         
-        // Clear previous selection if not holding shift
-        this.selectedPlanets = [];
+        // Clear previous selection
+        this.clearSelection();
         
         // Find all player planets within the selection box
         for (const planet of this.planets) {
@@ -247,18 +205,19 @@ class Game {
                     planet.x - planet.size <= right && 
                     planet.y + planet.size >= top && 
                     planet.y - planet.size <= bottom) {
+                    planet.selected = true;
                     this.selectedPlanets.push(planet);
                 }
             }
         }
-        
-        // If no planets selected, clear selection
-        if (this.selectedPlanets.length === 0) {
-            this.selectedPlanet = null;
-        } else {
-            // For backward compatibility, set selectedPlanet to the first selected planet
-            this.selectedPlanet = this.selectedPlanets[0];
+    }
+
+    // Clear all planet selections
+    clearSelection() {
+        for (const planet of this.planets) {
+            planet.selected = false;
         }
+        this.selectedPlanets = [];
     }
 
     handleClick(e) {
@@ -268,16 +227,12 @@ class Game {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        const clickedPlanet = this.planets.find(planet => {
-            const dx = x - planet.x;
-            const dy = y - planet.y;
-            return Math.sqrt(dx * dx + dy * dy) < planet.size;
-        });
+        // Find clicked planet
+        const clickedPlanet = this.planets.find(planet => planet.containsPoint(x, y));
 
         // If clicking on empty space, clear selection
         if (!clickedPlanet) {
-            this.selectedPlanet = null;
-            this.selectedPlanets = [];
+            this.clearSelection();
             return;
         }
 
@@ -286,12 +241,6 @@ class Game {
             if (this.selectedPlanets.every(planet => planet.owner === 'player')) {
                 // Send troops from all selected planets
                 for (const sourcePlanet of this.selectedPlanets) {
-                    // Calculate distance for proportional troop sending
-                    const dx = clickedPlanet.x - sourcePlanet.x;
-                    const dy = clickedPlanet.y - sourcePlanet.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    // Send fewer troops from further planets to arrive approximately together
                     const troopsToSend = Math.floor(sourcePlanet.troops / 2);
                     
                     if (troopsToSend > 0) {
@@ -306,13 +255,13 @@ class Game {
                 }
                 
                 // Clear selection after sending troops
-                this.selectedPlanet = null;
-                this.selectedPlanets = [];
+                this.clearSelection();
             }
         } 
         // If clicking on a player's planet, select it
         else if (clickedPlanet.owner === 'player') {
-            this.selectedPlanet = clickedPlanet;
+            this.clearSelection();
+            clickedPlanet.selected = true;
             this.selectedPlanets = [clickedPlanet];
         }
     }
@@ -377,11 +326,7 @@ class Game {
     drawTrajectory() {
         if (this.selectedPlanets.length > 0) {
             // Find planet under mouse cursor
-            const targetPlanet = this.planets.find(planet => {
-                const dx = this.mousePos.x - planet.x;
-                const dy = this.mousePos.y - planet.y;
-                return Math.sqrt(dx * dx + dy * dy) < planet.size;
-            });
+            const targetPlanet = this.planets.find(planet => planet.containsPoint(this.mousePos.x, this.mousePos.y));
 
             if (targetPlanet && !this.selectedPlanets.includes(targetPlanet)) {
                 // Draw trajectory lines from all selected planets
@@ -533,8 +478,12 @@ class Game {
 
         // Update planet troops
         for (const planet of this.planets) {
-            if (planet.owner !== 'neutral') {
-                planet.troops = Math.min(999, planet.troops + planet.productionRate * dt);
+            planet.update(dt);
+            
+            // Fixed bug: If a planet changes ownership, it should not remain selected
+            if (planet.selected && planet.owner !== 'player') {
+                planet.selected = false;
+                this.selectedPlanets = this.selectedPlanets.filter(p => p !== planet);
             }
         }
 
@@ -605,52 +554,12 @@ class Game {
 
         // Draw planets
         for (const planet of this.planets) {
-            this.ctx.beginPath();
-            this.ctx.arc(planet.x, planet.y, planet.size, 0, Math.PI * 2);
-            this.ctx.strokeStyle = planet.owner === 'player' ? '#ffff00' : 
-                                 planet.owner === 'neutral' ? '#ffffff' :
-                                 planet.owner === 'ai' ? '#ff0000' : '#ff0000';
-            this.ctx.lineWidth = 2;
-            this.ctx.stroke();
-
-            // Draw selection highlight for all selected planets
-            if (this.selectedPlanets.includes(planet)) {
-                this.ctx.beginPath();
-                this.ctx.arc(planet.x, planet.y, planet.size + 5, 0, Math.PI * 2);
-                this.ctx.strokeStyle = '#ffffff';
-                this.ctx.stroke();
-            }
-
-            // Draw troop count
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.font = '14px Courier New';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(Math.floor(planet.troops), planet.x, planet.y + 5);
+            planet.draw(this.ctx);
         }
 
         // Draw troop movements
         for (const movement of this.troopMovements) {
-            const pos = movement.getCurrentPosition();
-            
-            // Draw movement trail
-            this.ctx.beginPath();
-            this.ctx.moveTo(movement.startX, movement.startY);
-            this.ctx.lineTo(pos.x, pos.y);
-            this.ctx.strokeStyle = '#ffffff22';
-            this.ctx.lineWidth = 1;
-            this.ctx.stroke();
-
-            // Draw troops
-            this.ctx.beginPath();
-            this.ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
-            this.ctx.fillStyle = movement.owner === 'player' ? '#ffff00' : '#ff0000';
-            this.ctx.fill();
-
-            // Draw troop count
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.font = '12px Courier New';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(movement.amount, pos.x, pos.y - 10);
+            movement.draw(this.ctx);
         }
 
         // Update timer display
