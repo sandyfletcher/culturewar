@@ -67,8 +67,9 @@ export default class Renderer {
     }
 
     updateTimerDisplay() {
-        const minutes = Math.floor(this.game.timeRemaining / 60);
-        const seconds = Math.floor(this.game.timeRemaining % 60);
+        const timeRemaining = this.game.gameState.timeRemaining;
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = Math.floor(timeRemaining % 60);
         document.getElementById('timer').textContent = 
             `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }

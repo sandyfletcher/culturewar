@@ -67,12 +67,7 @@ class Game {
     // Debug logging function
     log(message) {
         console.log(message);
-        this.debugLog.innerHTML += message + '<br>';
-        // Keep only the last 10 messages
-        const lines = this.debugLog.innerHTML.split('<br>');
-        if (lines.length > 10) {
-            this.debugLog.innerHTML = lines.slice(lines.length - 10).join('<br>');
-        }
+        // Logging to DOM disabled
     }
     
     // Clear all planet selections
