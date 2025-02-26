@@ -1,4 +1,3 @@
-// entities.js
 class Planet {
     constructor(x, y, size, troops = 0, owner = 'neutral', game) {
         this.x = x;

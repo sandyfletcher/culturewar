@@ -7,30 +7,52 @@ export default class GameState {
         this.startTime = Date.now();
         this.winner = null;
         this.victoryType = null;
+        this.troopsSent = 0;
+        this.troopsLost = 0;
+        this.planetsConquered = 0;
     }
 
     update(dt) {
-        if (this.gameOver) {
-            // Create game statistics
-            const stats = {
-                playerWon: this.winner === this.game.playerManager.getHumanPlayers()[0].id,
-                time: this.elapsedTime,
-                planetsConquered: this.getPlanetsConquered(),
-                troopsSent: this.troopsSent,
-                troopsLost: this.troopsLost
-            };
+        if (this.gameOver) return;
             
-            // Show game over screen
-            const menuManager = window.menuManager;
-            if (menuManager) {
-                menuManager.showGameOver(stats);
-            }
-        }
         // Update timer
         this.timeRemaining -= dt;
         
         // Check win conditions
         this.checkWinConditions();
+        
+        // If game is now over after checking win conditions
+        if (this.gameOver) {
+            // Create game statistics
+            const stats = {
+                playerWon: this.winner === this.game.playerManager.getHumanPlayers()[0].id,
+                time: (Date.now() - this.startTime) / 1000, // elapsed time in seconds
+                planetsConquered: this.planetsConquered,
+                troopsSent: this.troopsSent,
+                troopsLost: this.troopsLost
+            };
+            
+            // Show game over screen using MenuManager
+            if (window.menuManager) {
+                window.menuManager.showGameOver(stats);
+            } else {
+                console.error("MenuManager not found. Make sure it's initialized before GameState.");
+                this.endGame(this.winner, this.victoryType);
+            }
+        }
+    }
+    
+    // Increment counters for statistics
+    incrementTroopsSent(amount) {
+        this.troopsSent += amount;
+    }
+    
+    incrementTroopsLost(amount) {
+        this.troopsLost += amount;
+    }
+    
+    incrementPlanetsConquered() {
+        this.planetsConquered++;
     }
     
     // Check win conditions
@@ -66,49 +88,13 @@ export default class GameState {
         return false;
     }
 
-    // End the game and show game over screen
+    // Set game over state, but let MenuManager handle the UI
     endGame(winner, victoryType, timeTaken = null) {
         this.gameOver = true;
         this.game.gameOver = true;
         this.winner = winner;
         this.victoryType = victoryType;
         
-        // Create game over screen
-        const gameOverScreen = document.createElement('div');
-        gameOverScreen.id = 'game-over-screen';
-        
-        // Calculate final stats for all players
-        const standings = this.game.playerManager.getPlayerStats()
-            .filter(stats => stats.id !== 'neutral')
-            .sort((a, b) => b.troops - a.troops);
-        
-        let gameOverHTML = `
-            <h1>GAME OVER</h1>
-            <h2>${winner.toUpperCase()} WINS!</h2>
-            <h3>${victoryType.toUpperCase()} VICTORY</h3>
-        `;
-        
-        if (victoryType === 'domination' && timeTaken) {
-            const minutes = Math.floor(timeTaken / 60);
-            const seconds = Math.floor(timeTaken % 60);
-            gameOverHTML += `<p>Victory achieved in ${minutes}:${seconds.toString().padStart(2, '0')}</p>`;
-        }
-        
-        gameOverHTML += `<h3>FINAL STANDINGS</h3><ul>`;
-        
-        for (const stat of standings) {
-            const player = this.game.playerManager.getPlayerById(stat.id);
-            gameOverHTML += `<li>${stat.id.toUpperCase()}: ${Math.floor(stat.troops)} troops (${stat.planets} planets)</li>`;
-        }
-        
-        gameOverHTML += `</ul><button class="menu-button" id="play-again-button">PLAY AGAIN</button>`;
-        
-        gameOverScreen.innerHTML = gameOverHTML;
-        document.getElementById('game-container').appendChild(gameOverScreen);
-        
-        // Add event listener to play again button
-        document.getElementById('play-again-button').addEventListener('click', () => {
-            window.location.reload();
-        });
+        // The actual game over screen is now handled by MenuManager's showGameOver method
     }
 }

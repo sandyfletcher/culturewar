@@ -1,10 +1,15 @@
 // menu-manager.js
+import Game from './game.js';
+
 class MenuManager {
     constructor() {
         // DOM references
         this.menuScreen = document.getElementById('menu-screen');
         this.gameScreen = document.getElementById('game-screen');
         this.timer = document.getElementById('timer');
+        
+        // Make MenuManager globally accessible for GameState
+        window.menuManager = this;
         
         // Track current screen
         this.currentScreen = 'menu';
@@ -29,13 +34,13 @@ class MenuManager {
         switch(screenName) {
             case 'menu':
                 this.menuScreen.style.display = 'flex';
-                this.timer.textContent = 'Select Game Mode';
+                if (this.timer) this.timer.textContent = 'Select Game Mode';
                 break;
             case 'game':
                 this.gameScreen.style.display = 'block';
                 break;
             case 'gameover':
-                this.showGameOverScreen();
+                // Game over screen is handled separately
                 break;
             default:
                 console.error('Unknown screen:', screenName);
@@ -45,7 +50,7 @@ class MenuManager {
     }
     
     // Create and show game over screen
-    showGameOverScreen(gameStats = {}) {
+    showGameOver(stats) {
         // Remove existing game over screen if it exists
         const existingScreen = document.getElementById('game-over-screen');
         if (existingScreen) {
@@ -57,38 +62,30 @@ class MenuManager {
         gameOverScreen.id = 'game-over-screen';
         
         // Create content based on game stats
-        const winner = gameStats.winner || 'Unknown';
-        const isPlayerWinner = gameStats.isPlayerWinner || false;
+        const isPlayerWinner = stats.playerWon;
+        const winner = isPlayerWinner ? 'Player' : 'AI';
         
         gameOverScreen.innerHTML = `
             <h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1>
             <h2>${winner} has conquered the galaxy</h2>
             <h3>GAME STATISTICS</h3>
             <ul>
-                ${this.generateStatsHTML(gameStats)}
+                <li>Time played: ${Math.floor(stats.time / 60)}:${(stats.time % 60).toString().padStart(2, '0')}</li>
+                <li>Planets conquered: ${stats.planetsConquered || 0}</li>
+                <li>Troops sent: ${stats.troopsSent || 0}</li>
+                <li>Troops lost: ${stats.troopsLost || 0}</li>
             </ul>
             <button id="play-again-button" class="menu-button">PLAY AGAIN</button>
         `;
         
         // Add to document
-        document.body.appendChild(gameOverScreen);
+        document.getElementById('game-container').appendChild(gameOverScreen);
         
         // Add event listener for play again button
         document.getElementById('play-again-button').addEventListener('click', () => {
             gameOverScreen.remove();
             this.switchToScreen('menu');
         });
-    }
-    
-    // Generate HTML for game statistics
-    generateStatsHTML(gameStats) {
-        if (!gameStats.players) return '<li>No statistics available</li>';
-        
-        return gameStats.players.map(player => {
-            return `<li style="color: ${player.color}">
-                ${player.name}: ${player.planets} planets, ${player.troops} troops
-            </li>`;
-        }).join('');
     }
     
     // Initialize the game menu
@@ -135,7 +132,7 @@ class MenuManager {
                 countButton.classList.add('active');
                 
                 // Store player count in config
-                this.gameConfig.playerCount = i + 1; // +1 for human player
+                this.gameConfig.playerCount = parseInt(i) + 1; // +1 for human player
                 
                 // Update AI selectors
                 this.updateAISelectors(i);
@@ -164,20 +161,21 @@ class MenuManager {
         startButton.className = 'menu-button start-game';
         startButton.textContent = 'START GAME';
         startButton.addEventListener('click', () => {
+            const opponentCount = document.querySelector('.count-button.active').dataset.count;
+            const totalPlayers = parseInt(opponentCount) + 1; // +1 for human player
+            
             // Collect AI types for each opponent
             const aiTypes = [];
-            for (let i = 1; i <= this.gameConfig.playerCount - 1; i++) {
+            for (let i = 1; i <= opponentCount; i++) {
                 const aiSelector = document.querySelector(`#ai-type-${i}`);
                 aiTypes.push(aiSelector.value);
             }
             
             // Update config
             this.gameConfig.aiTypes = aiTypes;
+            this.gameConfig.playerCount = totalPlayers;
             
-            // Switch to game screen
-            this.switchToScreen('game');
-            
-            // Start the game with selected configuration
+            // Start the game
             this.startGame();
         });
         
@@ -214,11 +212,11 @@ class MenuManager {
             aiSelector.name = selectId;
             aiSelector.setAttribute('aria-label', `Opponent ${i} difficulty`);
             
-            // Add AI options
+            // Add AI options with extended list
             const aiTypes = [
                 { value: 'claude1', name: 'Claude I' },
                 { value: 'claude2', name: 'Claude II' },
-                { value: 'claude1a', name: 'Claude III' },
+                { value: 'claude1a', name: 'Claude III ' },
                 { value: 'claude2a', name: 'Claude IV' },
                 { value: 'defensive', name: 'Defensive' },
                 { value: 'dummy', name: 'Big Dummy' },
@@ -239,12 +237,12 @@ class MenuManager {
     
     // Start a new game with current configuration
     startGame() {
-        const playerCount = this.gameConfig.playerCount;
-        const aiTypes = this.gameConfig.aiTypes;
+        // Hide menu and show game
+        this.menuScreen.style.display = 'none';
+        this.gameScreen.style.display = 'block';
         
-        // Create a new Game instance with the current configuration
-        // This assumes Game is available globally
-        new Game(playerCount, aiTypes);
+        // Create new Game instance with the current configuration
+        new Game(this.gameConfig.playerCount, this.gameConfig.aiTypes);
     }
     
     // Get current game configuration
@@ -252,5 +250,8 @@ class MenuManager {
         return this.gameConfig;
     }
 }
+
+// Initialize menu when the script loads
+const menuManager = new MenuManager();
 
 export default MenuManager;
