@@ -1,5 +1,4 @@
-// menu-manager.js
-import Game from './game.js';
+import Game from '../../game.js';
 
 class MenuManager {
     constructor() {
