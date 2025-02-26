@@ -1,5 +1,7 @@
 class DummyAI {
-    constructor(gameState) {
+    constructor(game, playerId) {
+        this.game = game;
+        this.playerId = playerId;
         this.color = '#ff0000'; // AI color is red
         this.lastDecisionTime = 0;
         this.decisionDelay = 1000; // Make decisions every 1 second
@@ -86,13 +88,21 @@ class DummyAI {
         }
         this.lastDecisionTime = now;
 
-        const myPlanets = gameState.planets.filter(p => p.owner === 'ai');
-        const otherPlanets = gameState.planets.filter(p => p.owner !== 'ai');
+        // Use the correct playerId rather than hardcoded 'ai'
+        const myPlanets = gameState.planets.filter(p => p.owner === this.playerId);
+        const otherPlanets = gameState.planets.filter(p => p.owner !== this.playerId && p.owner !== 'neutral');
         
-        if (myPlanets.length === 0) return null;
+        // If no opponent planets available, target neutral planets
+        const targetPlanets = otherPlanets.length > 0 ? 
+            otherPlanets : 
+            gameState.planets.filter(p => p.owner === 'neutral');
+        
+        if (myPlanets.length === 0 || targetPlanets.length === 0) return null;
 
-        const myTotalTroops = this.calculateTotalTroops(gameState.planets, 'ai');
-        const playerTotalTroops = this.calculateTotalTroops(gameState.planets, 'player');
+        const myTotalTroops = this.calculateTotalTroops(gameState.planets, this.playerId);
+        
+        // Get total troops of human player (player1)
+        const playerTotalTroops = this.calculateTotalTroops(gameState.planets, 'player1');
 
         // If we're significantly behind in troops, play more defensively
         if (myTotalTroops < playerTotalTroops * 0.7) {
@@ -104,7 +114,7 @@ class DummyAI {
         this.decisionDelay = 1000;
 
         // Find and execute best move
-        const bestMove = this.findBestTarget(myPlanets, otherPlanets, myTotalTroops);
+        const bestMove = this.findBestTarget(myPlanets, targetPlanets, myTotalTroops);
         
         if (bestMove) {
             return bestMove;

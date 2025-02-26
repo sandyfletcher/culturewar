@@ -1,11 +1,12 @@
-// Planet class representing a celestial body in the game
+// entities.js
 class Planet {
-    constructor(x, y, size, troops = 0, owner = 'neutral') {
+    constructor(x, y, size, troops = 0, owner = 'neutral', game) {
         this.x = x;
         this.y = y;
         this.size = size;
         this.troops = troops;
         this.owner = owner;
+        this.game = game;
         this.productionRate = size / 20; // Larger planets produce more troops
         this.selected = false; // Track selection state directly on the planet
     }
@@ -31,18 +32,10 @@ class Planet {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         
         // Set color based on owner
-        switch(this.owner) {
-            case 'player':
-                ctx.strokeStyle = '#ffff00'; // Yellow
-                break;
-            case 'neutral':
-                ctx.strokeStyle = '#ffffff'; // White
-                break;
-            case 'ai':
-                ctx.strokeStyle = '#ff0000'; // Red
-                break;
-            default:
-                ctx.strokeStyle = '#ff0000';
+        if (this.owner === 'neutral') {
+            ctx.strokeStyle = '#ffffff'; // White for neutral
+        } else {
+            ctx.strokeStyle = this.game.playerManager.getPlayerColor(this.owner);
         }
         
         ctx.lineWidth = 2;
@@ -65,11 +58,12 @@ class Planet {
 }
 
 class TroopMovement {
-    constructor(from, to, amount, owner) {
+    constructor(from, to, amount, owner, game) {
         this.from = from;
         this.to = to;
         this.amount = amount;
         this.owner = owner;
+        this.game = game;
         this.progress = 0;
         this.startX = from.x;
         this.startY = from.y;
@@ -106,10 +100,10 @@ class TroopMovement {
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // Draw troops
+        // Draw troops - use player color
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = this.owner === 'player' ? '#ffff00' : '#ff0000';
+        ctx.fillStyle = this.game.playerManager.getPlayerColor(this.owner);
         ctx.fill();
 
         // Draw troop count

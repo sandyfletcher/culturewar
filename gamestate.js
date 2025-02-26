@@ -6,6 +6,8 @@ export default class GameState {
         this.lastUpdate = Date.now();
         this.gameOver = false;
         this.startTime = Date.now();
+        this.winner = null;
+        this.victoryType = null;
     }
 
     update(dt) {
@@ -18,31 +20,6 @@ export default class GameState {
         this.checkWinConditions();
     }
     
-    // Check if a player has any planets
-    hasPlayerPlanets(player) {
-        return this.game.planets.some(planet => planet.owner === player);
-    }
-
-    // Check if a player has any troops in movement
-    hasPlayerTroopsInMovement(player) {
-        return this.game.troopMovements.some(movement => movement.owner === player);
-    }
-
-    // Calculate total troops for any player
-    calculateTotalTroops(player) {
-        // Sum troops from planets
-        const planetTroops = this.game.planets
-            .filter(planet => planet.owner === player)
-            .reduce((total, planet) => total + planet.troops, 0);
-        
-        // Sum troops from movements
-        const movementTroops = this.game.troopMovements
-            .filter(movement => movement.owner === player)
-            .reduce((total, movement) => total + movement.amount, 0);
-        
-        return planetTroops + movementTroops;
-    }
-
     // Check win conditions
     checkWinConditions() {
         if (this.gameOver) return false;
@@ -51,36 +28,27 @@ export default class GameState {
         if (this.timeRemaining <= 0) {
             this.game.log("Time victory triggered");
             // Find player with most troops
-            const playerTroops = this.calculateTotalTroops('player');
-            const aiTroops = this.calculateTotalTroops('ai');
-            
-            const winner = playerTroops >= aiTroops ? 'player' : 'ai';
-            
+            const winner = this.game.playerManager.getWinningPlayer();
             this.endGame(winner, 'time');
             return true;
         }
 
         // Check for domination victories
-
-        // First check if AI is eliminated
-        const aiHasPlanets = this.hasPlayerPlanets('ai');
-        const aiHasTroops = this.hasPlayerTroopsInMovement('ai');
+        const playerStats = this.game.playerManager.getPlayerStats()
+            .filter(stats => stats.id !== 'neutral');
         
-        if (!aiHasPlanets && !aiHasTroops) {
-            this.game.log("AI eliminated - player wins");
+        // Count active players (with planets or troops in movement)
+        const activePlayers = playerStats.filter(stats => 
+            this.game.playerManager.hasPlayerPlanets(stats.id) || 
+            this.game.playerManager.hasPlayerTroopsInMovement(stats.id)
+        );
+        
+        // If only one player remains active, they win
+        if (activePlayers.length === 1) {
+            const winner = activePlayers[0].id;
+            this.game.log(`${winner} is the last player with planets or troops - victory!`);
             const timeTaken = (Date.now() - this.startTime) / 1000; // in seconds
-            this.endGame('player', 'domination', timeTaken);
-            return true;
-        }
-        
-        // Then check if player is eliminated
-        const playerHasPlanets = this.hasPlayerPlanets('player');
-        const playerHasTroops = this.hasPlayerTroopsInMovement('player');
-        
-        if (!playerHasPlanets && !playerHasTroops) {
-            this.game.log("Player eliminated - AI wins");
-            const timeTaken = (Date.now() - this.startTime) / 1000; // in seconds
-            this.endGame('ai', 'domination', timeTaken);
+            this.endGame(winner, 'domination', timeTaken);
             return true;
         }
         
@@ -92,14 +60,17 @@ export default class GameState {
         this.game.log(`Game over! ${winner} wins by ${victoryType}`);
         this.gameOver = true;
         this.game.gameOver = true;
-        
-        // Calculate final stats
-        const playerTroops = Math.floor(this.calculateTotalTroops('player'));
-        const aiTroops = Math.floor(this.calculateTotalTroops('ai'));
+        this.winner = winner;
+        this.victoryType = victoryType;
         
         // Create game over screen
         const gameOverScreen = document.createElement('div');
         gameOverScreen.id = 'game-over-screen';
+        
+        // Calculate final stats for all players
+        const standings = this.game.playerManager.getPlayerStats()
+            .filter(stats => stats.id !== 'neutral')
+            .sort((a, b) => b.troops - a.troops);
         
         let gameOverHTML = `
             <h1>GAME OVER</h1>
@@ -115,14 +86,9 @@ export default class GameState {
         
         gameOverHTML += `<h3>FINAL STANDINGS</h3><ul>`;
         
-        // Sort by troop count
-        const standings = [
-            { player: 'player', troops: playerTroops },
-            { player: 'ai', troops: aiTroops }
-        ].sort((a, b) => b.troops - a.troops);
-        
         for (const stat of standings) {
-            gameOverHTML += `<li>${stat.player.toUpperCase()}: ${stat.troops} troops</li>`;
+            const player = this.game.playerManager.getPlayerById(stat.id);
+            gameOverHTML += `<li>${stat.id.toUpperCase()}: ${Math.floor(stat.troops)} troops (${stat.planets} planets)</li>`;
         }
         
         gameOverHTML += `</ul><button class="menu-button" id="play-again-button">PLAY AGAIN</button>`;

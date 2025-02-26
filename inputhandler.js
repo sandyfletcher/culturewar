@@ -156,9 +156,12 @@ export default class InputHandler {
         // Clear previous selection
         this.game.clearSelection();
         
+        // Get human player ID (player1 is the human player)
+        const humanPlayerId = this.game.playerManager.getHumanPlayers()[0].id;
+        
         // Find all player planets within the selection box
         for (const planet of this.game.planets) {
-            if (planet.owner === 'player') {
+            if (planet.owner === humanPlayerId) {
                 // Check if planet is within or touched by the selection box
                 if (planet.x + planet.size >= left && 
                     planet.x - planet.size <= right && 
@@ -187,9 +190,12 @@ export default class InputHandler {
             return;
         }
 
+        // Get human player ID
+        const humanPlayerId = this.game.playerManager.getHumanPlayers()[0].id;
+
         // If we have planets selected and click on a different planet
         if (this.game.selectedPlanets.length > 0 && !this.game.selectedPlanets.includes(clickedPlanet)) {
-            if (this.game.selectedPlanets.every(planet => planet.owner === 'player')) {
+            if (this.game.selectedPlanets.every(planet => planet.owner === humanPlayerId)) {
                 // Send troops from all selected planets
                 for (const sourcePlanet of this.game.selectedPlanets) {
                     const troopsToSend = Math.floor(sourcePlanet.troops / 2);
@@ -200,7 +206,8 @@ export default class InputHandler {
                             sourcePlanet,
                             clickedPlanet,
                             troopsToSend,
-                            'player'
+                            humanPlayerId,
+                            this.game
                         ));
                     }
                 }
@@ -210,7 +217,7 @@ export default class InputHandler {
             }
         } 
         // If clicking on a player's planet, select it
-        else if (clickedPlanet.owner === 'player') {
+        else if (clickedPlanet.owner === humanPlayerId) {
             this.game.clearSelection();
             clickedPlanet.selected = true;
             this.game.selectedPlanets = [clickedPlanet];
