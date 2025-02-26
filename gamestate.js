@@ -26,7 +26,6 @@ export default class GameState {
 
         // Check for time victory
         if (this.timeRemaining <= 0) {
-            this.game.log("Time victory triggered");
             // Find player with most troops
             const winner = this.game.playerManager.getWinningPlayer();
             this.endGame(winner, 'time');
@@ -46,7 +45,6 @@ export default class GameState {
         // If only one player remains active, they win
         if (activePlayers.length === 1) {
             const winner = activePlayers[0].id;
-            this.game.log(`${winner} is the last player with planets or troops - victory!`);
             const timeTaken = (Date.now() - this.startTime) / 1000; // in seconds
             this.endGame(winner, 'domination', timeTaken);
             return true;
@@ -57,7 +55,6 @@ export default class GameState {
 
     // End the game and show game over screen
     endGame(winner, victoryType, timeTaken = null) {
-        this.game.log(`Game over! ${winner} wins by ${victoryType}`);
         this.gameOver = true;
         this.game.gameOver = true;
         this.winner = winner;

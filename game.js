@@ -5,13 +5,30 @@ import GameState from './gamestate.js';
 import PlayerManager from './playermanager.js';
 import AIManager from './ai-manager.js';
 
+// Game configuration constants
+const PLANET_CONFIG = {
+    MIN_DISTANCE: 80,
+    MAX_ATTEMPTS: 100,
+    NEUTRAL_COUNT: 8,
+    MIN_SIZE: 15,
+    MAX_SIZE_VARIATION: 20,
+    STARTING_PLANET_SIZE: 30,
+    STARTING_TROOPS: 30
+};
+
 class Game {
     constructor(playerCount = 2) {
         // Setup canvas
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
         this.resize();
-        window.addEventListener('resize', () => this.resize());
+        
+        // Implement debounced resize handler
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => this.resize(), 100);
+        });
         
         // Game entities
         this.planets = [];
@@ -22,9 +39,6 @@ class Game {
         // Reference to entity constructors for other modules
         this.Planet = Planet;
         this.TroopMovement = TroopMovement;
-        
-        // Debug log setup
-        this.setupDebugLog();
         
         // Game state
         this.gameOver = false;
@@ -40,33 +54,12 @@ class Game {
         this.generatePlanets(playerCount);
         this.gameLoop();
         
-        console.log(`Game initialized with ${playerCount} players`);
     }
     
     resize() {
         const container = this.canvas.parentElement;
         this.canvas.width = container.clientWidth;
         this.canvas.height = container.clientHeight;
-    }
-    
-    setupDebugLog() {
-        this.debugLog = document.createElement('div');
-        this.debugLog.id = 'debug-log';
-        this.debugLog.style.position = 'absolute';
-        this.debugLog.style.top = '50px';
-        this.debugLog.style.left = '10px';
-        this.debugLog.style.color = '#fff';
-        this.debugLog.style.fontSize = '10px';
-        this.debugLog.style.fontFamily = 'monospace';
-        this.debugLog.style.textAlign = 'left';
-        this.debugLog.style.pointerEvents = 'none';
-        document.getElementById('game-screen').appendChild(this.debugLog);
-    }
-    
-    // Debug logging function
-    log(message) {
-        console.log(message);
-        // Logging to DOM disabled
     }
     
     // Clear all planet selections
@@ -78,15 +71,28 @@ class Game {
     }
     
     generatePlanets(playerCount) {
+        // Get player IDs
         const humanPlayer = this.playerManager.getHumanPlayers()[0].id;
         const aiPlayers = this.playerManager.getAIPlayers().map(player => player.id);
         
-        // Player's starting planet
+        // Generate starting planet positions based on player count
+        this.generatePlayerPlanets(humanPlayer, aiPlayers, playerCount);
+        
+        // Generate neutral planets
+        this.generateNeutralPlanets();
+    }
+    
+    generatePlayerPlanets(humanPlayer, aiPlayers, playerCount) {
+        // Calculate positions based on canvas dimensions for better adaptability
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        
+        // Player's starting planet - lower left quadrant
         const playerPlanet = new Planet(
-            this.canvas.width * 0.2,
-            this.canvas.height * 0.8,
-            30,
-            30,
+            width * 0.2,
+            height * 0.8,
+            PLANET_CONFIG.STARTING_PLANET_SIZE,
+            PLANET_CONFIG.STARTING_TROOPS,
             humanPlayer,
             this
         );
@@ -94,47 +100,55 @@ class Game {
 
         // AI starting planets
         for (let i = 0; i < aiPlayers.length; i++) {
-            let x, y;
+            let position;
             
             // Position AI planets based on player count
             if (playerCount === 2) {
-                x = this.canvas.width * 0.8;
-                y = this.canvas.height * 0.2;
+                // 2 players: AI in upper right
+                position = { x: width * 0.8, y: height * 0.2 };
             } else if (playerCount === 3) {
-                if (i === 0) {
-                    x = this.canvas.width * 0.8;
-                    y = this.canvas.height * 0.2;
-                } else {
-                    x = this.canvas.width * 0.8;
-                    y = this.canvas.height * 0.8;
-                }
+                // 3 players: AIs in upper right and lower right
+                position = (i === 0) 
+                    ? { x: width * 0.8, y: height * 0.2 } 
+                    : { x: width * 0.8, y: height * 0.8 };
+            } else if (playerCount === 4) {
+                // Add support for 4 players in preparation for multiplayer
+                const positions = [
+                    { x: width * 0.8, y: height * 0.2 },
+                    { x: width * 0.2, y: height * 0.2 },
+                    { x: width * 0.8, y: height * 0.8 }
+                ];
+                position = positions[i % positions.length];
             }
             
             const aiPlanet = new Planet(
-                x,
-                y,
-                30,
-                30,
+                position.x,
+                position.y,
+                PLANET_CONFIG.STARTING_PLANET_SIZE,
+                PLANET_CONFIG.STARTING_TROOPS,
                 aiPlayers[i],
                 this
             );
             this.planets.push(aiPlanet);
         }
-
-        // Generate neutral planets
-        for (let i = 0; i < 8; i++) {
+    }
+    
+    generateNeutralPlanets() {
+        for (let i = 0; i < PLANET_CONFIG.NEUTRAL_COUNT; i++) {
             let attempts = 0;
             let valid = false;
             
-            while (!valid && attempts < 100) {
-                const size = 15 + Math.random() * 20;
+            while (!valid && attempts < PLANET_CONFIG.MAX_ATTEMPTS) {
+                const size = PLANET_CONFIG.MIN_SIZE + Math.random() * PLANET_CONFIG.MAX_SIZE_VARIATION;
                 const x = size + Math.random() * (this.canvas.width - size * 2);
                 const y = size + Math.random() * (this.canvas.height - size * 2);
                 
                 valid = this.isValidPlanetPosition(x, y, size);
                 
                 if (valid) {
-                    this.planets.push(new Planet(x, y, size, 10, 'neutral', this));
+                    // Each neutral planet starts with troops proportional to its size
+                    const startingTroops = Math.floor(size / 3);
+                    this.planets.push(new Planet(x, y, size, startingTroops, 'neutral', this));
                     break;
                 }
                 attempts++;
@@ -143,14 +157,12 @@ class Game {
     }
 
     isValidPlanetPosition(x, y, size) {
-        const minDistance = 80; // Minimum distance between planet centers
-        
         for (const planet of this.planets) {
             const dx = x - planet.x;
             const dy = y - planet.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < minDistance) {
+            if (distance < PLANET_CONFIG.MIN_DISTANCE) {
                 return false;
             }
         }
@@ -171,40 +183,57 @@ class Game {
         if (this.gameOver) return;
 
         // Update planet troops
+        this.updatePlanets(dt);
+
+        // Update troop movements
+        this.updateTroopMovements(dt);
+
+        // Let AI make decisions
+        this.aiManager.updateAIs(dt);
+    }
+    
+    updatePlanets(dt) {
+        const humanPlayerId = this.playerManager.getHumanPlayers()[0].id;
+        
         for (const planet of this.planets) {
             planet.update(dt);
             
             // If a planet changes ownership, it should not remain selected
-            if (planet.selected && planet.owner !== this.playerManager.getHumanPlayers()[0].id) {
+            if (planet.selected && planet.owner !== humanPlayerId) {
                 planet.selected = false;
                 this.selectedPlanets = this.selectedPlanets.filter(p => p !== planet);
             }
         }
-
-        // Update troop movements
+    }
+    
+    updateTroopMovements(dt) {
         for (let i = this.troopMovements.length - 1; i >= 0; i--) {
             const movement = this.troopMovements[i];
             if (movement.update(dt)) {
                 // Troops have arrived
-                const targetPlanet = movement.to;
-                if (targetPlanet.owner === movement.owner) {
-                    targetPlanet.troops += movement.amount;
-                } else {
-                    targetPlanet.troops -= movement.amount;
-                    if (targetPlanet.troops < 0) {
-                        targetPlanet.owner = movement.owner;
-                        targetPlanet.troops = Math.abs(targetPlanet.troops);
-                    }
-                }
+                this.processTroopArrival(movement);
                 this.troopMovements.splice(i, 1);
                 
                 // After troop movements complete, check win conditions again
                 this.gameState.checkWinConditions();
             }
         }
-
-        // Let AI make decisions
-        this.aiManager.updateAIs(dt);
+    }
+    
+    processTroopArrival(movement) {
+        const targetPlanet = movement.to;
+        if (targetPlanet.owner === movement.owner) {
+            // Reinforcing owned planet
+            targetPlanet.troops += movement.amount;
+        } else {
+            // Attacking enemy planet
+            targetPlanet.troops -= movement.amount;
+            if (targetPlanet.troops < 0) {
+                // Capture planet if troops < 0
+                targetPlanet.owner = movement.owner;
+                targetPlanet.troops = Math.abs(targetPlanet.troops);
+            }
+        }
     }
     
     gameLoop() {
@@ -216,65 +245,49 @@ class Game {
     }
 }
 
-// Remove the previously added buttons if they exist
-const removeButtonIfExists = (id) => {
-    const button = document.getElementById(id);
-    if (button) button.remove();
-};
-
-removeButtonIfExists('two-player-button');
-removeButtonIfExists('three-player-button');
-
-// Initialize game when the Begin button is clicked
-const menuScreen = document.getElementById('menu-screen');
-const gameScreen = document.getElementById('game-screen');
-const menuContainer = document.querySelector('#menu-screen .menu-container');
-
-// If menu container doesn't exist, create it
-if (!menuContainer) {
-    const newMenuContainer = document.createElement('div');
-    newMenuContainer.className = 'menu-container';
-    menuScreen.appendChild(newMenuContainer);
+// Initialize the game menu
+function initializeGameMenu() {
+    const menuScreen = document.getElementById('menu-screen');
+    const gameScreen = document.getElementById('game-screen');
+    
+    // Create menu container if it doesn't exist
+    let menuContainer = document.querySelector('#menu-screen .menu-container');
+    if (!menuContainer) {
+        menuContainer = document.createElement('div');
+        menuContainer.className = 'menu-container';
+        menuScreen.appendChild(menuContainer);
+    }
+    
+    // Clear existing menu buttons
+    menuContainer.innerHTML = '';
+    
+    // Create game mode buttons
+    const createButton = (id, text, playerCount) => {
+        const button = document.createElement('button');
+        button.id = id;
+        button.className = 'menu-button';
+        button.textContent = text;
+        
+        button.addEventListener('click', () => {
+            menuScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            new Game(playerCount);
+        });
+        
+        return button;
+    };
+    
+    // Add buttons to the container
+    menuContainer.appendChild(createButton('two-player-button', '2 PLAYER MODE', 2));
+    menuContainer.appendChild(createButton('three-player-button', '3 PLAYER MODE', 3));
+    
+    // Prepare for multiplayer - can be uncommented when ready
+    /* 
+    menuContainer.appendChild(createButton('multiplayer-button', 'MULTIPLAYER', 4));
+    */
 }
 
-const container = menuContainer || document.querySelector('#menu-screen .menu-container');
-
-// Create buttons for game modes
-const twoPlayerButton = document.createElement('button');
-twoPlayerButton.id = 'two-player-button';
-twoPlayerButton.className = 'menu-button';
-twoPlayerButton.textContent = '2 PLAYER MODE';
-
-const threePlayerButton = document.createElement('button');
-threePlayerButton.id = 'three-player-button';
-threePlayerButton.className = 'menu-button';
-threePlayerButton.textContent = '3 PLAYER MODE';
-
-// Add buttons to the container
-container.appendChild(twoPlayerButton);
-container.appendChild(threePlayerButton);
-
-// Add event listeners
-twoPlayerButton.addEventListener('click', () => {
-    menuScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    new Game(2); // Pass player count to constructor
-});
-
-threePlayerButton.addEventListener('click', () => {
-    menuScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    new Game(3); // Pass player count to constructor
-});
-
-// For backward compatibility, handle the begin button if it exists
-const beginButton = document.getElementById('begin-button');
-if (beginButton) {
-    beginButton.addEventListener('click', () => {
-        menuScreen.style.display = 'none';
-        gameScreen.style.display = 'block';
-        new Game(2); // Default to 2-player mode
-    });
-}
+// Initialize menu when the script loads
+initializeGameMenu();
 
 export default Game;
