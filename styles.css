@@ -1,9 +1,12 @@
+/* IMPORTS */
 @font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Cookie'; src: url('./assets/fonts/Cookie.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Londrina'; src: url('./assets/fonts/Londrina.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'RubikScribble'; src: url('./assets/fonts/RubikScribble.ttf') format('truetype'); font-display: block}
-
-
+@font-face { font-family: 'Geostar'; src: url('./assets/fonts/Geostar.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'RubikBrokenFax'; src: url('./assets/fonts/RubikBrokenFax.ttf') format('truetype'); font-display: block}
+/* BASE RESET */
 * {
     margin: 0;
     padding: 0;
@@ -14,7 +17,7 @@ body {
     padding: 0;
     background: #000;
     color: #fff;
-    font-family: 'Codystar', monospace;
+    font-family: 'Tourney', monospace;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -32,10 +35,11 @@ header {
 header h1 {
     font-family: 'Codystar', monospace;
     border-bottom: 2px solid #fff;
+    padding: 0.2rem;
 }
 #timer {
     color: #fff;
-    font-family: 'Cookie', monospace;
+    padding: 0.2rem;
 }
 #outer-container {
     display: flex;
@@ -49,6 +53,7 @@ header h1 {
     border: 2px solid #fff;
     overflow: hidden;
 }
+
 #game-container {
     position: relative;
     width: 100%;
@@ -57,6 +62,9 @@ header h1 {
     justify-content: center;
     align-items: center;
 }
+
+/* FOOTER */
+
 #menu-screen, #game-screen {
     position: absolute;
     top: 0;
@@ -75,12 +83,12 @@ header h1 {
     color: #fff;
     padding: 15px 30px;
     margin: 1rem auto;
-    font-family: 'RubikScribble', monospace;
+    font-family: 'Tourney', monospace;
     font-size: 16px;
     cursor: pointer;
     transition: all 0.3s;
     text-align: center;
-    width: 200px;
+    width: 40%;
 }
 .menu-button:hover {
     background: #fff;
@@ -90,6 +98,133 @@ header h1 {
     width: 100%;
     height: 100%;
 }
+
+/* Game Setup Menu Styles */
+/* FOOTER */
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.setup-section {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.setup-section h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.player-count-select {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.count-button {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    background-color:black;
+    color: #fff;
+    border: 2px solid #666;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Tourney', monospace;
+}
+
+.count-button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+    border: 2px solid white;
+
+}
+
+.count-button.active {
+    background-color: white;
+    color: #000;
+    border-color: #ffaa00;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.ai-selectors-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.ai-selector {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.ai-selector select {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: #333;
+    color: #fff;
+    border: 2px solid #666;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: 'Tourney', monospace;
+    font-size: 16px;
+    text-align: center;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 10px center;
+    background-size: 16px;
+}
+
+.ai-selector select:hover {
+    background-color: #444;
+    border-color: #888;
+}
+
+.ai-selector select:focus {
+    outline: none;
+    border-color: #ffaa00;
+    box-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+}
+
+.start-game {
+    margin-top: 30px;
+    padding: 15px 30px;
+    font-size: 20px;
+    background-color: black;
+    border-radius: 30px;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    width: 220px;
+}
+.start-game:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+/* GAME OVER */
 #game-over-screen {
     position: fixed;
     top: 0;
@@ -135,10 +270,12 @@ header h1 {
 #play-again-button {
     margin-top: 30px;
 }
+/* FOOTER */
 footer {
     display: flex;
     flex-direction: column;
     width: 100%;
     text-align: center;
     border-top: 2px solid #fff;
+    padding: 0.2rem;
 }

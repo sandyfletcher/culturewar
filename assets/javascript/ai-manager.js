@@ -1,12 +1,24 @@
-import DummyAI from './dummyai.js';
-import AdvancedAI from './advancedai.js';
-import Claude1 from './claude1.js';
-import Claude2 from './claude2.js';
+import DummyAI from './AI bots/dummyai.js';
+import AdvancedAI from './AI bots/advancedai.js';
+import Claude1 from './AI bots/claude1.js';
+import Claude2 from './AI bots/claude2.js';
+import Claude1a from './AI bots/claude1a.js';
+import Claude2a from './AI bots/claude2a.js';
+import DefensiveAI from './AI bots/defensiveAI.js';
 
 export default class AIManager {
     constructor(game) {
         this.game = game;
         this.aiControllers = {};
+        this.aiTypes = {
+            'claude1': Claude1,
+            'claude2': Claude2,
+            'claude1a': Claude1a,
+            'claude2a': Claude2a,
+            'defensive': DefensiveAI,
+            'dummy': DummyAI,
+            'advanced': AdvancedAI
+        };
         this.initializeAIs();
     }
     
@@ -18,11 +30,9 @@ export default class AIManager {
         const aiPlayers = this.game.playerManager.getAIPlayers();
         
         for (const player of aiPlayers) {
-            if (player.aiController === 'advanced') {
-                this.aiControllers[player.id] = new Claude2(this.game, player.id);
-            } else {
-                this.aiControllers[player.id] = new Claude1(this.game, player.id);
-            }
+            // Get the AI class based on the specified type
+            const AIClass = this.aiTypes[player.aiController] || this.aiTypes['claude1']; 
+            this.aiControllers[player.id] = new AIClass(this.game, player.id);
         }
     }
     

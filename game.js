@@ -1,9 +1,9 @@
-import { Planet, TroopMovement } from './entities.js';
-import InputHandler from './inputhandler.js';
-import Renderer from './renderer.js';
-import GameState from './gamestate.js';
-import PlayerManager from './playermanager.js';
-import AIManager from './ai-manager.js';
+import { Planet, TroopMovement } from './assets/javascript/entities.js';
+import InputHandler from './assets/javascript/inputhandler.js';
+import Renderer from './assets/javascript/renderer.js';
+import GameState from './assets/javascript/gamestate.js';
+import PlayerManager from './assets/javascript/playermanager.js';
+import AIManager from './assets/javascript/ai-manager.js';
 
 // Game configuration constants
 const PLANET_CONFIG = {
@@ -17,11 +17,14 @@ const PLANET_CONFIG = {
 };
 
 class Game {
-    constructor(playerCount = 2) {
+    constructor(playerCount = 2, aiTypes = []) {
         // Setup canvas
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
         this.resize();
+        
+        // Store AI configuration
+        this.aiTypes = aiTypes;
         
         // Implement debounced resize handler
         let resizeTimeout;
@@ -44,7 +47,7 @@ class Game {
         this.gameOver = false;
         
         // Initialize modules in correct order
-        this.playerManager = new PlayerManager(this, playerCount);
+        this.playerManager = new PlayerManager(this, playerCount, this.aiTypes);
         this.inputHandler = new InputHandler(this);
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
@@ -53,9 +56,8 @@ class Game {
         // Initialize game
         this.generatePlanets(playerCount);
         this.gameLoop();
-        
     }
-    
+
     resize() {
         const container = this.canvas.parentElement;
         this.canvas.width = container.clientWidth;
@@ -258,33 +260,138 @@ function initializeGameMenu() {
         menuScreen.appendChild(menuContainer);
     }
     
-    // Clear existing menu buttons
+    // Clear existing menu
     menuContainer.innerHTML = '';
     
-    // Create game mode buttons
-    const createButton = (id, text, playerCount) => {
-        const button = document.createElement('button');
-        button.id = id;
-        button.className = 'menu-button';
-        button.textContent = text;
-        
-        button.addEventListener('click', () => {
-            menuScreen.style.display = 'none';
-            gameScreen.style.display = 'block';
-            new Game(playerCount);
+    // Create game setup form
+    const setupForm = document.createElement('div');
+    setupForm.className = 'setup-form';
+    
+    // Player count selection
+    const playerCountContainer = document.createElement('div');
+    playerCountContainer.className = 'setup-section';
+    
+    const playerCountLabel = document.createElement('h2');
+    playerCountLabel.textContent = 'OPPONENTS';
+    playerCountContainer.appendChild(playerCountLabel);
+    
+    const playerCountSelect = document.createElement('div');
+    playerCountSelect.className = 'player-count-select';
+    
+    for (let i = 1; i <= 3; i++) {
+        const countButton = document.createElement('button');
+        countButton.className = 'count-button';
+        countButton.textContent = i;
+        countButton.dataset.count = i;
+        countButton.setAttribute('aria-label', `${i} opponent${i > 1 ? 's' : ''}`);
+        countButton.addEventListener('click', () => {
+            // Remove active class from all buttons
+            document.querySelectorAll('.count-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            countButton.classList.add('active');
+            
+            // Show AI selection based on player count
+            updateAISelectors(i);
         });
         
-        return button;
-    };
+        // Default to 1 opponent
+        if (i === 1) {
+            countButton.classList.add('active');
+        }
+        
+        playerCountSelect.appendChild(countButton);
+    }
     
-    // Add buttons to the container
-    menuContainer.appendChild(createButton('two-player-button', '2 PLAYER MODE', 2));
-    menuContainer.appendChild(createButton('three-player-button', '3 PLAYER MODE', 3));
+    playerCountContainer.appendChild(playerCountSelect);
+    setupForm.appendChild(playerCountContainer);
     
-    // Prepare for multiplayer - can be uncommented when ready
-    /* 
-    menuContainer.appendChild(createButton('multiplayer-button', 'MULTIPLAYER', 4));
-    */
+    // AI selection container
+    const aiSelectionContainer = document.createElement('div');
+    aiSelectionContainer.className = 'setup-section';
+    aiSelectionContainer.id = 'ai-selection';
+    
+    // AI selection slots will be added dynamically
+    setupForm.appendChild(aiSelectionContainer);
+    
+    // Start game button
+    const startButton = document.createElement('button');
+    startButton.className = 'menu-button start-game';
+    startButton.textContent = 'START GAME';
+    startButton.addEventListener('click', () => {
+        const opponentCount = document.querySelector('.count-button.active').dataset.count;
+        const totalPlayers = parseInt(opponentCount) + 1; // +1 for human player
+        
+        // Collect AI types for each opponent
+        const aiTypes = [];
+        for (let i = 1; i <= opponentCount; i++) {
+            const aiSelector = document.querySelector(`#ai-type-${i}`);
+            aiTypes.push(aiSelector.value);
+        }
+        
+        // Start the game with selected configuration
+        menuScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        
+        new Game(totalPlayers, aiTypes);
+    });
+    
+    setupForm.appendChild(startButton);
+    menuContainer.appendChild(setupForm);
+    
+    // Initialize AI selectors with default 1 opponent
+    updateAISelectors(1);
+    
+// Modify only the AI selection part in the initializeGameMenu function
+function updateAISelectors(opponentCount) {
+    const aiSelection = document.getElementById('ai-selection');
+    aiSelection.innerHTML = '';
+    
+    // Create a container for the AI selectors
+    const selectorsContainer = document.createElement('div');
+    selectorsContainer.className = 'ai-selectors-container';
+    aiSelection.appendChild(selectorsContainer);
+    
+    for (let i = 1; i <= opponentCount; i++) {
+        const aiContainer = document.createElement('div');
+        aiContainer.className = 'ai-selector';
+        
+        // Create unique ID for the select element
+        const selectId = `ai-type-${i}`;
+        
+        const aiLabel = document.createElement('label');
+        aiLabel.htmlFor = selectId;
+        aiContainer.appendChild(aiLabel);
+        
+        const aiSelector = document.createElement('select');
+        aiSelector.id = selectId;
+        aiSelector.name = selectId;
+        aiSelector.setAttribute('aria-label', `Opponent ${i} difficulty`);
+        
+        // Add AI options with extended list
+        const aiTypes = [
+            { value: 'claude1', name: 'Claude I' },
+            { value: 'claude2', name: 'Claude II' },
+            { value: 'claude1a', name: 'Claude III ' },
+            { value: 'claude2a', name: 'Claude IV' },
+            { value: 'defensive', name: 'Defensive' },
+            { value: 'dummy', name: 'Big Dummy)' },
+            { value: 'advanced', name: 'Claude 0' }
+        ];
+        
+        aiTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.value;
+            option.textContent = type.name;
+            aiSelector.appendChild(option);
+        });
+        
+        aiContainer.appendChild(aiSelector);
+        selectorsContainer.appendChild(aiContainer);
+    }
+}
 }
 
 // Initialize menu when the script loads

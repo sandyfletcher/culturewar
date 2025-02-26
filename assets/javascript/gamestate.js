@@ -1,4 +1,3 @@
-// game-state.js
 export default class GameState {
     constructor(game) {
         this.game = game;
@@ -11,8 +10,22 @@ export default class GameState {
     }
 
     update(dt) {
-        if (this.gameOver) return;
-
+        if (this.gameOver) {
+            // Create game statistics
+            const stats = {
+                playerWon: this.winner === this.game.playerManager.getHumanPlayers()[0].id,
+                time: this.elapsedTime,
+                planetsConquered: this.getPlanetsConquered(),
+                troopsSent: this.troopsSent,
+                troopsLost: this.troopsLost
+            };
+            
+            // Show game over screen
+            const menuManager = window.menuManager;
+            if (menuManager) {
+                menuManager.showGameOver(stats);
+            }
+        }
         // Update timer
         this.timeRemaining -= dt;
         

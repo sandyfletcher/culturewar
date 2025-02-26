@@ -1,8 +1,9 @@
 export default class PlayerManager {
-    constructor(game, playerCount = 2) {
+    constructor(game, playerCount = 2, aiTypes = []) {
         this.game = game;
         this.players = [];
         this.playerCount = playerCount;
+        this.aiTypes = aiTypes;
         this.playerColors = {
             'player1': '#ffff00', // Yellow
             'player2': '#ff0000', // Red
@@ -18,16 +19,24 @@ export default class PlayerManager {
         // Clear existing players
         this.players = [];
         
-        // Create player objects
-        for (let i = 1; i <= this.playerCount; i++) {
-            const playerId = `player${i}`;
-            const isAI = i > 1; // First player is human, rest are AI for now
+        // Create human player
+        this.players.push({
+            id: 'player1',
+            color: this.playerColors['player1'],
+            isAI: false,
+            aiController: null
+        });
+        
+        // Create AI players with selected AI types
+        for (let i = 0; i < this.playerCount - 1; i++) {
+            const playerId = `player${i + 2}`;
+            const aiType = this.aiTypes[i] || 'claude1'; // Default to claude1 if not specified
             
             this.players.push({
                 id: playerId,
                 color: this.playerColors[playerId],
-                isAI: isAI,
-                aiController: isAI ? (i === 2 ? 'advanced' : 'dummy') : null
+                isAI: true,
+                aiController: aiType
             });
         }
     }
