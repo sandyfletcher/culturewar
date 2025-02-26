@@ -58,15 +58,18 @@ export default class GameState {
     // Check win conditions
     checkWinConditions() {
         if (this.gameOver) return false;
-
+    
         // Check for time victory
         if (this.timeRemaining <= 0) {
             // Find player with most troops
             const winner = this.game.playerManager.getWinningPlayer();
-            this.endGame(winner, 'time');
+            this.winner = winner;
+            this.victoryType = 'time';
+            this.gameOver = true;
+            this.game.gameOver = true;
             return true;
         }
-
+    
         // Check for domination victories
         const playerStats = this.game.playerManager.getPlayerStats()
             .filter(stats => stats.id !== 'neutral');
@@ -79,9 +82,10 @@ export default class GameState {
         
         // If only one player remains active, they win
         if (activePlayers.length === 1) {
-            const winner = activePlayers[0].id;
-            const timeTaken = (Date.now() - this.startTime) / 1000; // in seconds
-            this.endGame(winner, 'domination', timeTaken);
+            this.winner = activePlayers[0].id;
+            this.victoryType = 'domination';
+            this.gameOver = true;
+            this.game.gameOver = true;
             return true;
         }
         
@@ -94,7 +98,6 @@ export default class GameState {
         this.game.gameOver = true;
         this.winner = winner;
         this.victoryType = victoryType;
-        
-        // The actual game over screen is now handled by MenuManager's showGameOver method
     }
+    
 }
