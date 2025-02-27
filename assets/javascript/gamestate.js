@@ -10,6 +10,10 @@ export default class GameState {
         this.troopsSent = 0;
         this.troopsLost = 0;
         this.planetsConquered = 0;
+        
+        // Track when players are eliminated
+        this.eliminationTimes = {};
+        this.activePlayers = new Set(this.game.playerManager.players.map(player => player.id));
     }
 
     update(dt) {
@@ -18,8 +22,33 @@ export default class GameState {
         // Update timer
         this.timeRemaining -= dt;
         
+        // Check for player eliminations
+        this.checkPlayerEliminations();
+        
         // Check win conditions
         this.checkWinConditions();
+    }
+    
+    // Track when players are eliminated
+    checkPlayerEliminations() {
+        const currentTime = (Date.now() - this.startTime) / 1000;
+        
+        // Check each active player
+        for (const playerId of this.activePlayers) {
+            // Skip neutral
+            if (playerId === 'neutral') continue;
+            
+            // Check if player still has planets or troops in movement
+            const hasResources = this.game.playerManager.hasPlayerPlanets(playerId) || 
+                               this.game.playerManager.hasPlayerTroopsInMovement(playerId);
+            
+            // If player has no resources and hasn't been marked as eliminated yet
+            if (!hasResources && !this.eliminationTimes[playerId]) {
+                // Record elimination time
+                this.eliminationTimes[playerId] = currentTime;
+                this.activePlayers.delete(playerId);
+            }
+        }
     }
     
     // Increment counters for statistics
@@ -82,7 +111,8 @@ export default class GameState {
             time: (Date.now() - this.startTime) / 1000, // elapsed time in seconds
             planetsConquered: this.planetsConquered,
             troopsSent: this.troopsSent,
-            troopsLost: this.troopsLost
+            troopsLost: this.troopsLost,
+            eliminationTimes: this.eliminationTimes // Add elimination times to stats
         };
         
         // Add property specific to single player mode
@@ -93,7 +123,7 @@ export default class GameState {
         
         // Show game over screen using MenuManager
         if (window.menuManager) {
-            window.menuManager.showGameOver(stats);
+            window.menuManager.showGameOver(stats, this.game);
         } else {
             console.error("MenuManager not found. Make sure it's initialized before GameState.");
         }

@@ -51,71 +51,176 @@ class MenuManager {
     }
     
     // Create and show game over screen
-    showGameOver(stats) {
-        // Remove existing game over screen if it exists
-        const existingScreen = document.getElementById('game-over-screen');
-        if (existingScreen) {
-            existingScreen.remove();
-        }
-        
-        // Create new game over screen
-        const gameOverScreen = document.createElement('div');
-        gameOverScreen.id = 'game-over-screen';
-        
-        // Create content based on game stats and game mode
-        let winnerText;
-        
-        if (this.gameConfig.gameMode === 'singleplayer') {
-            // Single player mode with human player
-            const isPlayerWinner = stats.playerWon;
-            const winner = isPlayerWinner ? 'Player' : 'AI';
-            winnerText = `<h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1>
-                        <h2>${winner} has conquered the galaxy</h2>`;
-        } else {
-            // Bot battle mode
-            const winnerIndex = parseInt(stats.winner.charAt(stats.winner.length - 1)) - 1;
-            const winnerType = this.gameConfig.aiTypes[winnerIndex];
-            winnerText = `<h1>BATTLE COMPLETE</h1>
-                        <h2>${this.getAIDisplayName(winnerType)} has conquered the galaxy</h2>`;
-        }
-        
-        gameOverScreen.innerHTML = `
-            ${winnerText}
-            <h3>BATTLE STATISTICS</h3>
-            <ul>
-                <li>Time played: ${Math.floor(stats.time / 60)}:${(stats.time % 60).toString().padStart(2, '0')}</li>
-                <li>Planets conquered: ${stats.planetsConquered || 0}</li>
-                <li>Troops sent: ${stats.troopsSent || 0}</li>
-                <li>Troops lost: ${stats.troopsLost || 0}</li>
-            </ul>
-            <button id="play-again-button" class="menu-button">PLAY AGAIN</button>
-        `;
-        
-        // Add to document
-        document.getElementById('game-container').appendChild(gameOverScreen);
-        
-        // Add event listener for play again button
-        document.getElementById('play-again-button').addEventListener('click', () => {
-            gameOverScreen.remove();
-            this.switchToScreen('menu');
-        });
-    }
-
-    // Get friendly display name for AI type
-    getAIDisplayName(aiType) {
-        const aiTypes = {
-            'claude1': 'Claude I',
-            'claude2': 'Claude II',
-            'claude1a': 'Claude III',
-            'claude2a': 'Claude IV',
-            'defensive': 'Defensive',
-            'dummy': 'Big Dummy',
-            'advanced': 'Claude 0'
-        };
-        
-        return aiTypes[aiType] || aiType;
+// Create and show game over screen with leaderboard
+showGameOver(stats, gameInstance) {
+    this.game = gameInstance;
+    // Remove existing game over screen if it exists
+    const existingScreen = document.getElementById('game-over-screen');
+    if (existingScreen) {
+        existingScreen.remove();
     }
     
+    // Create new game over screen
+    const gameOverScreen = document.createElement('div');
+    gameOverScreen.id = 'game-over-screen';
+    
+    // Get all player stats for leaderboard
+    const playerStats = this.game.playerManager.getPlayerStats()
+        .filter(player => player.id !== 'neutral');
+    
+    // Get all players including eliminated ones
+    const allPlayers = this.game.playerManager.players;
+    
+    // Track elimination times (we'll need to add this data to the GameState)
+    const eliminationTimes = this.game.gameState.eliminationTimes || {};
+    const gameTime = stats.time;
+    
+    // Create leaderboard data with all necessary fields
+    const leaderboardData = allPlayers.map(player => {
+        const playerStat = playerStats.find(p => p.id === player.id) || { planets: 0, troops: 0 };
+        const isWinner = player.id === stats.winner;
+        const survivalTime = eliminationTimes[player.id] || gameTime; // Use game time if player survived
+        
+        return {
+            id: player.id,
+            displayName: this.getPlayerDisplayName(player),
+            planets: playerStat.planets,
+            troops: Math.floor(playerStat.troops || 0),
+            survivalTime,
+            isWinner,
+            isAI: player.isAI,
+            aiType: player.aiController
+        };
+    });
+    
+    // Sort players based on ranking criteria: planets → troops → survival time
+    leaderboardData.sort((a, b) => {
+        if (a.planets !== b.planets) return b.planets - a.planets;
+        if (a.troops !== b.troops) return b.troops - a.troops;
+        return b.survivalTime - a.survivalTime;
+    });
+    
+    // Create header based on game mode
+    let headerText;
+    if (this.gameConfig.gameMode === 'singleplayer') {
+        const isPlayerWinner = stats.playerWon;
+        headerText = `<h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1>
+                    <h2>${leaderboardData[0].displayName} has conquered the galaxy</h2>`;
+    } else {
+        // Bot battle mode
+        headerText = `<h1>BATTLE COMPLETE</h1>
+                    <h2>${leaderboardData[0].displayName} has conquered the galaxy</h2>`;
+    }
+    
+    // Create leaderboard HTML
+    let leaderboardHTML = `
+        <div class="leaderboard">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Planets</th>
+                        <th>Troops</th>
+                        <th>Survival Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    // Add each player to the leaderboard
+    leaderboardData.forEach((player, index) => {
+        const rank = index + 1;
+        const formattedTime = this.formatTime(player.survivalTime);
+        const rowClass = player.isWinner ? 'winner' : '';
+        
+        leaderboardHTML += `
+            <tr class="${rowClass}">
+                <td>${rank}</td>
+                <td>${player.displayName}</td>
+                <td>${player.planets}</td>
+                <td>${player.troops}</td>
+                <td>${formattedTime}</td>
+            </tr>
+        `;
+    });
+    
+    leaderboardHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    // Add overall game stats
+    const overallStats = `
+        <div class="overall-stats">
+            <h3>BATTLE STATISTICS</h3>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-label">Total Time:</span>
+                    <span class="stat-value">${this.formatTime(stats.time)}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Planets Conquered:</span>
+                    <span class="stat-value">${stats.planetsConquered || 0}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Troops Deployed:</span>
+                    <span class="stat-value">${stats.troopsSent || 0}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Troops Lost:</span>
+                    <span class="stat-value">${stats.troopsLost || 0}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Assemble the complete game over screen
+    gameOverScreen.innerHTML = `
+        ${headerText}
+        ${leaderboardHTML}
+        ${overallStats}
+        <button id="play-again-button" class="menu-button">PLAY AGAIN</button>
+    `;
+    
+    // Add to document
+    document.getElementById('game-container').appendChild(gameOverScreen);
+    
+    // Add event listener for play again button
+    document.getElementById('play-again-button').addEventListener('click', () => {
+        gameOverScreen.remove();
+        this.switchToScreen('menu');
+    });
+}
+
+// Helper method to format time in MM:SS format
+formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Helper method to get friendly display name for players
+getPlayerDisplayName(player) {
+    if (!player.isAI) {
+        return 'Player';
+    }
+    
+    // Get a friendly display name based on AI type
+    const aiTypeMap = {
+        'claude1': 'Claude I',
+        'claude2': 'Claude II',
+        'claude1a': 'Claude III',
+        'claude2a': 'Claude IV',
+        'defensive': 'Defensive',
+        'dummy': 'Big Dummy',
+        'advanced': 'Claude 0'
+    };
+    
+    // Return the friendly name if it exists, otherwise use the AI type directly
+    return aiTypeMap[player.aiController] || player.aiController;
+} 
     // Initialize the main menu with game mode selection
     initializeMainMenu() {
         // Create menu container if it doesn't exist
