@@ -65,11 +65,11 @@ showGameOver(stats, gameInstance) {
     gameOverScreen.id = 'game-over-screen';
     
     // Get all player stats for leaderboard
-    const playerStats = this.game.playerManager.getPlayerStats()
+    const playerStats = this.game.playersController.getPlayerStats()
         .filter(player => player.id !== 'neutral');
     
     // Get all players including eliminated ones
-    const allPlayers = this.game.playerManager.players;
+    const allPlayers = this.game.playersController.players;
     
     // Track elimination times (we'll need to add this data to the GameState)
     const eliminationTimes = this.game.gameState.eliminationTimes || {};
@@ -601,7 +601,7 @@ getPlayerDisplayName(player) {
                 break;
             case 'botbattle':
                 // Make sure we're sending the right configuration
-                console.log('Starting bot battle with:', this.gameConfig);
+// removed redundant check, can be restored if there's an issue                console.log('Starting bot battle with:', this.gameConfig);
                 new Game(this.gameConfig.botBattleCount, this.gameConfig.aiTypes, true);
                 break;
             case 'multiplayer':

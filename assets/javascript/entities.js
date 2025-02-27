@@ -34,7 +34,7 @@ class Planet {
         if (this.owner === 'neutral') {
             ctx.strokeStyle = '#ffffff'; // White for neutral
         } else {
-            ctx.strokeStyle = this.game.playerManager.getPlayerColor(this.owner);
+            ctx.strokeStyle = this.game.playersController.getPlayerColor(this.owner);
         }
         
         ctx.lineWidth = 2;
@@ -102,7 +102,7 @@ class TroopMovement {
         // Draw troops - use player color
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = this.game.playerManager.getPlayerColor(this.owner);
+        ctx.fillStyle = this.game.playersController.getPlayerColor(this.owner);
         ctx.fill();
 
         // Draw troop count

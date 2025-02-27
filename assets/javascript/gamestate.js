@@ -13,7 +13,7 @@ export default class GameState {
         
         // Track when players are eliminated
         this.eliminationTimes = {};
-        this.activePlayers = new Set(this.game.playerManager.players.map(player => player.id));
+        this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));
     }
 
     update(dt) {
@@ -39,8 +39,8 @@ export default class GameState {
             if (playerId === 'neutral') continue;
             
             // Check if player still has planets or troops in movement
-            const hasResources = this.game.playerManager.hasPlayerPlanets(playerId) || 
-                               this.game.playerManager.hasPlayerTroopsInMovement(playerId);
+            const hasResources = this.game.playersController.hasPlayerPlanets(playerId) || 
+                               this.game.playersController.hasPlayerTroopsInMovement(playerId);
             
             // If player has no resources and hasn't been marked as eliminated yet
             if (!hasResources && !this.eliminationTimes[playerId]) {
@@ -71,19 +71,19 @@ export default class GameState {
         // Check for time victory
         if (this.timeRemaining <= 0) {
             // Find player with most troops
-            const winner = this.game.playerManager.getWinningPlayer();
+            const winner = this.game.playersController.getWinningPlayer();
             this.endGame(winner, 'time');
             return true;
         }
     
         // Check for domination victories
-        const playerStats = this.game.playerManager.getPlayerStats()
+        const playerStats = this.game.playersController.getPlayerStats()
             .filter(stats => stats.id !== 'neutral');
         
         // Count active players (with planets or troops in movement)
         const activePlayers = playerStats.filter(stats => 
-            this.game.playerManager.hasPlayerPlanets(stats.id) || 
-            this.game.playerManager.hasPlayerTroopsInMovement(stats.id)
+            this.game.playersController.hasPlayerPlanets(stats.id) || 
+            this.game.playersController.hasPlayerTroopsInMovement(stats.id)
         );
         
         // If only one player remains active, they win
@@ -117,7 +117,7 @@ export default class GameState {
         
         // Add property specific to single player mode
         if (!isBotBattle) {
-            const humanPlayer = this.game.playerManager.getHumanPlayers()[0];
+            const humanPlayer = this.game.playersController.getHumanPlayers()[0];
             stats.playerWon = this.winner === humanPlayer.id;
         }
         

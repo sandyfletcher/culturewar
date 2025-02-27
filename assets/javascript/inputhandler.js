@@ -1,4 +1,3 @@
-// input-handler.js
 export default class InputHandler {
     constructor(game) {
         this.game = game;
@@ -157,7 +156,7 @@ export default class InputHandler {
         this.game.clearSelection();
         
         // Get human player ID (player1 is the human player)
-        const humanPlayerId = this.game.playerManager.getHumanPlayers()[0].id;
+        const humanPlayerId = this.game.playersController.getHumanPlayers()[0].id;
         
         // Find all player planets within the selection box
         for (const planet of this.game.planets) {
@@ -191,7 +190,7 @@ export default class InputHandler {
         }
 
         // Get human player ID
-        const humanPlayerId = this.game.playerManager.getHumanPlayers()[0].id;
+        const humanPlayerId = this.game.playersController.getHumanPlayers()[0].id;
 
         // If we have planets selected and click on a different planet
         if (this.game.selectedPlanets.length > 0 && !this.game.selectedPlanets.includes(clickedPlanet)) {

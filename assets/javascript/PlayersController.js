@@ -1,10 +1,22 @@
-export default class PlayerManager {
+// PlayersController.js
+import DummyAI from './AI bots/dummyai.js';
+import AdvancedAI from './AI bots/advancedai.js';
+import Claude1 from './AI bots/claude1.js';
+import Claude2 from './AI bots/claude2.js';
+import Claude1a from './AI bots/claude1a.js';
+import Claude2a from './AI bots/claude2a.js';
+import DefensiveAI from './AI bots/defensiveAI.js';
+
+export default class PlayersController {
     constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
         this.game = game;
         this.players = [];
         this.playerCount = playerCount;
         this.aiTypes = aiTypes;
         this.botBattleMode = botBattleMode;
+        this.aiControllers = {};
+        
+        // Player colors
         this.playerColors = {
             'player1': '#ffff00', // Yellow
             'player2': '#ff0000', // Red
@@ -13,7 +25,20 @@ export default class PlayerManager {
             'neutral': '#ffffff'  // White
         };
         
+        // Available AI types
+        this.availableAITypes = {
+            'claude1': Claude1,
+            'claude2': Claude2,
+            'claude1a': Claude1a,
+            'claude2a': Claude2a,
+            'defensive': DefensiveAI,
+            'dummy': DummyAI,
+            'advanced': AdvancedAI
+        };
+        
+        // Initialize players and AI controllers
         this.initializePlayers();
+        this.initializeAIControllers();
     }
     
     initializePlayers() {
@@ -57,6 +82,47 @@ export default class PlayerManager {
         }
     }
     
+    initializeAIControllers() {
+        // Clear existing controllers
+        this.aiControllers = {};
+        
+        // Create AI controllers for each AI player
+        const aiPlayers = this.getAIPlayers();
+        
+        for (const player of aiPlayers) {
+            // Get the AI class based on the specified type
+            const AIClass = this.availableAITypes[player.aiController] || this.availableAITypes['claude1'];
+            this.aiControllers[player.id] = new AIClass(this.game, player.id);
+        }
+    }
+    
+    updateAIPlayers(dt) {
+        // Let each AI make decisions
+        for (const playerId in this.aiControllers) {
+            // Skip if player is eliminated
+            if (!this.hasPlayerPlanets(playerId) && 
+                !this.hasPlayerTroopsInMovement(playerId)) {
+                continue;
+            }
+            
+            const aiController = this.aiControllers[playerId];
+            const aiDecision = aiController.makeDecision({
+                planets: this.game.planets,
+                troopMovements: this.game.troopMovements
+            });
+
+            if (aiDecision) {
+                // Execute the AI's decision by sending troops
+                this.game.sendTroops(
+                    aiDecision.from,
+                    aiDecision.to,
+                    aiDecision.troops
+                );
+            }
+        }
+    }
+    
+    // Player information methods
     getPlayerById(playerId) {
         return this.players.find(player => player.id === playerId);
     }

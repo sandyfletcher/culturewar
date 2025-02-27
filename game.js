@@ -1,14 +1,14 @@
-import { Planet, TroopMovement } from './assets/javascript/entities.js';
-import InputHandler from './assets/javascript/inputhandler.js';
-import Renderer from './assets/javascript/renderer.js';
-import GameState from './assets/javascript/gamestate.js';
-import PlayerManager from './assets/javascript/playermanager.js';
-import AIManager from './assets/javascript/ai-manager.js';
-import PlanetGenerator from './assets/javascript/PlanetGenerator.js';
+import { Planet, TroopMovement } from './assets/javascript/Entities.js';
+import InputHandler from './assets/javascript/InputHandler.js';
+import Renderer from './assets/javascript/Renderer.js';
+import GameState from './assets/javascript/GameState.js';
+import PlayersController from './assets/javascript/PlayersController.js';
+import PlanetGenerator from './assets/javascript/planetgenerator.js';
 
 class Game {
     constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
-        console.log('Game starting with:', { playerCount, aiTypes, botBattleMode });
+        console.log(`Game Launched: Bot Battle? ${botBattleMode}, playerCount: ${playerCount}, players: ${aiTypes.map(p => `${p}`).join(' ')}`);
+          
         // Setup canvas
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
@@ -39,12 +39,13 @@ class Game {
         // Game state
         this.gameOver = false;
         
-        // Initialize modules in correct order
-        this.playerManager = new PlayerManager(this, playerCount, this.aiTypes, botBattleMode);
+        // Initialize playersController first before anything else needs it
+        this.playersController = new PlayersController(this, playerCount, this.aiTypes, botBattleMode);
+        
+        // Then initialize other components that might depend on it
         this.inputHandler = botBattleMode ? null : new InputHandler(this);
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
-        this.aiManager = new AIManager(this);
         this.planetGenerator = new PlanetGenerator(this);
         
         // Initialize game
@@ -56,11 +57,6 @@ class Game {
         const container = this.canvas.parentElement;
         this.canvas.width = container.clientWidth;
         this.canvas.height = container.clientHeight;
-        
-        // Regenerate planets if game is already running
-//         if (this.planets.length > 0) {
-//             this.initializeGame();
- //        }   HAD TO REMOVE THIS BECAUSE OF A BUG BUT I THINK IT MAY HAVE VALUE IF SOMEONE RESIZES THE SCREEN
     }
     
     initializeGame() {
@@ -99,12 +95,12 @@ class Game {
         this.updateTroopMovements(dt);
 
         // Let AI make decisions
-        this.aiManager.updateAIs(dt);
+        this.playersController.updateAIPlayers(dt);
     }
     
     updatePlanets(dt) {
         // In bot battle mode, no human player exists
-        const humanPlayers = this.playerManager.getHumanPlayers();
+        const humanPlayers = this.playersController.getHumanPlayers();
         const humanPlayerId = humanPlayers.length > 0 ? humanPlayers[0].id : null;
         
         for (const planet of this.planets) {
@@ -139,7 +135,17 @@ class Game {
             targetPlanet.troops += movement.amount;
         } else {
             // Attacking enemy planet
+            const previousTroops = targetPlanet.troops;
             targetPlanet.troops -= movement.amount;
+            
+            // Calculate troops lost (from both sides)
+            const defenderLosses = Math.min(previousTroops, movement.amount);
+            const attackerLosses = targetPlanet.troops < 0 ? 0 : movement.amount;
+            
+            // Track troops lost for statistics
+            this.gameState.incrementTroopsLost(defenderLosses);
+            this.gameState.incrementTroopsLost(attackerLosses);
+            
             if (targetPlanet.troops < 0) {
                 // Capture planet if troops < 0
                 targetPlanet.owner = movement.owner;
@@ -163,6 +169,9 @@ class Game {
         
         // Reduce troops from source planet
         fromPlanet.troops -= amount;
+
+            // Track troops sent for statistics
+        this.gameState.incrementTroopsSent(amount);
         
         // Add movement to the game
         this.troopMovements.push(movement);

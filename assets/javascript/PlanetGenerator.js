@@ -1,5 +1,5 @@
 // PlanetGenerator.js
-import { Planet } from './entities.js';
+import { Planet } from './Entities.js';
 
 export default class PlanetGenerator {
     constructor(game) {
@@ -27,8 +27,8 @@ export default class PlanetGenerator {
             planets.push(...this.generateBotBattlePlanets(playerCount));
         } else {
             // Generate planets for regular game mode with human player
-            const humanPlayer = this.game.playerManager.getHumanPlayers()[0].id;
-            const aiPlayers = this.game.playerManager.getAIPlayers().map(player => player.id);
+            const humanPlayer = this.game.playersController.getHumanPlayers()[0].id;
+            const aiPlayers = this.game.playersController.getAIPlayers().map(player => player.id);
             planets.push(...this.generatePlayerPlanets(humanPlayer, aiPlayers, playerCount));
         }
         
@@ -41,7 +41,7 @@ export default class PlanetGenerator {
     generateBotBattlePlanets(botCount) {
         const planets = [];
         // Get all bot player IDs
-        const botPlayers = this.game.playerManager.getAIPlayers().map(player => player.id);
+        const botPlayers = this.game.playersController.getAIPlayers().map(player => player.id);
         
         // Calculate positions based on canvas dimensions
         const width = this.canvas.width;
