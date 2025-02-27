@@ -216,7 +216,7 @@ class Game {
                 this.processTroopArrival(movement);
                 this.troopMovements.splice(i, 1);
                 
-                // After troop movements complete, check win conditions again
+                // Check win conditions after troop movements
                 this.gameState.checkWinConditions();
             }
         }

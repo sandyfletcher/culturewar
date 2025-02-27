@@ -20,26 +20,6 @@ export default class GameState {
         
         // Check win conditions
         this.checkWinConditions();
-        
-        // If game is now over after checking win conditions
-        if (this.gameOver) {
-            // Create game statistics
-            const stats = {
-                playerWon: this.winner === this.game.playerManager.getHumanPlayers()[0].id,
-                time: (Date.now() - this.startTime) / 1000, // elapsed time in seconds
-                planetsConquered: this.planetsConquered,
-                troopsSent: this.troopsSent,
-                troopsLost: this.troopsLost
-            };
-            
-            // Show game over screen using MenuManager
-            if (window.menuManager) {
-                window.menuManager.showGameOver(stats);
-            } else {
-                console.error("MenuManager not found. Make sure it's initialized before GameState.");
-                this.endGame(this.winner, this.victoryType);
-            }
-        }
     }
     
     // Increment counters for statistics
@@ -63,10 +43,7 @@ export default class GameState {
         if (this.timeRemaining <= 0) {
             // Find player with most troops
             const winner = this.game.playerManager.getWinningPlayer();
-            this.winner = winner;
-            this.victoryType = 'time';
-            this.gameOver = true;
-            this.game.gameOver = true;
+            this.endGame(winner, 'time');
             return true;
         }
     
@@ -82,22 +59,34 @@ export default class GameState {
         
         // If only one player remains active, they win
         if (activePlayers.length === 1) {
-            this.winner = activePlayers[0].id;
-            this.victoryType = 'domination';
-            this.gameOver = true;
-            this.game.gameOver = true;
+            this.endGame(activePlayers[0].id, 'domination');
             return true;
         }
         
         return false;
     }
-
-    // Set game over state, but let MenuManager handle the UI
-    endGame(winner, victoryType, timeTaken = null) {
+    
+    // Add this new method to handle game end logic
+    endGame(winnerId, victoryType) {
+        this.winner = winnerId;
+        this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-        this.winner = winner;
-        this.victoryType = victoryType;
+        
+        // Create game statistics
+        const stats = {
+            playerWon: this.winner === this.game.playerManager.getHumanPlayers()[0].id,
+            time: (Date.now() - this.startTime) / 1000, // elapsed time in seconds
+            planetsConquered: this.planetsConquered,
+            troopsSent: this.troopsSent,
+            troopsLost: this.troopsLost
+        };
+        
+        // Show game over screen using MenuManager
+        if (window.menuManager) {
+            window.menuManager.showGameOver(stats);
+        } else {
+            console.error("MenuManager not found. Make sure it's initialized before GameState.");
+        }
     }
-    
 }
