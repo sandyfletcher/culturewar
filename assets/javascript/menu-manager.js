@@ -15,12 +15,13 @@ class MenuManager {
         
         // Store configuration from menu selections
         this.gameConfig = {
+            gameMode: 'singleplayer', // Default game mode
             playerCount: 2, // Default: 1 human + 1 AI
             aiTypes: ['claude1'] // Default AI type
         };
         
         // Initialize the menu
-        this.initializeGameMenu();
+        this.initializeMainMenu();
     }
 
     // Switch between screens (menu, game, game-over)
@@ -87,8 +88,8 @@ class MenuManager {
         });
     }
     
-    // Initialize the game menu
-    initializeGameMenu() {
+    // Initialize the main menu with game mode selection
+    initializeMainMenu() {
         // Create menu container if it doesn't exist
         let menuContainer = document.querySelector('#menu-screen .menu-container');
         if (!menuContainer) {
@@ -100,7 +101,92 @@ class MenuManager {
         // Clear existing menu
         menuContainer.innerHTML = '';
         
-        // Create game setup form
+        // Create title
+        const menuTitle = document.createElement('h2');
+        menuTitle.textContent = 'GAME MODES';
+        menuTitle.className = 'menu-title';
+        menuContainer.appendChild(menuTitle);
+        
+        // Create game mode buttons
+        const gameModes = [
+            { id: 'singleplayer', name: 'SINGLE PLAYER', description: 'Battle against AI opponents' },
+            { id: 'botbattle', name: 'BOT BATTLE', description: 'Watch AI battle each other' },
+            { id: 'multiplayer', name: 'MULTIPLAYER', description: 'Play against other humans online' }
+        ];
+        
+        const gameModeContainer = document.createElement('div');
+        gameModeContainer.className = 'game-mode-container';
+        
+        gameModes.forEach(mode => {
+            const modeButton = document.createElement('div');
+            modeButton.className = 'game-mode-button';
+            modeButton.dataset.mode = mode.id;
+            
+            // Add a "Coming Soon" badge for modes not yet implemented
+            const isAvailable = mode.id === 'singleplayer';
+            if (!isAvailable) {
+                modeButton.classList.add('coming-soon');
+            }
+            
+            modeButton.innerHTML = `
+                <h3>${mode.name}</h3>
+                <p>${mode.description}</p>
+                ${isAvailable ? '' : '<span class="badge">COMING SOON</span>'}
+            `;
+            
+            modeButton.addEventListener('click', () => {
+                if (isAvailable) {
+                    this.gameConfig.gameMode = mode.id;
+                    this.showGameSetup(mode.id);
+                }
+            });
+            
+            gameModeContainer.appendChild(modeButton);
+        });
+        
+        menuContainer.appendChild(gameModeContainer);
+    }
+    
+    // Show game setup screen based on selected mode
+    showGameSetup(gameMode) {
+        // Create menu container if it doesn't exist
+        let menuContainer = document.querySelector('#menu-screen .menu-container');
+        
+        // Clear existing menu
+        menuContainer.innerHTML = '';
+        
+        // Add back button
+        const backButton = document.createElement('button');
+        backButton.className = 'back-button';
+        backButton.textContent = '← BACK';
+        backButton.addEventListener('click', () => {
+            this.initializeMainMenu();
+        });
+        menuContainer.appendChild(backButton);
+        
+        // Create title based on game mode
+        const setupTitle = document.createElement('h2');
+        setupTitle.textContent = gameMode === 'singleplayer' ? 'SINGLE PLAYER SETUP' : 
+                                (gameMode === 'botbattle' ? 'BOT BATTLE SETUP' : 'MULTIPLAYER SETUP');
+        setupTitle.className = 'menu-title';
+        menuContainer.appendChild(setupTitle);
+        
+        // Create appropriate setup form based on game mode
+        switch(gameMode) {
+            case 'singleplayer':
+                this.createSinglePlayerSetup(menuContainer);
+                break;
+            case 'botbattle':
+                // Bot battle setup would go here when implemented
+                break;
+            case 'multiplayer':
+                // Multiplayer setup would go here when implemented
+                break;
+        }
+    }
+    
+    // Create single player setup form
+    createSinglePlayerSetup(menuContainer) {
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
         
@@ -241,7 +327,17 @@ class MenuManager {
         this.gameScreen.style.display = 'block';
         
         // Create new Game instance with the current configuration
-        new Game(this.gameConfig.playerCount, this.gameConfig.aiTypes);
+        switch(this.gameConfig.gameMode) {
+            case 'singleplayer':
+                new Game(this.gameConfig.playerCount, this.gameConfig.aiTypes);
+                break;
+            case 'botbattle':
+                // Handle bot battle mode when implemented
+                break;
+            case 'multiplayer':
+                // Handle multiplayer mode when implemented
+                break;
+        }
     }
     
     // Get current game configuration
