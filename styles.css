@@ -84,7 +84,6 @@ header h1 {
     cursor: pointer;
     transition: all 0.3s;
     text-align: center;
-    width: 40%;
 }
 .menu-button:hover {
     background: #fff;
