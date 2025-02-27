@@ -66,21 +66,30 @@ export default class GameState {
         return false;
     }
     
-    // Add this new method to handle game end logic
+    // Updated endGame method to handle both human and bot battles
     endGame(winnerId, victoryType) {
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
         
-        // Create game statistics
+        // Determine if we're in bot battle mode
+        const isBotBattle = this.game.botBattleMode;
+        
+        // Create game statistics with universal properties
         const stats = {
-            playerWon: this.winner === this.game.playerManager.getHumanPlayers()[0].id,
+            winner: this.winner,
             time: (Date.now() - this.startTime) / 1000, // elapsed time in seconds
             planetsConquered: this.planetsConquered,
             troopsSent: this.troopsSent,
             troopsLost: this.troopsLost
         };
+        
+        // Add property specific to single player mode
+        if (!isBotBattle) {
+            const humanPlayer = this.game.playerManager.getHumanPlayers()[0];
+            stats.playerWon = this.winner === humanPlayer.id;
+        }
         
         // Show game over screen using MenuManager
         if (window.menuManager) {

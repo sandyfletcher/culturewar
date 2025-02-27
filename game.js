@@ -17,7 +17,8 @@ const PLANET_CONFIG = {
 };
 
 class Game {
-    constructor(playerCount = 2, aiTypes = []) {
+    constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
+        console.log('Game starting with:', { playerCount, aiTypes, botBattleMode });
         // Setup canvas
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
@@ -25,6 +26,9 @@ class Game {
         
         // Store AI configuration
         this.aiTypes = aiTypes;
+        
+        // Store bot battle mode flag
+        this.botBattleMode = botBattleMode;
         
         // Implement debounced resize handler
         let resizeTimeout;
@@ -47,8 +51,8 @@ class Game {
         this.gameOver = false;
         
         // Initialize modules in correct order
-        this.playerManager = new PlayerManager(this, playerCount, this.aiTypes);
-        this.inputHandler = new InputHandler(this);
+        this.playerManager = new PlayerManager(this, playerCount, this.aiTypes, botBattleMode);
+        this.inputHandler = botBattleMode ? null : new InputHandler(this);
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
         this.aiManager = new AIManager(this);
@@ -73,15 +77,53 @@ class Game {
     }
     
     generatePlanets(playerCount) {
-        // Get player IDs
-        const humanPlayer = this.playerManager.getHumanPlayers()[0].id;
-        const aiPlayers = this.playerManager.getAIPlayers().map(player => player.id);
+        // Clear any existing planets
+        this.planets = [];
         
-        // Generate starting planet positions based on player count
-        this.generatePlayerPlanets(humanPlayer, aiPlayers, playerCount);
+        if (this.botBattleMode) {
+            // In bot battle mode, all players are AI
+            this.generateBotBattlePlanets(playerCount);
+        } else {
+            // Regular mode with human player
+            const humanPlayer = this.playerManager.getHumanPlayers()[0].id;
+            const aiPlayers = this.playerManager.getAIPlayers().map(player => player.id);
+            
+            // Generate starting planet positions based on player count
+            this.generatePlayerPlanets(humanPlayer, aiPlayers, playerCount);
+        }
         
         // Generate neutral planets
         this.generateNeutralPlanets();
+    }
+    
+    generateBotBattlePlanets(botCount) {
+        // Get all bot player IDs
+        const botPlayers = this.playerManager.getAIPlayers().map(player => player.id);
+        
+        // Calculate positions based on canvas dimensions
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        
+        // Position bots evenly around the map
+        for (let i = 0; i < botCount; i++) {
+            // Calculate position in a circular pattern
+            const angle = (i / botCount) * Math.PI * 2;
+            const radius = Math.min(width, height) * 0.35;
+            
+            const x = width / 2 + Math.cos(angle) * radius;
+            const y = height / 2 + Math.sin(angle) * radius;
+            
+            const botPlanet = new Planet(
+                x,
+                y,
+                PLANET_CONFIG.STARTING_PLANET_SIZE,
+                PLANET_CONFIG.STARTING_TROOPS,
+                botPlayers[i],
+                this
+            );
+            
+            this.planets.push(botPlanet);
+        }
     }
     
     generatePlayerPlanets(humanPlayer, aiPlayers, playerCount) {
@@ -195,13 +237,15 @@ class Game {
     }
     
     updatePlanets(dt) {
-        const humanPlayerId = this.playerManager.getHumanPlayers()[0].id;
+        // In bot battle mode, no human player exists
+        const humanPlayers = this.playerManager.getHumanPlayers();
+        const humanPlayerId = humanPlayers.length > 0 ? humanPlayers[0].id : null;
         
         for (const planet of this.planets) {
             planet.update(dt);
             
             // If a planet changes ownership, it should not remain selected
-            if (planet.selected && planet.owner !== humanPlayerId) {
+            if (planet.selected && (humanPlayerId === null || planet.owner !== humanPlayerId)) {
                 planet.selected = false;
                 this.selectedPlanets = this.selectedPlanets.filter(p => p !== planet);
             }
@@ -234,6 +278,9 @@ class Game {
                 // Capture planet if troops < 0
                 targetPlanet.owner = movement.owner;
                 targetPlanet.troops = Math.abs(targetPlanet.troops);
+                
+                // Update game state for statistics
+                this.gameState.incrementPlanetsConquered();
             }
         }
     }

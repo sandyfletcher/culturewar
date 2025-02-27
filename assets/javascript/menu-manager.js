@@ -17,7 +17,8 @@ class MenuManager {
         this.gameConfig = {
             gameMode: 'singleplayer', // Default game mode
             playerCount: 2, // Default: 1 human + 1 AI
-            aiTypes: ['claude1'] // Default AI type
+            aiTypes: ['claude1'], // Default AI type
+            botBattleCount: 2 // Default number of AI players in bot battle
         };
         
         // Initialize the menu
@@ -61,14 +62,26 @@ class MenuManager {
         const gameOverScreen = document.createElement('div');
         gameOverScreen.id = 'game-over-screen';
         
-        // Create content based on game stats
-        const isPlayerWinner = stats.playerWon;
-        const winner = isPlayerWinner ? 'Player' : 'AI';
+        // Create content based on game stats and game mode
+        let winnerText;
+        
+        if (this.gameConfig.gameMode === 'singleplayer') {
+            // Single player mode with human player
+            const isPlayerWinner = stats.playerWon;
+            const winner = isPlayerWinner ? 'Player' : 'AI';
+            winnerText = `<h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1>
+                        <h2>${winner} has conquered the galaxy</h2>`;
+        } else {
+            // Bot battle mode
+            const winnerIndex = parseInt(stats.winner.charAt(stats.winner.length - 1)) - 1;
+            const winnerType = this.gameConfig.aiTypes[winnerIndex];
+            winnerText = `<h1>BATTLE COMPLETE</h1>
+                        <h2>${this.getAIDisplayName(winnerType)} has conquered the galaxy</h2>`;
+        }
         
         gameOverScreen.innerHTML = `
-            <h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1>
-            <h2>${winner} has conquered the galaxy</h2>
-            <h3>GAME STATISTICS</h3>
+            ${winnerText}
+            <h3>BATTLE STATISTICS</h3>
             <ul>
                 <li>Time played: ${Math.floor(stats.time / 60)}:${(stats.time % 60).toString().padStart(2, '0')}</li>
                 <li>Planets conquered: ${stats.planetsConquered || 0}</li>
@@ -86,6 +99,21 @@ class MenuManager {
             gameOverScreen.remove();
             this.switchToScreen('menu');
         });
+    }
+
+    // Get friendly display name for AI type
+    getAIDisplayName(aiType) {
+        const aiTypes = {
+            'claude1': 'Claude I',
+            'claude2': 'Claude II',
+            'claude1a': 'Claude III',
+            'claude2a': 'Claude IV',
+            'defensive': 'Defensive',
+            'dummy': 'Big Dummy',
+            'advanced': 'Claude 0'
+        };
+        
+        return aiTypes[aiType] || aiType;
     }
     
     // Initialize the main menu with game mode selection
@@ -122,8 +150,8 @@ class MenuManager {
             modeButton.className = 'game-mode-button';
             modeButton.dataset.mode = mode.id;
             
-            // Add a "Coming Soon" badge for modes not yet implemented
-            const isAvailable = mode.id === 'singleplayer';
+            // Bot Battle is now available, Single Player is available, but Multiplayer isn't
+            const isAvailable = mode.id === 'singleplayer' || mode.id === 'botbattle';
             if (!isAvailable) {
                 modeButton.classList.add('coming-soon');
             }
@@ -177,7 +205,7 @@ class MenuManager {
                 this.createSinglePlayerSetup(menuContainer);
                 break;
             case 'botbattle':
-                // Bot battle setup would go here when implemented
+                this.createBotBattleSetup(menuContainer);
                 break;
             case 'multiplayer':
                 // Multiplayer setup would go here when implemented
@@ -271,6 +299,91 @@ class MenuManager {
         this.updateAISelectors(1);
     }
     
+    // Create bot battle setup form
+    createBotBattleSetup(menuContainer) {
+        const setupForm = document.createElement('div');
+        setupForm.className = 'setup-form';
+        
+        // Bot count selection
+        const botCountContainer = document.createElement('div');
+        botCountContainer.className = 'setup-section';
+        
+        const botCountLabel = document.createElement('h2');
+        botCountLabel.textContent = 'NUMBER OF BOTS';
+        botCountContainer.appendChild(botCountLabel);
+        
+        const botCountSelect = document.createElement('div');
+        botCountSelect.className = 'player-count-select';
+        
+        for (let i = 2; i <= 4; i++) {
+            const countButton = document.createElement('button');
+            countButton.className = 'count-button';
+            countButton.textContent = i;
+            countButton.dataset.count = i;
+            countButton.setAttribute('aria-label', `${i} bots`);
+            countButton.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.count-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                countButton.classList.add('active');
+                
+                // Store bot count in config
+                this.gameConfig.botBattleCount = parseInt(i);
+                
+                // Update bot AI selectors
+                this.updateBotBattleSelectors(i);
+            });
+            
+            // Default to 2 bots
+            if (i === 2) {
+                countButton.classList.add('active');
+            }
+            
+            botCountSelect.appendChild(countButton);
+        }
+        
+        botCountContainer.appendChild(botCountSelect);
+        setupForm.appendChild(botCountContainer);
+        
+        // Bot AI selection container
+        const botSelectionContainer = document.createElement('div');
+        botSelectionContainer.className = 'setup-section';
+        botSelectionContainer.id = 'bot-selection';
+        
+        setupForm.appendChild(botSelectionContainer);
+        
+        // Start battle button
+        const startButton = document.createElement('button');
+        startButton.className = 'menu-button start-game';
+        startButton.textContent = 'START BATTLE';
+        startButton.addEventListener('click', () => {
+            const botCount = document.querySelector('.count-button.active').dataset.count;
+            
+            // Collect AI types for each bot
+            const aiTypes = [];
+            for (let i = 1; i <= botCount; i++) {
+                const aiSelector = document.querySelector(`#bot-type-${i}`);
+                aiTypes.push(aiSelector.value);
+            }
+            
+            // Update config
+            this.gameConfig.aiTypes = aiTypes;
+            this.gameConfig.playerCount = parseInt(botCount);
+            
+            // Start the game in bot battle mode
+            this.startGame();
+        });
+        
+        setupForm.appendChild(startButton);
+        menuContainer.appendChild(setupForm);
+        
+        // Initialize bot selectors with default 2 bots
+        this.updateBotBattleSelectors(2);
+    }
+    
     // Update AI selectors based on opponent count
     updateAISelectors(opponentCount) {
         const aiSelection = document.getElementById('ai-selection');
@@ -320,6 +433,56 @@ class MenuManager {
         }
     }
     
+    // Update bot battle selectors based on bot count
+    updateBotBattleSelectors(botCount) {
+        const botSelection = document.getElementById('bot-selection');
+        botSelection.innerHTML = '';
+        
+        // Create a container for the bot selectors
+        const selectorsContainer = document.createElement('div');
+        selectorsContainer.className = 'ai-selectors-container';
+        botSelection.appendChild(selectorsContainer);
+        
+        for (let i = 1; i <= botCount; i++) {
+            const botContainer = document.createElement('div');
+            botContainer.className = 'ai-selector';
+            
+            // Create unique ID for the select element
+            const selectId = `bot-type-${i}`;
+            
+            const botLabel = document.createElement('label');
+            botLabel.htmlFor = selectId;
+            botLabel.textContent = `Bot ${i}`;
+            botContainer.appendChild(botLabel);
+            
+            const botSelector = document.createElement('select');
+            botSelector.id = selectId;
+            botSelector.name = selectId;
+            botSelector.setAttribute('aria-label', `Bot ${i} type`);
+            
+            // Add AI options with extended list
+            const aiTypes = [
+                { value: 'claude1', name: 'Claude I' },
+                { value: 'claude2', name: 'Claude II' },
+                { value: 'claude1a', name: 'Claude III ' },
+                { value: 'claude2a', name: 'Claude IV' },
+                { value: 'defensive', name: 'Defensive' },
+                { value: 'dummy', name: 'Big Dummy' },
+                { value: 'advanced', name: 'Claude 0' }
+            ];
+            
+            aiTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.value;
+                option.textContent = type.name;
+                botSelector.appendChild(option);
+            });
+            
+            botContainer.appendChild(botSelector);
+            selectorsContainer.appendChild(botContainer);
+        }
+    }
+    
     // Start a new game with current configuration
     startGame() {
         // Hide menu and show game
@@ -332,7 +495,9 @@ class MenuManager {
                 new Game(this.gameConfig.playerCount, this.gameConfig.aiTypes);
                 break;
             case 'botbattle':
-                // Handle bot battle mode when implemented
+                // Make sure we're sending the right configuration
+                console.log('Starting bot battle with:', this.gameConfig);
+                new Game(this.gameConfig.botBattleCount, this.gameConfig.aiTypes, true);
                 break;
             case 'multiplayer':
                 // Handle multiplayer mode when implemented

@@ -52,6 +52,9 @@ export default class Renderer {
     }
 
     drawSelectionBox() {
+        // Skip if inputHandler is null (bot battle mode)
+        if (!this.game.inputHandler) return;
+        
         const selectionBox = this.game.inputHandler.getSelectionBox();
         if (!selectionBox || !selectionBox.isActive) return;
         
