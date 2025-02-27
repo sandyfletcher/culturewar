@@ -10,7 +10,6 @@ export default class GameState {
         this.troopsSent = 0;
         this.troopsLost = 0;
         this.planetsConquered = 0;
-        
         // Track when players are eliminated
         this.eliminationTimes = {};
         this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));

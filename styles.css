@@ -51,15 +51,7 @@ header h1 {
     color: #fff;
     padding: 0.2rem;
 }
-/* FOOTER */
-footer {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    text-align: center;
-    border-top: 2px solid #fff;
-    padding: 0.2rem;
-}
+
 /* GAME CONTAINER & SCREENS */
 #game-container {
     position: relative;
@@ -403,4 +395,13 @@ footer {
     cursor: pointer;
     font-family: 'Courier New', monospace;
     font-weight: bold;
+}
+/* FOOTER */
+footer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+    border-top: 2px solid #fff;
+    padding: 0.2rem;
 }

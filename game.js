@@ -3,7 +3,7 @@ import InputHandler from './assets/javascript/InputHandler.js';
 import Renderer from './assets/javascript/Renderer.js';
 import GameState from './assets/javascript/GameState.js';
 import PlayersController from './assets/javascript/PlayersController.js';
-import PlanetGenerator from './assets/javascript/planetgenerator.js';
+import PlanetGenerator from './assets/javascript/PlanetGenerator.js';
 
 class Game {
     constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
