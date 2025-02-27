@@ -1,5 +1,5 @@
 // PlanetGenerator.js
-import { Planet } from './Entities.js';
+import { Planet } from './PlanetAndTroops.js';
 
 export default class PlanetGenerator {
     constructor(game) {

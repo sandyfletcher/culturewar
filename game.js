@@ -1,7 +1,7 @@
-import { Planet, TroopMovement } from './assets/javascript/Entities.js';
-import InputHandler from './assets/javascript/InputHandler.js';
-import Renderer from './assets/javascript/Renderer.js';
-import GameState from './assets/javascript/GameState.js';
+import { Planet, TroopMovement } from './assets/javascript/PlanetAndTroops.js';
+import InputHandler from './assets/javascript/InputHandlerModule.js';
+import Renderer from './assets/javascript/RendererModule.js';
+import GameState from './assets/javascript/GameStateCheck.js';
 import PlayersController from './assets/javascript/PlayersController.js';
 import PlanetGenerator from './assets/javascript/PlanetGenerator.js';
 
