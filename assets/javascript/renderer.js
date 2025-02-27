@@ -1,4 +1,3 @@
-// renderer.js
 export default class Renderer {
     constructor(game) {
         this.game = game;
