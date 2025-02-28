@@ -127,6 +127,25 @@ header h1 {
     font-weight: bold;
 }
 /* BOT GAME MENU */
+.menu-button {
+    display: block;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 1rem;
+    margin: 1rem auto;
+    font-family: 'Tourney', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    border-radius: 8px;
+}
+.menu-button:hover {
+    background: #fff;
+    color: #000;
+    transform: scale(1.1);
+}
 .back-button {
     border: 2px solid #fff;
     cursor: pointer;
@@ -134,9 +153,7 @@ header h1 {
     text-align: left;
 }
 .back-button:hover {
-    background: #fff;
-    color: #000;
-    transform: translateX(-5px);
+    transform: translateX(-7%);
 }
 .setup-form {
     margin: 0 auto;
@@ -161,6 +178,37 @@ header h1 {
     text-align: center;
     letter-spacing: 2px;
 }
+.player-count-select {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 1rem;
+}
+.count-button {
+    width: 60px;
+    height: 60px;
+    font-size: 1.25rem;
+    background-color: black;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Tourney', monospace;
+}
+.count-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+.count-button.active {
+    background-color: white;
+    color: #000;
+    border-color: #ffaa00;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
 /* AI SELECTORS */
 .ai-selectors-container {
     display: flex;
@@ -168,6 +216,20 @@ header h1 {
     gap: 0.5rem;
     width: 100%;
     max-width: 300px;
+}
+.player-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+}
+.player-circle span {
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
 }
 .ai-selector {
     width: 100%;
@@ -271,11 +333,10 @@ header h1 {
     margin: 0.2rem 0;
     font-size: 0.8rem;
 }
-/* LEADERBOARD */
 .leaderboard {
-    width: 98%; /* Almost full width */
+    width: 98%;
     max-width: 390px;
-    margin-bottom: 0.5rem; /* Minimal margin */
+    margin-bottom: 0.5rem;
     border-radius: 2px;
     overflow: visible;
 }
@@ -284,23 +345,23 @@ header h1 {
     border-collapse: collapse;
     background-color: rgba(30, 30, 30, 0.8);
     table-layout: fixed;
-    font-size: 0.65rem; /* Very small base font size */
+    font-size: 0.65rem;
 }
 .leaderboard th {
     background-color: rgba(60, 60, 60, 0.8);
-    padding: 3px 2px; /* Minimal padding */
+    padding: 3px 2px;
     text-align: center;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 0.6rem; /* Very small font */
+    font-size: 0.6rem;
     color: #ccc;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 .leaderboard td {
-    padding: 3px 2px; /* Minimal padding */
+    padding: 3px 2px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    font-size: 0.65rem; /* Very small font */
+    font-size: 0.65rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -315,38 +376,38 @@ header h1 {
 .overall-stats {
     width: 98%;
     max-width: 390px;
-    margin-bottom: 0.5rem; /* Minimal margin */
+    margin-bottom: 0.5rem;
     background-color: rgba(30, 30, 30, 0.8);
     border-radius: 2px;
-    padding: 0.4rem; /* Minimal padding */
+    padding: 0.4rem;
 }
 .stats-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.3rem; /* Minimal gap */
+    gap: 0.3rem;
 }
 .stat-item {
     display: flex;
     flex-direction: column;
     background-color: rgba(255, 255, 255, 0.1);
-    padding: 0.3rem; /* Minimal padding */
+    padding: 0.3rem;
     border-radius: 2px;
     text-align: center;
 }
 .stat-label {
-    font-size: 0.6rem; /* Very small font */
+    font-size: 0.6rem;
     color: #ccc;
     margin-bottom: 0.2rem;
     opacity: 0.8;
 }
 .stat-value {
-    font-size: 0.8rem; /* Small font */
+    font-size: 0.8rem;
     font-weight: bold;
 }
 #play-again-button {
     margin-top: 0.5rem;
     padding: 5px 15px;
-    font-size: 0.8rem; /* Small font */
+    font-size: 0.8rem;
     background-color: rgba(255, 255, 0, 0.8);
     color: black;
     border: none;
@@ -364,89 +425,3 @@ footer {
     border-top: 2px solid #fff;
     padding: 0.2rem;
 }
-
-
-
-
-
-
-
-/* BUTTONS */
-.menu-button {
-    display: block;
-    background: none;
-    border: 2px solid #fff;
-    color: #fff;
-    padding: 1rem;
-    margin: 1rem auto;
-    font-family: 'Tourney', monospace;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-align: center;
-    border-radius: 8px;
-}
-.menu-button:hover {
-    background: #fff;
-    color: #000;
-    transform: translateY(-2px);
-}
-
-/* GAME MODES */
-.menu-title {
-    margin: 0 0 20px 0;
-    text-align: center;
-    width: 100%;
-}
-
-
-/* PLAYER COUNT */
-.player-count-select {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 1.5rem;
-}
-
-.count-button {
-    width: 60px;
-    height: 60px;
-    font-size: 1.25rem;
-    background-color: black;
-    color: #fff;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Tourney', monospace;
-}
-
-.count-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05);
-}
-
-.count-button.active {
-    background-color: white;
-    color: #000;
-    border-color: #ffaa00;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}.player-circle {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 10px;
-}
-
-.player-circle span {
-    color: #000;
-    font-weight: bold;
-    font-size: 16px;
-}
-
