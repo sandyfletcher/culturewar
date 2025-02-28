@@ -22,6 +22,8 @@ export default class PlayersController {
             'player2': '#ff0000', // Red
             'player3': '#00ffff', // Cyan
             'player4': '#00ff00', // Green
+            'player5': '#ff00ff', // Magenta/Purple
+            'player6': '#ff8000', // Orange
             'neutral': '#ffffff'  // White
         };
         

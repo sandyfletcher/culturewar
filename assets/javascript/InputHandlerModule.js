@@ -8,15 +8,20 @@ export default class InputHandler {
         this.selectionEnd = { x: 0, y: 0 };
         this.touchStartTime = 0;
         
-        // Add mouse event listeners
+        // For double-click detection
+        this.lastClickedPlanet = null;
+        this.lastClickTime = 0;
+        this.doubleClickTimeThreshold = 300; // ms
+        
+        // Add mouse event listeners with passive option for touch events
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
         
-        // Add touch event listeners
-        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e));
-        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e));
-        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        // Add touch event listeners with passive: false explicitly
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
     }
 
     handleMouseMove(e) {
@@ -192,6 +197,25 @@ export default class InputHandler {
         // Get human player ID
         const humanPlayerId = this.game.playersController.getHumanPlayers()[0].id;
 
+        // Check for double-click on player's planet
+        const now = Date.now();
+        if (clickedPlanet.owner === humanPlayerId && 
+            clickedPlanet === this.lastClickedPlanet && 
+            now - this.lastClickTime < this.doubleClickTimeThreshold) {
+            
+            // Double-click detected on own planet - select all player's planets
+            this.selectAllPlayerPlanets(humanPlayerId);
+            
+            // Reset double-click tracking
+            this.lastClickedPlanet = null;
+            this.lastClickTime = 0;
+            return;
+        }
+        
+        // Update double-click tracking
+        this.lastClickedPlanet = clickedPlanet;
+        this.lastClickTime = now;
+
         // If we have planets selected and click on a different planet
         if (this.game.selectedPlanets.length > 0 && !this.game.selectedPlanets.includes(clickedPlanet)) {
             if (this.game.selectedPlanets.every(planet => planet.owner === humanPlayerId)) {
@@ -200,14 +224,7 @@ export default class InputHandler {
                     const troopsToSend = Math.floor(sourcePlanet.troops / 2);
                     
                     if (troopsToSend > 0) {
-                        sourcePlanet.troops -= troopsToSend;
-                        this.game.troopMovements.push(new this.game.TroopMovement(
-                            sourcePlanet,
-                            clickedPlanet,
-                            troopsToSend,
-                            humanPlayerId,
-                            this.game
-                        ));
+                        this.game.sendTroops(sourcePlanet, clickedPlanet, troopsToSend);
                     }
                 }
                 
@@ -220,6 +237,20 @@ export default class InputHandler {
             this.game.clearSelection();
             clickedPlanet.selected = true;
             this.game.selectedPlanets = [clickedPlanet];
+        }
+    }
+    
+    // New method to select all player's planets
+    selectAllPlayerPlanets(playerId) {
+        // Clear current selection
+        this.game.clearSelection();
+        
+        // Select all planets owned by the player
+        for (const planet of this.game.planets) {
+            if (planet.owner === playerId) {
+                planet.selected = true;
+                this.game.selectedPlanets.push(planet);
+            }
         }
     }
 

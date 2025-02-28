@@ -28,6 +28,16 @@ class MenuManager {
             { value: 'advanced', name: 'Claude 0' }
         ];
         
+        // Player colors for AI selection
+        this.playerColors = {
+            'player1': '#ffff00', // Yellow
+            'player2': '#ff0000', // Red
+            'player3': '#00ffff', // Cyan
+            'player4': '#00ff00', // Green
+            'player5': '#ff00ff', // Magenta/Purple
+            'player6': '#ff8000', // Orange
+        };
+        
         // Store configuration from menu selections
         this.gameConfig = {
             gameMode: 'singleplayer', // Default game mode
@@ -157,29 +167,22 @@ class MenuManager {
         // Clear existing menu
         menuContainer.innerHTML = '';
         
-        // Add back button
+        // Add back button styled like a menu button
         const backButton = document.createElement('button');
-        backButton.className = 'back-button';
+        backButton.className = 'menu-button back-button';
         backButton.textContent = '← BACK';
         backButton.addEventListener('click', () => {
             this.initializeMainMenu();
         });
         menuContainer.appendChild(backButton);
         
-        // Create title based on game mode
-        const setupTitle = document.createElement('h2');
-        setupTitle.textContent = gameMode === 'singleplayer' ? 'SINGLE PLAYER SETUP' : 
-                                (gameMode === 'botbattle' ? 'BOT BATTLE SETUP' : 'MULTIPLAYER SETUP');
-        setupTitle.className = 'menu-title';
-        menuContainer.appendChild(setupTitle);
-        
         // Create appropriate setup form based on game mode
         switch(gameMode) {
             case 'singleplayer':
-                this.createGameSetup(menuContainer, 1, 3, 'OPPONENTS', 'START GAME', false);
+                this.createGameSetup(menuContainer, 1, 5, 'OPPONENTS', 'START GAME', false);
                 break;
             case 'botbattle':
-                this.createGameSetup(menuContainer, 2, 4, 'NUMBER OF BOTS', 'START BATTLE', true);
+                this.createGameSetup(menuContainer, 2, 6, 'NUMBER OF BOTS', 'START BATTLE', true);
                 break;
             case 'multiplayer':
                 // Multiplayer setup would go here when implemented
@@ -294,15 +297,16 @@ class MenuManager {
             // Create unique ID for the select element
             const selectId = `${isBotBattle ? 'bot' : 'ai'}-type-${i}`;
             
-            const label = document.createElement('label');
-            label.htmlFor = selectId;
+            // Create colored circle with number instead of text label
+            const playerNumber = isBotBattle ? i : i;
+            const playerColor = this.playerColors[`player${playerNumber}`];
             
-            // Only show labels for bot battle mode
-            if (isBotBattle) {
-                label.textContent = `Bot ${i}`;
-            }
+            const circleLabel = document.createElement('div');
+            circleLabel.className = 'player-circle';
+            circleLabel.style.backgroundColor = playerColor;
+            circleLabel.innerHTML = `<span>${playerNumber}</span>`;
             
-            container.appendChild(label);
+            container.appendChild(circleLabel);
             
             const selector = document.createElement('select');
             selector.id = selectId;

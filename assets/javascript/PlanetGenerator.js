@@ -73,7 +73,6 @@ export default class PlanetGenerator {
     
     generatePlayerPlanets(humanPlayer, aiPlayers, playerCount) {
         const planets = [];
-        // Calculate positions based on canvas dimensions for better adaptability
         const width = this.canvas.width;
         const height = this.canvas.height;
         
@@ -87,29 +86,39 @@ export default class PlanetGenerator {
             this.game
         );
         planets.push(playerPlanet);
-
+    
+        // Position maps for different player counts
+        const positionMaps = {
+            2: [{ x: width * 0.8, y: height * 0.2 }],
+            3: [
+                { x: width * 0.8, y: height * 0.2 },
+                { x: width * 0.8, y: height * 0.8 }
+            ],
+            4: [
+                { x: width * 0.8, y: height * 0.2 },
+                { x: width * 0.2, y: height * 0.2 },
+                { x: width * 0.8, y: height * 0.8 }
+            ],
+            5: [
+                { x: width * 0.8, y: height * 0.2 },
+                { x: width * 0.2, y: height * 0.2 },
+                { x: width * 0.8, y: height * 0.8 },
+                { x: width * 0.5, y: height * 0.5 }
+            ],
+            6: [
+                { x: width * 0.8, y: height * 0.2 },
+                { x: width * 0.2, y: height * 0.2 },
+                { x: width * 0.8, y: height * 0.8 },
+                { x: width * 0.5, y: height * 0.5 },
+                { x: width * 0.5, y: height * 0.2 }
+            ]
+        };
+    
         // AI starting planets
+        const positions = positionMaps[playerCount] || positionMaps[4]; // Default to 4 if not specified
+        
         for (let i = 0; i < aiPlayers.length; i++) {
-            let position;
-            
-            // Position AI planets based on player count
-            if (playerCount === 2) {
-                // 2 players: AI in upper right
-                position = { x: width * 0.8, y: height * 0.2 };
-            } else if (playerCount === 3) {
-                // 3 players: AIs in upper right and lower right
-                position = (i === 0) 
-                    ? { x: width * 0.8, y: height * 0.2 } 
-                    : { x: width * 0.8, y: height * 0.8 };
-            } else if (playerCount === 4) {
-                // 4 players positions
-                const positions = [
-                    { x: width * 0.8, y: height * 0.2 },
-                    { x: width * 0.2, y: height * 0.2 },
-                    { x: width * 0.8, y: height * 0.8 }
-                ];
-                position = positions[i % positions.length];
-            }
+            const position = positions[i % positions.length];
             
             const aiPlanet = new Planet(
                 position.x,
@@ -124,7 +133,7 @@ export default class PlanetGenerator {
         
         return planets;
     }
-    
+        
     generateNeutralPlanets(existingPlanets = []) {
         const neutralPlanets = [];
         for (let i = 0; i < this.config.NEUTRAL_COUNT; i++) {
