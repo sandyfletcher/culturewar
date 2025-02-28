@@ -12,7 +12,7 @@ class MenuManager {
         window.menuManager = this;
         
         // Create game over screen instance
-        this.gameOverScreen = new GameOverScreen(document.getElementById('game-container'));
+        this.gameOverScreen = new GameOverScreen(document.getElementById('inner-container'));
         
         // Track current screen
         this.currentScreen = 'menu';
@@ -195,14 +195,17 @@ class MenuManager {
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
         
-        // Count selection (opponents or bots)
-        const countContainer = document.createElement('div');
-        countContainer.className = 'setup-section';
+        // Create a container for the header part (title and player count selection)
+        const headerContainer = document.createElement('div');
+        headerContainer.className = 'setup-header';
         
+        // Count selection title
         const countLabelElement = document.createElement('h2');
         countLabelElement.textContent = countLabel;
-        countContainer.appendChild(countLabelElement);
+        countLabelElement.className = 'setup-title';
+        headerContainer.appendChild(countLabelElement);
         
+        // Count selection circles
         const countSelect = document.createElement('div');
         countSelect.className = 'player-count-select';
         
@@ -240,15 +243,27 @@ class MenuManager {
             countSelect.appendChild(countButton);
         }
         
-        countContainer.appendChild(countSelect);
-        setupForm.appendChild(countContainer);
+        headerContainer.appendChild(countSelect);
+        setupForm.appendChild(headerContainer);
         
         // AI/Bot selection container
         const selectionContainer = document.createElement('div');
-        selectionContainer.className = 'setup-section';
+        selectionContainer.className = 'setup-section ai-selection-container';
         selectionContainer.id = isBotBattle ? 'bot-selection' : 'ai-selection';
-        
         setupForm.appendChild(selectionContainer);
+        
+        // Bottom button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'setup-buttons';
+        
+        // Back button
+        const backButton = document.createElement('button');
+        backButton.className = 'menu-button back-button';
+        backButton.textContent = '← BACK';
+        backButton.addEventListener('click', () => {
+            this.initializeMainMenu();
+        });
+        buttonContainer.appendChild(backButton);
         
         // Start button
         const startButton = document.createElement('button');
@@ -272,13 +287,21 @@ class MenuManager {
             this.startGame();
         });
         
-        setupForm.appendChild(startButton);
+        buttonContainer.appendChild(startButton);
+        setupForm.appendChild(buttonContainer);
+        
+        // Remove the back button we initially added outside the form
+        const oldBackButton = menuContainer.querySelector('.back-button');
+        if (oldBackButton) {
+            oldBackButton.remove();
+        }
+        
         menuContainer.appendChild(setupForm);
         
         // Initialize selectors with default count
         this.updateEntitySelectors(minCount, isBotBattle);
     }
-    
+
     // Unified method to update AI/Bot selectors
     updateEntitySelectors(count, isBotBattle) {
         const selectionId = isBotBattle ? 'bot-selection' : 'ai-selection';
@@ -288,7 +311,12 @@ class MenuManager {
         // Create a container for the selectors
         const selectorsContainer = document.createElement('div');
         selectorsContainer.className = 'ai-selectors-container';
-        selectionContainer.appendChild(selectorsContainer);
+        
+        // Add a small title for the selectors
+        const selectorsTitle = document.createElement('h3');
+        selectorsTitle.textContent = isBotBattle ? 'BOT TYPES' : 'OPPONENT TYPES';
+        selectorsTitle.className = 'selectors-title';
+        selectorsContainer.appendChild(selectorsTitle);
         
         for (let i = 1; i <= count; i++) {
             const container = document.createElement('div');
@@ -326,8 +354,10 @@ class MenuManager {
             container.appendChild(selector);
             selectorsContainer.appendChild(container);
         }
+        
+        selectionContainer.appendChild(selectorsContainer);
     }
-    
+
     // Start a new game with current configuration
     startGame() {
         // Hide menu and show game

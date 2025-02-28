@@ -1,7 +1,7 @@
 class GameOverScreen {
     constructor(parentContainer) {
         // Store reference to parent container
-        this.parentContainer = parentContainer || document.getElementById('game-container');
+        this.parentContainer = parentContainer || document.getElementById('inner-container');
         
         // Reference to game over screen element
         this.gameOverScreen = null;
