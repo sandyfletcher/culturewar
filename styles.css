@@ -22,18 +22,21 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     overflow: hidden;
+    padding: 10px; /* Add padding around the body */
 }
 #outer-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     max-width: 400px;
     max-height: 800px;
     border: 2px solid #fff;
     overflow: hidden;
+    margin: 0 auto;
+    position: relative;
 }
 /* HEADER */
 header {
@@ -404,4 +407,23 @@ footer {
     text-align: center;
     border-top: 2px solid #fff;
     padding: 0.2rem;
+}
+/* Add media query for smaller screens */
+@media (max-height: 820px) {
+    #outer-container {
+        max-height: calc(100vh - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+}
+
+/* Add media query for very small screens */
+@media (max-width: 420px) {
+    #outer-container {
+        max-width: calc(100vw - 20px);
+        border-width: 1px; /* Thinner border on small screens */
+    }
+    
+    header h1 {
+        font-size: 1.2rem; /* Slightly smaller title on small screens */
+    }
 }
