@@ -109,8 +109,8 @@ class GameOverScreen {
         
         // Log a concise summary of the game stats
         const leaderboardRankings = leaderboardData.map(player => player.displayName).join(', ');
-        console.log(`[${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
-        
+        console.log(`Ranking: [${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
+
         // Add overall game stats
         const overallStats = `
             <div class="overall-stats">
