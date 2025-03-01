@@ -63,12 +63,20 @@ class MenuManager {
         switch(screenName) {
             case 'menu':
                 this.menuScreen.style.display = 'flex';
+                // Hide troop tracker when returning to menu
+                if (this.game && this.game.troopTracker) {
+                    this.game.troopTracker.hideTroopBar();
+                }
                 break;
             case 'game':
                 this.gameScreen.style.display = 'block';
                 break;
             case 'gameover':
                 // Game over screen is handled separately by GameOverScreen
+                            // Hide troop tracker when game is over
+            if (this.game && this.game.troopTracker) {
+                this.game.troopTracker.hideTroopBar();
+            }
                 break;
             default:
                 console.error('Unknown screen:', screenName);
@@ -80,6 +88,12 @@ class MenuManager {
     // Create and show game over screen with leaderboard
     showGameOver(stats, gameInstance) {
         this.game = gameInstance;
+        
+        // Hide troop tracker when game is over
+        if (gameInstance && gameInstance.troopTracker) {
+            gameInstance.troopTracker.hideTroopBar();
+        }
+        
         // Use the GameOverScreen instance to show the game over screen
         this.gameOverScreen.show(stats, gameInstance);
     }

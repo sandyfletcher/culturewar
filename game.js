@@ -4,6 +4,7 @@ import Renderer from './assets/javascript/RendererModule.js';
 import GameState from './assets/javascript/GameStateCheck.js';
 import PlayersController from './assets/javascript/PlayersController.js';
 import PlanetGenerator from './assets/javascript/PlanetGenerator.js';
+import TroopTracker from './assets/javascript/TroopTracker.js';
 
 class Game {
     constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -47,6 +48,7 @@ class Game {
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
         this.planetGenerator = new PlanetGenerator(this);
+        this.troopTracker = new TroopTracker(this);
         
         // Initialize game
         this.initializeGame();
@@ -65,6 +67,8 @@ class Game {
         this.troopMovements = [];
         this.selectedPlanets = [];
         this.gameOver = false;
+        // Show the troop tracker when game starts
+        this.troopTracker.showTroopBar();
     }
     
     // Clear all planet selections
@@ -77,25 +81,28 @@ class Game {
     
     update() {
         if (this.gameOver) return;
-
+    
         const now = Date.now();
         const dt = (now - this.gameState.lastUpdate) / 1000; // Convert to seconds
         this.gameState.lastUpdate = now;
-
+    
         // Update game state (timer, win conditions)
         this.gameState.update(dt);
         
         // If game is now over, stop updating
         if (this.gameOver) return;
-
+    
         // Update planet troops
         this.updatePlanets(dt);
-
+    
         // Update troop movements
         this.updateTroopMovements(dt);
-
+    
         // Let AI make decisions
         this.playersController.updateAIPlayers(dt);
+        
+        // Update troop tracker
+        this.troopTracker.update();
     }
     
     updatePlanets(dt) {
