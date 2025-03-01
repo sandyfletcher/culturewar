@@ -51,43 +51,59 @@ class MenuManager {
     }
 
     // Switch between screens (menu, game, game-over)
-    switchToScreen(screenName) {
-        // Hide all screens first
-        this.menuScreen.style.display = 'none';
-        this.gameScreen.style.display = 'none';
-        
-        // Remove game over screen if it exists
-        this.gameOverScreen.remove();
-        
-        // Show the requested screen
-        switch(screenName) {
-            case 'menu':
-                this.menuScreen.style.display = 'flex';
-                // Hide troop tracker when returning to menu
-                if (this.game && this.game.troopTracker) {
-                    this.game.troopTracker.hideTroopBar();
-                }
-                break;
-            case 'game':
-                this.gameScreen.style.display = 'block';
-                break;
-            case 'gameover':
-                // Game over screen is handled separately by GameOverScreen
-                            // Hide troop tracker when game is over
+// In MenuManager.js, modify the switchToScreen method to update the footer:
+
+switchToScreen(screenName) {
+    // Hide all screens first
+    this.menuScreen.style.display = 'none';
+    this.gameScreen.style.display = 'none';
+    
+    // Remove game over screen if it exists
+    this.gameOverScreen.remove();
+    
+    // Update footer based on screen
+    const timerElement = document.getElementById('timer');
+    if (screenName === 'game') {
+        // During game, timer will be updated by GameState
+        timerElement.innerHTML = '';
+    } else {
+        // On menu or game over screens, show site credit with link
+        timerElement.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
+    }
+    
+    // Show the requested screen
+    switch(screenName) {
+        case 'menu':
+            this.menuScreen.style.display = 'flex';
+            // Hide troop tracker when returning to menu
             if (this.game && this.game.troopTracker) {
                 this.game.troopTracker.hideTroopBar();
             }
-                break;
-            default:
-                console.error('Unknown screen:', screenName);
-        }
-        
-        this.currentScreen = screenName;
+            break;
+        case 'game':
+            this.gameScreen.style.display = 'block';
+            break;
+        case 'gameover':
+            // Game over screen is handled separately by GameOverScreen
+            // Hide troop tracker when game is over
+            if (this.game && this.game.troopTracker) {
+                this.game.troopTracker.hideTroopBar();
+            }
+            break;
+        default:
+            console.error('Unknown screen:', screenName);
     }
+    
+    this.currentScreen = screenName;
+}
     
     // Create and show game over screen with leaderboard
     showGameOver(stats, gameInstance) {
         this.game = gameInstance;
+        
+        // Update footer to show site credit
+        const timerElement = document.getElementById('timer');
+        timerElement.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
         
         // Hide troop tracker when game is over
         if (gameInstance && gameInstance.troopTracker) {

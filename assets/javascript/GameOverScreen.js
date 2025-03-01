@@ -60,12 +60,10 @@ class GameOverScreen {
         let headerText;
         if (gameMode === 'singleplayer') {
             const isPlayerWinner = stats.playerWon;
-            headerText = `<h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1>
-                        <h2>${leaderboardData[0].displayName} successfully subjugated space</h2>`;
+            headerText = `<h1>${isPlayerWinner ? 'VICTORY!' : 'DEFEAT'}</h1><h2>Successful Subjugation</h2>`;
         } else {
             // Bot battle mode
-            headerText = `<h1>BATTLE COMPLETE</h1>
-                        <h2>${leaderboardData[0].displayName} successfully subjugated space</h2>`;
+            headerText = `<h1>BATTLE COMPLETE</h1><h2>Successful Subjugation:<br>${leaderboardData[0].displayName}</h2>`;
         }
         
         // Create leaderboard HTML
@@ -117,19 +115,19 @@ class GameOverScreen {
                 <h3>BATTLE STATS</h3>
                 <div class="stats-container">
                     <div class="stat-item">
-                        <span class="stat-label">Battle Duration:</span>
+                        <span class="stat-label">Preservation:</span>
                         <span class="stat-value">${this.formatTime(stats.time)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Planet Subjugations:</span>
+                        <span class="stat-label">Persuasions:</span>
                         <span class="stat-value">${Math.round(stats.planetsConquered || 0)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Tunes Deployed:</span>
+                        <span class="stat-label">Proclamations:</span>
                         <span class="stat-value">${Math.round(stats.troopsSent || 0)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Tunes Lost:</span>
+                        <span class="stat-label">Extirpations:</span>
                         <span class="stat-value">${Math.round(stats.troopsLost || 0)}</span>
                     </div>
                 </div>
