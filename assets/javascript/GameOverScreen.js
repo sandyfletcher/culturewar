@@ -107,9 +107,10 @@ class GameOverScreen {
             </div>
         `;
         
-        console.log('Game over stats:', stats);
-        console.log('Leaderboard data:', leaderboardData);
-
+        // Log a concise summary of the game stats
+        const leaderboardRankings = leaderboardData.map(player => player.displayName).join(', ');
+        console.log(`[${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
+        
         // Add overall game stats
         const overallStats = `
             <div class="overall-stats">
@@ -121,15 +122,15 @@ class GameOverScreen {
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Planet Subjugations:</span>
-                        <span class="stat-value">${stats.planetsConquered || 0}</span>
+                        <span class="stat-value">${Math.round(stats.planetsConquered || 0)}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Tunes Deployed:</span>
-                        <span class="stat-value">${stats.troopsSent || 0}</span>
+                        <span class="stat-value">${Math.round(stats.troopsSent || 0)}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Tunes Lost:</span>
-                        <span class="stat-value">${stats.troopsLost || 0}</span>
+                        <span class="stat-value">${Math.round(stats.troopsLost || 0)}</span>
                     </div>
                 </div>
             </div>

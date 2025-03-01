@@ -353,9 +353,9 @@ header h1 {
     color: white;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between; /* Changed from flex-start to space-between */
     align-items: center;
-    padding: 0.5rem;
+    padding: 1rem;  /* Increased padding */
     box-sizing: border-box;
     z-index: 1000;
     overflow-y: auto;
@@ -363,29 +363,33 @@ header h1 {
     text-align: center;
 }
 #game-over-screen h1 {
-    font-size: 1.2rem;
-    margin: 0.2rem 0;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+    font-size: 1.8rem;  /* Increased from 1.2rem */
+    margin: 0.5rem 0;  /* Increased margin */
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    font-family: 'Codystar', monospace;  /* Match game title font */
 }
 #game-over-screen h2 {
-    font-size: 0.9rem;
-    margin: 0.2rem 0 0.5rem 0;
+    font-size: 1.2rem;  /* Increased from 0.9rem */
+    margin: 0.4rem 0 1rem 0;  /* Increased margin */
     text-align: center;
     color: #ffcc00;
-    text-shadow: 0 0 4px #ffcc00;
+    text-shadow: 0 0 6px #ffcc00;
 }
 #game-over-screen h3 {
     color: #aaa;
     text-align: center;
-    margin: 0.2rem 0;
-    font-size: 0.8rem;
+    margin: 0.5rem 0;  /* Increased margin */
+    font-size: 1rem;  /* Increased from 0.8rem */
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 .leaderboard {
     width: 98%;
     max-width: 390px;
-    margin-bottom: 0.5rem;
-    border-radius: 2px;
+    margin-bottom: 1rem;  /* Increased margin */
+    border-radius: 4px;  /* Increased radius */
     overflow: visible;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .leaderboard table {
     width: 100%;
@@ -423,10 +427,11 @@ header h1 {
 .overall-stats {
     width: 98%;
     max-width: 390px;
-    margin-bottom: 0.5rem;
+    margin: 1rem 0;  /* Increased margin */
     background-color: rgba(30, 30, 30, 0.8);
-    border-radius: 2px;
-    padding: 0.4rem;
+    border-radius: 4px;  /* Increased radius */
+    padding: 0.8rem;  /* Increased padding */
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .stats-container {
     display: grid;
@@ -442,26 +447,34 @@ header h1 {
     text-align: center;
 }
 .stat-label {
-    font-size: 0.6rem;
+    font-size: 0.8rem;
     color: #ccc;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.3rem;
     opacity: 0.8;
+    text-transform: uppercase;
 }
 .stat-value {
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     font-weight: bold;
+    color: #ffcc00;
 }
 #play-again-button {
-    margin-top: 0.5rem;
-    padding: 5px 15px;
-    font-size: 0.8rem;
+    margin-top: 1rem;
+    padding: 10px 20px;
+    font-size: 1rem;
     background-color: rgba(255, 255, 0, 0.8);
     color: black;
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
     font-family: 'Courier New', monospace;
     font-weight: bold;
+    transition: all 0.3s;
+}
+#play-again-button:hover {
+    transform: scale(1.05);
+    background-color: rgba(255, 255, 0, 1);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
 /* FOOTER */
 footer {
