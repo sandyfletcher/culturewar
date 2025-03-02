@@ -1,6 +1,14 @@
-// (FILE: PlayersController.js):
+import Claude1 from './AI bots/Claude11.js';
+import Claude2 from './AI bots/Claude22.js';
+import Claude3 from './AI bots/Claude33.js';
+import Claude4 from './AI bots/Claude44.js';
+import Claude5 from './AI bots/Claude5.js';
+import Claude6 from './AI bots/Claude6.js';
+import Dummy from './AI bots/Dummy.js';
+import Defensive from './AI bots/Defensive.js';
+import AGGRESSIVE from './AI bots/AGGRESSIVE.js';
 
-import aiRegistry from './AIRegistry.js';
+
 
 export default class PlayersController {
     constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -22,8 +30,18 @@ export default class PlayersController {
             'neutral': '#ffffff'  // White
         };
         
-        // Available AI types - Use aiRegistry module
-        this.availableAITypes = aiRegistry;
+        // Available AI types
+        this.availableAITypes = {
+            'claude1': Claude1,
+            'claude2': Claude2,
+            'claude3': Claude3,
+            'claude4': Claude4,
+            'Claude5': Claude5,
+            'Claude6': Claude6,
+            'defensive': Defensive,
+            'AGGRESSIVE': AGGRESSIVE,
+            'dummy': Dummy,
+        };
         
         // Initialize players and AI controllers
         this.initializePlayers();
@@ -74,19 +92,14 @@ export default class PlayersController {
     initializeAIControllers() {
         // Clear existing controllers
         this.aiControllers = {};
-
+        
         // Create AI controllers for each AI player
         const aiPlayers = this.getAIPlayers();
-
+        
         for (const player of aiPlayers) {
-            const aiType = player.aiController;
-            const AIClass = aiRegistry[aiType]; // Get AI class from the registry
-
-            if (AIClass) {
-                this.aiControllers[player.id] = new AIClass(this.game, player.id);
-            } else {
-                console.warn(`AI type "${aiType}" not found in registry.`);
-            }
+            // Get the AI class based on the specified type
+            const AIClass = this.availableAITypes[player.aiController] || this.availableAITypes['claude1'];
+            this.aiControllers[player.id] = new AIClass(this.game, player.id);
         }
     }
     
