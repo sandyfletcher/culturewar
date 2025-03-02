@@ -7,6 +7,10 @@ class MenuManager {
         this.menuScreen = document.getElementById('menu-screen');
         this.gameScreen = document.getElementById('game-screen');
         this.timer = document.getElementById('timer');
+            // Initialize timer with link
+        if (this.timer) {
+            this.timer.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
+        }
         
         // Make MenuManager globally accessible for GameState
         window.menuManager = this;
