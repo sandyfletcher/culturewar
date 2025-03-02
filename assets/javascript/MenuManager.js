@@ -1,5 +1,6 @@
 import Game from '../../game.js';
 import GameOverScreen from './GameOverScreen.js';
+import aiRegistry from '../../assets/javascript/AIRegistry.js';
 
 class MenuManager {
     constructor() {
@@ -21,18 +22,11 @@ class MenuManager {
         // Track current screen
         this.currentScreen = 'menu';
         
-        // AI Types - single source of truth
-        this.aiOptions = [
-            { value: 'Claude1', name: 'Claude1' },
-            { value: 'Claude2', name: 'Claude2' },
-            { value: 'Claude3', name: 'Claude3' },
-            { value: 'Claude4', name: 'Claude4' },
-            { value: 'Claude5', name: 'Claude5' },
-            { value: 'Claude6', name: 'Claude6' },
-            { value: 'Defensive', name: 'Defensive' },
-            { value: 'AGGRESSIVE', name: 'AGGRESSIVE' },
-            { value: 'Dummy', name: 'Dummy' },
-        ];
+        // AI Types 
+        this.aiOptions = Object.keys(aiRegistry).map(aiName => ({
+            value: aiName, // AI name
+            name: aiName   // Display name
+        }));
         
         // Player colors for AI selection
         this.playerColors = {
