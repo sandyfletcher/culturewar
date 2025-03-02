@@ -20,7 +20,6 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    min-height: 100dvh;
     overflow: hidden;
     padding: 0.6rem;
 }
@@ -31,7 +30,6 @@ body {
     justify-content: center;
     width: 100%;
     height: 98vh;
-    height: 98dvh;
     max-width: 400px;
     max-height: 800px;
     border: 2px solid #fff;
@@ -353,9 +351,9 @@ header h1 {
     color: white;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Changed from flex-start to space-between */
+    justify-content: space-between;
     align-items: center;
-    padding: 1rem;  /* Increased padding */
+    padding: 1rem;
     box-sizing: border-box;
     z-index: 1000;
     overflow-y: auto;
@@ -363,14 +361,14 @@ header h1 {
     text-align: center;
 }
 #game-over-screen h1 {
-    font-size: 1.8rem;  /* Increased from 1.2rem */
-    margin: 0.5rem 0;  /* Increased margin */
+    font-size: 1.8rem;
+    margin: 0.5rem 0;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-    font-family: 'Codystar', monospace;  /* Match game title font */
+    font-family: 'Codystar', monospace;
 }
 #game-over-screen h2 {
-    font-size: 1.2rem;  /* Increased from 0.9rem */
-    margin: 0.4rem 0 1rem 0;  /* Increased margin */
+    font-size: 1.2rem;
+    margin: 0.4rem 0 1rem 0;
     text-align: center;
     color: #ffcc00;
     text-shadow: 0 0 6px #ffcc00;
@@ -378,16 +376,16 @@ header h1 {
 #game-over-screen h3 {
     color: #aaa;
     text-align: center;
-    margin: 0.5rem 0;  /* Increased margin */
-    font-size: 1rem;  /* Increased from 0.8rem */
+    margin: 0.5rem 0;
+    font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 .leaderboard {
     width: 98%;
     max-width: 390px;
-    margin-bottom: 1rem;  /* Increased margin */
-    border-radius: 4px;  /* Increased radius */
+    margin-bottom: 1rem;
+    border-radius: 4px;
     overflow: visible;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -427,10 +425,10 @@ header h1 {
 .overall-stats {
     width: 98%;
     max-width: 390px;
-    margin: 1rem 0;  /* Increased margin */
+    margin: 1rem 0;
     background-color: rgba(30, 30, 30, 0.8);
-    border-radius: 4px;  /* Increased radius */
-    padding: 0.8rem;  /* Increased padding */
+    border-radius: 4px;
+    padding: 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .stats-container {
@@ -495,4 +493,14 @@ footer a:hover, #timer a:hover {
 #timer {
     color: #fff;
     padding: 0.2rem;
+}
+/* MOBILE SIZING */
+@supports (height: 100dvh) {
+    body {
+        min-height: 100dvh;
+    }
+    
+    #outer-container {
+        height: 98dvh;
+    }
 }
