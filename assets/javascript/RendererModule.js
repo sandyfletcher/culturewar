@@ -69,10 +69,17 @@ export default class Renderer {
     }
 
     updateTimerDisplay() {
-        const timeRemaining = this.game.gameState.timeRemaining;
+        // Get time remaining from game state
+        const timeRemaining = Math.max(0, this.game.gameState.timeRemaining);
+        
+        // Format minutes and seconds properly
         const minutes = Math.floor(timeRemaining / 60);
         const seconds = Math.floor(timeRemaining % 60);
-        document.getElementById('timer').textContent = 
-            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Update the timer display with proper padding
+        const timerElement = document.getElementById('timer');
+        if (timerElement) {
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
     }
 }

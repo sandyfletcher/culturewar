@@ -13,19 +13,35 @@ export default class GameState {
         // Track when players are eliminated
         this.eliminationTimes = {};
         this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));
+        // Add pageVisibility tracking
+        this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    // Handle page visibility changes
+    handleVisibilityChange() {
+        if (document.visibilityState === 'visible') {
+            // Reset lastUpdate when page becomes visible again
+            this.lastUpdate = Date.now();
+        }
     }
 
     update(dt) {
         if (this.gameOver) return;
             
-        // Update timer
-        this.timeRemaining -= dt;
+        // Update timer, but don't let it go below 0
+        this.timeRemaining = Math.max(0, this.timeRemaining - dt);
         
         // Check for player eliminations
         this.checkPlayerEliminations();
         
         // Check win conditions
         this.checkWinConditions();
+        
+        // If time has run out, force a win condition check
+        if (this.timeRemaining === 0 && !this.gameOver) {
+            this.checkWinConditions();
+        }
     }
     
     // Track when players are eliminated
@@ -126,5 +142,8 @@ export default class GameState {
         } else {
             console.error("MenuManager not found. Make sure it's initialized before GameState.");
         }
+        
+        // Clean up event listener when game ends
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 }
