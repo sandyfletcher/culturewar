@@ -1,5 +1,4 @@
-// defensiveai.js
-export default class DefensiveAI {
+export default class Defensive {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;

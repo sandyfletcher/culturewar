@@ -1,11 +1,14 @@
-// PlayersController.js
-import DummyAI from './AI bots/dummyai.js';
-import AdvancedAI from './AI bots/advancedai.js';
-import Claude1 from './AI bots/claude1.js';
-import Claude2 from './AI bots/claude2.js';
-import Claude1a from './AI bots/claude1a.js';
-import Claude2a from './AI bots/claude2a.js';
-import DefensiveAI from './AI bots/defensiveAI.js';
+import Claude1 from './AI bots/Claude1.js';
+import Claude2 from './AI bots/Claude2.js';
+import Claude3 from './AI bots/Claude3.js';
+import Claude4 from './AI bots/Claude4.js';
+import Claude5 from './AI bots/Claude5.js';
+import Claude6 from './AI bots/Claude6.js';
+import Dummy from './AI bots/Dummy.js';
+import Defensive from './AI bots/Defensive.js';
+import AGGRESSIVE from './AI bots/AGGRESSIVE.js';
+
+
 
 export default class PlayersController {
     constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -31,11 +34,13 @@ export default class PlayersController {
         this.availableAITypes = {
             'claude1': Claude1,
             'claude2': Claude2,
-            'claude1a': Claude1a,
-            'claude2a': Claude2a,
-            'defensive': DefensiveAI,
-            'dummy': DummyAI,
-            'advanced': AdvancedAI
+            'claude3': Claude3,
+            'claude4': Claude4,
+            'Claude5': Claude5,
+            'Claude6': Claude6,
+            'defensive': Defensive,
+            'AGGRESSIVE': AGGRESSIVE,
+            'dummy': Dummy,
         };
         
         // Initialize players and AI controllers

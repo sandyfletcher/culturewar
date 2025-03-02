@@ -19,13 +19,15 @@ class MenuManager {
         
         // AI Types - single source of truth
         this.aiOptions = [
-            { value: 'claude1', name: 'Claude I' },
-            { value: 'claude2', name: 'Claude II' },
-            { value: 'claude1a', name: 'Claude III' },
-            { value: 'claude2a', name: 'Claude IV' },
-            { value: 'defensive', name: 'Defensive' },
-            { value: 'dummy', name: 'Big Dummy' },
-            { value: 'advanced', name: 'Claude 0' }
+            { value: 'Claude1', name: 'Claude1' },
+            { value: 'Claude2', name: 'Claude2' },
+            { value: 'Claude3', name: 'Claude3' },
+            { value: 'Claude4', name: 'Claude4' },
+            { value: 'Claude5', name: 'Claude5' },
+            { value: 'Claude6', name: 'Claude6' },
+            { value: 'Defensive', name: 'Defensive' },
+            { value: 'AGGRESSIVE', name: 'AGGRESSIVE' },
+            { value: 'Dummy', name: 'Dummy' },
         ];
         
         // Player colors for AI selection
@@ -42,7 +44,7 @@ class MenuManager {
         this.gameConfig = {
             gameMode: 'singleplayer', // Default game mode
             playerCount: 2, // Default: 1 human + 1 AI
-            aiTypes: ['claude1'], // Default AI type
+            aiTypes: ['Claude1'], // Default AI type
             botBattleCount: 2 // Default number of AI players in bot battle
         };
         
@@ -51,51 +53,49 @@ class MenuManager {
     }
 
     // Switch between screens (menu, game, game-over)
-// In MenuManager.js, modify the switchToScreen method to update the footer:
-
-switchToScreen(screenName) {
-    // Hide all screens first
-    this.menuScreen.style.display = 'none';
-    this.gameScreen.style.display = 'none';
-    
-    // Remove game over screen if it exists
-    this.gameOverScreen.remove();
-    
-    // Update footer based on screen
-    const timerElement = document.getElementById('timer');
-    if (screenName === 'game') {
-        // During game, timer will be updated by GameState
-        timerElement.innerHTML = '';
-    } else {
-        // On menu or game over screens, show site credit with link
-        timerElement.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
+    switchToScreen(screenName) {
+        // Hide all screens first
+        this.menuScreen.style.display = 'none';
+        this.gameScreen.style.display = 'none';
+        
+        // Remove game over screen if it exists
+        this.gameOverScreen.remove();
+        
+        // Update footer based on screen
+        const timerElement = document.getElementById('timer');
+        if (screenName === 'game') {
+            // During game, timer will be updated by GameState
+            timerElement.innerHTML = '';
+        } else {
+            // On menu or game over screens, show site credit with link
+            timerElement.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
+        }
+        
+        // Show the requested screen
+        switch(screenName) {
+            case 'menu':
+                this.menuScreen.style.display = 'flex';
+                // Hide troop tracker when returning to menu
+                if (this.game && this.game.troopTracker) {
+                    this.game.troopTracker.hideTroopBar();
+                }
+                break;
+            case 'game':
+                this.gameScreen.style.display = 'block';
+                break;
+            case 'gameover':
+                // Game over screen is handled separately by GameOverScreen
+                // Hide troop tracker when game is over
+                if (this.game && this.game.troopTracker) {
+                    this.game.troopTracker.hideTroopBar();
+                }
+                break;
+            default:
+                console.error('Unknown screen:', screenName);
+        }
+        
+        this.currentScreen = screenName;
     }
-    
-    // Show the requested screen
-    switch(screenName) {
-        case 'menu':
-            this.menuScreen.style.display = 'flex';
-            // Hide troop tracker when returning to menu
-            if (this.game && this.game.troopTracker) {
-                this.game.troopTracker.hideTroopBar();
-            }
-            break;
-        case 'game':
-            this.gameScreen.style.display = 'block';
-            break;
-        case 'gameover':
-            // Game over screen is handled separately by GameOverScreen
-            // Hide troop tracker when game is over
-            if (this.game && this.game.troopTracker) {
-                this.game.troopTracker.hideTroopBar();
-            }
-            break;
-        default:
-            console.error('Unknown screen:', screenName);
-    }
-    
-    this.currentScreen = screenName;
-}
     
     // Create and show game over screen with leaderboard
     showGameOver(stats, gameInstance) {

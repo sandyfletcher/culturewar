@@ -1,4 +1,4 @@
-class DummyAI {
+class Dummy {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
@@ -124,4 +124,4 @@ class DummyAI {
     }
 }
 
-export default DummyAI;
+export default Dummy;
