@@ -1,6 +1,6 @@
 import Claude1 from './AI bots/Claude1.js';
-import Claude2 from './AI bots/Claude2.js';
-import Claude3 from './AI bots/Claude3.js';
+import Claude2 from './AI bots/Claude22.js';
+import Claude3 from './AI bots/Claude33.js';
 import Claude4 from './AI bots/Claude4.js';
 import Claude5 from './AI bots/Claude5.js';
 import Claude6 from './AI bots/Claude6.js';
