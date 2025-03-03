@@ -5,6 +5,7 @@ import GameState from './assets/javascript/GameStateCheck.js';
 import PlayersController from './assets/javascript/PlayersController.js';
 import PlanetGenerator from './assets/javascript/PlanetGenerator.js';
 import TroopTracker from './assets/javascript/TroopTracker.js';
+import UnifiedPlanetGenerator from './assets/javascript/UnifiedPlanetGenerator.js';
 
 class Game {
     constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -47,8 +48,10 @@ class Game {
         this.inputHandler = botBattleMode ? null : new InputHandler(this);
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
-        this.planetGenerator = new PlanetGenerator(this);
+ //       this.planetGenerator = new PlanetGenerator(this);
         this.troopTracker = new TroopTracker(this);
+            // Initialize the unified planet generator
+        this.planetGenerator = new UnifiedPlanetGenerator(this);
         
         // Initialize game
         this.initializeGame();
@@ -62,8 +65,8 @@ class Game {
     }
     
     initializeGame() {
-        // Generate planets
-        this.planets = this.planetGenerator.generatePlanets(this.playerCount, this.botBattleMode);
+        // Generate planets using the unified generator
+        this.planets = this.planetGenerator.generatePlanets();
         this.troopMovements = [];
         this.selectedPlanets = [];
         this.gameOver = false;
