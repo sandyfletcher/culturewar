@@ -145,9 +145,9 @@ class MenuManager {
         
         // Create game mode buttons
         const gameModes = [
-            { id: 'botbattle', name: 'BOT BATTLE', description: 'Pit AI against each other' },
-            { id: 'singleplayer', name: 'SINGLE PLAYER', description: 'Battle the AI' },
-            { id: 'multiplayer', name: 'MULTIPLAYER', description: 'Battle other humans' }
+            { id: 'botbattle', name: 'BOT BATTLE', description: 'AI against AI' },
+            { id: 'singleplayer', name: 'SINGLE PLAYER', description: 'You against AI' },
+            { id: 'multiplayer', name: 'MULTIPLAYER', description: 'You against humans' }
         ];
         
         const gameModeContainer = document.createElement('div');

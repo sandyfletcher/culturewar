@@ -63,21 +63,12 @@ export default class TroopTracker {
         // Create the bar container
         const barElement = document.createElement('div');
         barElement.id = 'troop-bar';
-        barElement.style.position = 'relative';
         this.troopBarContainer.appendChild(barElement);
         
         // Add troops count inside the bar
         const troopCountElement = document.createElement('div');
         troopCountElement.id = 'total-troops-count';
         troopCountElement.textContent = `${Math.round(totalTroops)}`;
-        troopCountElement.style.position = 'absolute';
-        troopCountElement.style.zIndex = '10';
-        troopCountElement.style.left = '50%';
-        troopCountElement.style.top = '50%';
-        troopCountElement.style.transform = 'translate(-50%, -50%)';
-        troopCountElement.style.color = 'white';
-        troopCountElement.style.textShadow = '1px 1px 2px black';
-        troopCountElement.style.fontWeight = 'bold';
         barElement.appendChild(troopCountElement);
         
         // Create segments for each player
@@ -90,7 +81,6 @@ export default class TroopTracker {
                 
                 // Get color directly from player ID
                 const color = this.playerColors[playerId] || '#888'; // Fallback color
-                
                 segment.style.backgroundColor = color;
                 
                 // Add tooltip with player info
