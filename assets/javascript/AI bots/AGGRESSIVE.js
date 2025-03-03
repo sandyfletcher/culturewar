@@ -1,3 +1,7 @@
+// (AGGRESSIVE.js):
+// Claude's attempt at building a modular bot - this one is tuned to be very aggressive
+// Makes insane decisions, sends 100% of its troops out, but makes for short games and will be kept on
+// Assigned name: Heather Spuckler
 
 export default class AGGRESSIVE {
     constructor(game, playerId) {
