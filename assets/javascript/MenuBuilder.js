@@ -1,4 +1,4 @@
-// MenuBuilder.js
+// (MenuBuilder.js):
 // Builds and manages UI components for menu screens
 
 class MenuBuilder {
@@ -6,14 +6,44 @@ class MenuBuilder {
         this.container = container;
         this.screenManager = screenManager;
         this.configManager = configManager;
+        
+        // Create reusable UI elements
+        this.createReusableElements();
+    }
+    
+    createReusableElements() {
+        // Create a reusable back button template
+        this.backButtonTemplate = document.createElement('button');
+        this.backButtonTemplate.className = 'menu-button back-button';
+        this.backButtonTemplate.textContent = '< BACK';
+    }
+    
+    // Helper to get a configured back button for any screen
+    getBackButton(handler) {
+        // Clone the template button
+        const backButton = this.backButtonTemplate.cloneNode(true);
+        // Add the specific click handler
+        backButton.addEventListener('click', handler);
+        return backButton;
+    }
+    
+    // Helper to clear and get a fresh menu container
+    createMenuContainer() {
+        // Clear existing content
+        this.container.innerHTML = '';
+        
+        // Create a new menu container
+        const menuContainer = document.createElement('div');
+        menuContainer.className = 'menu-container';
+        
+        // Add it to the main container
+        this.container.appendChild(menuContainer);
+        
+        return menuContainer;
     }
     
     buildMainMenu() {
-        this.container.innerHTML = '';
-        
-        // Create a menu container
-        const menuContainer = document.createElement('div');
-        menuContainer.className = 'menu-container';
+        const menuContainer = this.createMenuContainer();
         
         // Create game mode buttons
         const gameModeContainer = document.createElement('div');
@@ -89,23 +119,13 @@ class MenuBuilder {
         });
         
         menuContainer.appendChild(gameModeContainer);
-        this.container.appendChild(menuContainer);
     }
     
     buildGameSetup(gameMode) {
         // Update config with selected game mode
         this.configManager.setGameMode(gameMode);
         
-        // Clear existing menu
-        this.container.innerHTML = '';
-        
-        // Create a menu container
-        const menuContainer = document.createElement('div');
-        menuContainer.className = 'menu-container';
-        
-        // Add back button
-        const backButton = this.createBackButton(() => this.buildMainMenu());
-        menuContainer.appendChild(backButton);
+        const menuContainer = this.createMenuContainer();
         
         // Create appropriate setup form based on game mode
         let minCount, maxCount, countLabel, startButtonText, isBotBattle;
@@ -128,186 +148,187 @@ class MenuBuilder {
         }
         
         this.createGameSetupForm(menuContainer, minCount, maxCount, countLabel, startButtonText, isBotBattle);
-        
-        this.container.appendChild(menuContainer);
     }
     
-// Updated createGameSetupForm method to include planet density slider
-createGameSetupForm(menuContainer, minCount, maxCount, countLabel, startButtonText, isBotBattle) {
-    const setupForm = document.createElement('div');
-    setupForm.className = 'setup-form';
-    
-    // Create a container for the header part
-    const headerContainer = document.createElement('div');
-    headerContainer.className = 'setup-header';
-    
-    // Count selection title
-    const countLabelElement = document.createElement('h2');
-    countLabelElement.textContent = countLabel;
-    countLabelElement.className = 'setup-title';
-    headerContainer.appendChild(countLabelElement);
-    
-    // Count selection circles
-    const countSelect = document.createElement('div');
-    countSelect.className = 'player-count-select';
-    
-    for (let i = minCount; i <= maxCount; i++) {
-        const countButton = document.createElement('button');
-        countButton.className = 'count-button';
-        countButton.textContent = i;
-        countButton.dataset.count = i;
-        countButton.setAttribute('aria-label', `${i} ${isBotBattle ? 'bots' : 'opponent' + (i > 1 ? 's' : '')}`);
+    createGameSetupForm(menuContainer, minCount, maxCount, countLabel, startButtonText, isBotBattle) {
+        const setupForm = document.createElement('div');
+        setupForm.className = 'setup-form';
         
-        // Set default selected for the first button
-        if (i === minCount) {
-            countButton.classList.add('active');
-            if (isBotBattle) {
-                this.configManager.setBotBattleCount(i);
-            } else {
-                this.configManager.setPlayerCount(i + 1); // +1 for human player
+        // Create a container for the header part
+        const headerContainer = document.createElement('div');
+        headerContainer.className = 'setup-header';
+        
+        // Count selection title
+        const countLabelElement = document.createElement('h2');
+        countLabelElement.textContent = countLabel;
+        countLabelElement.className = 'setup-title';
+        headerContainer.appendChild(countLabelElement);
+        
+        // Count selection circles
+        const countSelect = document.createElement('div');
+        countSelect.className = 'player-count-select';
+        
+        for (let i = minCount; i <= maxCount; i++) {
+            const countButton = document.createElement('button');
+            countButton.className = 'count-button';
+            countButton.textContent = i;
+            countButton.dataset.count = i;
+            countButton.setAttribute('aria-label', `${i} ${isBotBattle ? 'bots' : 'opponent' + (i > 1 ? 's' : '')}`);
+            
+            // Set default selected for the first button
+            if (i === minCount) {
+                countButton.classList.add('active');
+                if (isBotBattle) {
+                    this.configManager.setBotBattleCount(i);
+                } else {
+                    this.configManager.setPlayerCount(i + 1); // +1 for human player
+                }
             }
-        }
-        
-        countButton.addEventListener('click', () => {
-            // Remove active class from all buttons
-            document.querySelectorAll('.count-button').forEach(btn => {
-                btn.classList.remove('active');
+            
+            countButton.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.count-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                countButton.classList.add('active');
+                
+                // Store count in config
+                if (isBotBattle) {
+                    this.configManager.setBotBattleCount(parseInt(i));
+                } else {
+                    this.configManager.setPlayerCount(parseInt(i) + 1); // +1 for human player
+                }
+                
+                // Update AI selectors
+                this.updateEntitySelectors(selectionContainer, i, isBotBattle);
             });
             
-            // Add active class to clicked button
-            countButton.classList.add('active');
-            
-            // Store count in config
-            if (isBotBattle) {
-                this.configManager.setBotBattleCount(parseInt(i));
-            } else {
-                this.configManager.setPlayerCount(parseInt(i) + 1); // +1 for human player
-            }
-            
-            // Update AI selectors
-            this.updateEntitySelectors(selectionContainer, i, isBotBattle);
-        });
-        
-        countSelect.appendChild(countButton);
-    }
-    
-    headerContainer.appendChild(countSelect);
-    setupForm.appendChild(headerContainer);
-    
-    // AI/Bot selection container - create it before trying to update it
-    const selectionContainer = document.createElement('div');
-    selectionContainer.className = 'setup-section ai-selection-container';
-    selectionContainer.id = isBotBattle ? 'bot-selection' : 'ai-selection';
-    setupForm.appendChild(selectionContainer);
-    
-    // Add a new section for planet density slider
-    const planetDensityContainer = document.createElement('div');
-    planetDensityContainer.className = 'setup-section planet-density-container';
-    
-    // Add a title for the planet density section
-    const densityTitle = document.createElement('h3');
-    densityTitle.textContent = 'PLANET DENSITY';
-    densityTitle.className = 'section-title';
-    planetDensityContainer.appendChild(densityTitle);
-    
-    // Create a container for the slider and its labels
-    const sliderContainer = document.createElement('div');
-    sliderContainer.className = 'slider-container';
-    
-    // Add slider
-    const densitySlider = document.createElement('input');
-    densitySlider.type = 'range';
-    densitySlider.min = '0.5';
-    densitySlider.max = '2.0';
-    densitySlider.step = '0.1';
-    densitySlider.value = '1.0'; // Default value
-    densitySlider.className = 'density-slider';
-    densitySlider.id = 'planet-density-slider';
-    
-    // Add left label (Sparse)
-    const leftLabel = document.createElement('span');
-    leftLabel.className = 'slider-label left-label';
-    leftLabel.textContent = 'Sparse';
-    
-    // Add right label (Dense)
-    const rightLabel = document.createElement('span');
-    rightLabel.className = 'slider-label right-label';
-    rightLabel.textContent = 'Dense';
-    
-    // Add value display
-    const valueDisplay = document.createElement('div');
-    valueDisplay.className = 'slider-value';
-    valueDisplay.id = 'density-value-display';
-    valueDisplay.textContent = '1.0';
-    
-    // Add description text
-    const description = document.createElement('p');
-    description.className = 'slider-description';
-    description.textContent = 'Adjust the number and spacing of neutral planets';
-    
-    // Add event listener for slider
-    densitySlider.addEventListener('input', () => {
-        const value = parseFloat(densitySlider.value);
-        valueDisplay.textContent = value.toFixed(1);
-        
-        // Update config in GameConfigManager
-        this.configManager.setPlanetDensity(value);
-    });
-    
-    // Assemble the slider container
-    sliderContainer.appendChild(leftLabel);
-    sliderContainer.appendChild(densitySlider);
-    sliderContainer.appendChild(rightLabel);
-    
-    // Add all elements to planet density container
-    planetDensityContainer.appendChild(sliderContainer);
-    planetDensityContainer.appendChild(valueDisplay);
-    planetDensityContainer.appendChild(description);
-    
-    // Add the planet density container to the setup form
-    setupForm.appendChild(planetDensityContainer);
-    
-    // Bottom button container
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'setup-buttons';
-    
-    // Back button inside the form
-    const backButton = this.createBackButton(() => this.buildMainMenu());
-    buttonContainer.appendChild(backButton);
-    
-    // Start button
-    const startButton = document.createElement('button');
-    startButton.className = 'menu-button start-game';
-    startButton.textContent = startButtonText;
-    startButton.addEventListener('click', () => {
-        const count = document.querySelector('.count-button.active').dataset.count;
-        
-        // Collect AI types
-        const aiTypes = [];
-        for (let i = 1; i <= count; i++) {
-            const selector = document.querySelector(`#${isBotBattle ? 'bot' : 'ai'}-type-${i}`);
-            if (selector) {
-                aiTypes.push(selector.value);
-            } else {
-                console.error(`Selector #${isBotBattle ? 'bot' : 'ai'}-type-${i} not found!`);
-            }
+            countSelect.appendChild(countButton);
         }
         
-        // Update config
-        this.configManager.setAITypes(aiTypes);
+        headerContainer.appendChild(countSelect);
+        setupForm.appendChild(headerContainer);
         
-        // Tell the parent MenuManager to start the game
-        window.menuManager.startGame();
-    });
+        // AI/Bot selection container - create it before trying to update it
+        const selectionContainer = document.createElement('div');
+        selectionContainer.className = 'setup-section ai-selection-container';
+        selectionContainer.id = isBotBattle ? 'bot-selection' : 'ai-selection';
+        setupForm.appendChild(selectionContainer);
+        
+        // Add planet density slider section
+        setupForm.appendChild(this.createPlanetDensityControl());
+        
+        // Bottom button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'setup-buttons';
+        
+        // Add back button
+        const backButton = this.getBackButton(() => this.buildMainMenu());
+        
+        // Start button
+        const startButton = document.createElement('button');
+        startButton.className = 'menu-button start-game';
+        startButton.textContent = startButtonText;
+        startButton.addEventListener('click', () => {
+            const count = document.querySelector('.count-button.active').dataset.count;
+            
+            // Collect AI types
+            const aiTypes = [];
+            for (let i = 1; i <= count; i++) {
+                const selector = document.querySelector(`#${isBotBattle ? 'bot' : 'ai'}-type-${i}`);
+                if (selector) {
+                    aiTypes.push(selector.value);
+                } else {
+                    console.error(`Selector #${isBotBattle ? 'bot' : 'ai'}-type-${i} not found!`);
+                }
+            }
+            
+            // Update config
+            this.configManager.setAITypes(aiTypes);
+            
+            // Tell the parent MenuManager to start the game
+            window.menuManager.startGame();
+        });
+
+        buttonContainer.appendChild(backButton);
+        buttonContainer.appendChild(startButton);
+        setupForm.appendChild(buttonContainer);
+        
+        menuContainer.appendChild(setupForm);
+        
+        // Initialize selectors with default count - pass the selectionContainer directly
+        this.updateEntitySelectors(selectionContainer, minCount, isBotBattle);
+    }
     
-    buttonContainer.appendChild(startButton);
-    setupForm.appendChild(buttonContainer);
-    
-    menuContainer.appendChild(setupForm);
-    
-    // Initialize selectors with default count - pass the selectionContainer directly
-    this.updateEntitySelectors(selectionContainer, minCount, isBotBattle);
-}
+    // Extracted planet density control creation to a separate method
+    createPlanetDensityControl() {
+        const planetDensityContainer = document.createElement('div');
+        planetDensityContainer.className = 'setup-section planet-density-container';
+        
+        // Add a title for the planet density section
+        const densityTitle = document.createElement('h3');
+        densityTitle.textContent = 'PLANET DENSITY';
+        densityTitle.className = 'section-title';
+        planetDensityContainer.appendChild(densityTitle);
+        
+        // Create a container for the slider and its labels
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        // Add slider
+        const densitySlider = document.createElement('input');
+        densitySlider.type = 'range';
+        densitySlider.min = '0.5';
+        densitySlider.max = '2.0';
+        densitySlider.step = '0.1';
+        densitySlider.value = '1.0'; // Default value
+        densitySlider.className = 'density-slider';
+        densitySlider.id = 'planet-density-slider';
+        
+        // Add left label (Sparse)
+        const leftLabel = document.createElement('span');
+        leftLabel.className = 'slider-label left-label';
+        leftLabel.textContent = 'Sparse';
+        
+        // Add right label (Dense)
+        const rightLabel = document.createElement('span');
+        rightLabel.className = 'slider-label right-label';
+        rightLabel.textContent = 'Dense';
+        
+        // Add value display
+        const valueDisplay = document.createElement('div');
+        valueDisplay.className = 'slider-value';
+        valueDisplay.id = 'density-value-display';
+        valueDisplay.textContent = '1.0';
+        
+        // Add description text
+        const description = document.createElement('p');
+        description.className = 'slider-description';
+        description.textContent = 'Adjust the number and spacing of neutral planets';
+        
+        // Add event listener for slider
+        densitySlider.addEventListener('input', () => {
+            const value = parseFloat(densitySlider.value);
+            valueDisplay.textContent = value.toFixed(1);
+            
+            // Update config in GameConfigManager
+            this.configManager.setPlanetDensity(value);
+        });
+        
+        // Assemble the slider container
+        sliderContainer.appendChild(leftLabel);
+        sliderContainer.appendChild(densitySlider);
+        sliderContainer.appendChild(rightLabel);
+        
+        // Add all elements to planet density container
+        planetDensityContainer.appendChild(sliderContainer);
+        planetDensityContainer.appendChild(valueDisplay);
+        planetDensityContainer.appendChild(description);
+        
+        return planetDensityContainer;
+    }
 
     updateEntitySelectors(selectionContainer, count, isBotBattle) {
         // We're now using the container reference passed directly rather than trying to find it by ID
@@ -372,16 +393,7 @@ createGameSetupForm(menuContainer, minCount, maxCount, countLabel, startButtonTe
     }
 
     buildInstructionsScreen() {
-        // Build instructions UI
-        this.container.innerHTML = '';
-        
-        // Create a menu container
-        const menuContainer = document.createElement('div');
-        menuContainer.className = 'menu-container';
-        
-        // Back button
-        const backButton = this.createBackButton(() => this.buildMainMenu());
-        menuContainer.appendChild(backButton);
+        const menuContainer = this.createMenuContainer();
         
         // Instructions content
         const content = document.createElement('div');
@@ -405,46 +417,37 @@ createGameSetupForm(menuContainer, minCount, maxCount, countLabel, startButtonTe
                 <p>When attacking, if you send more troops than the defending planet has, you'll capture it.</p>
             </div>
         `;
+
+        // Back button
+        const backButton = this.getBackButton(() => this.buildMainMenu());
         
         menuContainer.appendChild(content);
-        this.container.appendChild(menuContainer);
+        menuContainer.appendChild(backButton);
     }
     
     buildCampaignMenu() {
-        // Implementation for campaign menu - placeholder for now
-        this.container.innerHTML = '';
-        
-        // Create a menu container
-        const menuContainer = document.createElement('div');
-        menuContainer.className = 'menu-container';
+        const menuContainer = this.createMenuContainer();
         
         // Back button
-        const backButton = this.createBackButton(() => this.buildMainMenu());
-        menuContainer.appendChild(backButton);
+        const backButton = this.getBackButton(() => this.buildMainMenu());
         
         // Campaign content placeholder
         const content = document.createElement('div');
         content.className = 'campaign-content';
         content.innerHTML = `
             <h2>CAMPAIGN MODE</h2>
-            <p>Campaign mode is coming soon! Check back later for mission-based gameplay.</p>
+            <p>A series of scripted missions will be implemented here, but we ain't written on scripts yet.</p>
         `;
         
         menuContainer.appendChild(content);
-        this.container.appendChild(menuContainer);
+        menuContainer.appendChild(backButton);
     }
     
     buildSettingsScreen() {
-        // Implementation for settings - placeholder for now
-        this.container.innerHTML = '';
-        
-        // Create a menu container
-        const menuContainer = document.createElement('div');
-        menuContainer.className = 'menu-container';
+        const menuContainer = this.createMenuContainer();
         
         // Back button
-        const backButton = this.createBackButton(() => this.buildMainMenu());
-        menuContainer.appendChild(backButton);
+        const backButton = this.getBackButton(() => this.buildMainMenu());
         
         // Settings content placeholder
         const content = document.createElement('div');
@@ -455,15 +458,7 @@ createGameSetupForm(menuContainer, minCount, maxCount, countLabel, startButtonTe
         `;
         
         menuContainer.appendChild(content);
-        this.container.appendChild(menuContainer);
-    }
-    
-    createBackButton(handler) {
-        const button = document.createElement('button');
-        button.className = 'menu-button back-button';
-        button.textContent = '← BACK';
-        button.addEventListener('click', handler);
-        return button;
+        menuContainer.appendChild(backButton);
     }
 }
 
