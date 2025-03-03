@@ -22,18 +22,25 @@ class MenuBuilder {
         // Define all main menu options
         const options = [
             { 
+                id: 'instructions', 
+                name: 'INSTRUCTIONS', 
+                description: 'How to play',
+                available: true,
+                handler: () => this.buildInstructionsScreen()
+            },
+            { 
+                id: 'botbattle', 
+                name: 'BATTLEBOTS', 
+                description: 'AI against AI',
+                available: true,
+                handler: () => this.buildGameSetup('botbattle')
+            },
+            { 
                 id: 'singleplayer', 
                 name: 'SINGLE PLAYER', 
                 description: 'You against AI',
                 available: true,
                 handler: () => this.buildGameSetup('singleplayer')
-            },
-            { 
-                id: 'botbattle', 
-                name: 'BOT BATTLE', 
-                description: 'AI against AI',
-                available: true,
-                handler: () => this.buildGameSetup('botbattle')
             },
             { 
                 id: 'multiplayer', 
@@ -45,21 +52,14 @@ class MenuBuilder {
             { 
                 id: 'campaign', 
                 name: 'CAMPAIGN', 
-                description: 'Mission-based gameplay',
+                description: 'Complete Missions',
                 available: false,
                 handler: () => this.buildCampaignMenu()
             },
             { 
-                id: 'instructions', 
-                name: 'INSTRUCTIONS', 
-                description: 'How to play',
-                available: true,
-                handler: () => this.buildInstructionsScreen()
-            },
-            { 
                 id: 'settings', 
                 name: 'SETTINGS', 
-                description: 'Game options',
+                description: 'Personalize Options',
                 available: false,
                 handler: () => this.buildSettingsScreen()
             }
@@ -78,7 +78,7 @@ class MenuBuilder {
             modeButton.innerHTML = `
                 <h3>${option.name}</h3>
                 <p>${option.description}</p>
-                ${option.available ? '' : '<span class="badge">COMING SOON</span>'}
+                ${option.available ? '' : '<span class="badge">SOON</span>'}
             `;
             
             if (option.available && option.handler) {

@@ -22,6 +22,9 @@ class GameConfigManager {
             { value: 'Defensive', name: 'Defensive' },
             { value: 'AGGRESSIVE', name: 'AGGRESSIVE' },
             { value: 'Dummy', name: 'Dummy' },
+            { value: 'Gemini1', name: 'Gemini1' },
+            { value: 'Gemini2', name: 'Gemini2' },
+            { value: 'GeminiExample', name: 'GeminiExample' },
         ];
         
         this.playerColors = {

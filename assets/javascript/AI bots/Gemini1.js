@@ -1,7 +1,7 @@
 // (Gemini1.js):
 // Gemini's first run
 
-import { calculateDistance, getPlanetsOwnedBy } from './AIUtilities.js';
+import { calculateDistance, getPlanetsOwnedBy } from '../AIUtilities.js';
 
 class Gemini1 {
     constructor(game, playerId) {

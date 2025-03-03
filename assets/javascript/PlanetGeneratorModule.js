@@ -434,13 +434,4 @@ export default class PlanetGeneration {
         // Ensure density is within valid range
         this.config.PLANET_DENSITY = Math.max(0.5, Math.min(2.0, density));
     }
-
-
-
-
-    // For backward compatibility - can be removed once other code is updated
-    isValidPlanetPosition(x, y, size, existingPlanets) {
-        // Check if this is a neutral planet (called from legacy code)
-        return this.isValidNeutralPosition(x, y, size, existingPlanets);
-    }
 }

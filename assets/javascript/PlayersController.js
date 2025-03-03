@@ -8,6 +8,11 @@ import Dummy from './AI bots/Dummy.js';
 import Defensive from './AI bots/Defensive.js';
 import AGGRESSIVE from './AI bots/AGGRESSIVE.js';
 
+import Gemini1 from './AI bots/Gemini1.js';
+import Gemini2 from './AI bots/Gemini2.js';
+import GeminiExample from './AI bots/GeminiExample.js';
+
+
 
 
 export default class PlayersController {
@@ -41,6 +46,9 @@ export default class PlayersController {
             'defensive': Defensive,
             'AGGRESSIVE': AGGRESSIVE,
             'dummy': Dummy,
+            'Gemini1': Gemini1,
+            'Gemini2': Gemini2,
+            'GeminiExample': GeminiExample,
         };
         
         // Initialize players and AI controllers
