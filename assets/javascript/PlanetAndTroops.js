@@ -98,18 +98,18 @@ class TroopMovement {
         ctx.strokeStyle = '#ffffff22';
         ctx.lineWidth = 1;
         ctx.stroke();
-
+    
         // Draw troops - use player color
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
         ctx.fillStyle = this.game.playersController.getPlayerColor(this.owner);
         ctx.fill();
-
-        // Draw troop count
+    
+        // Draw troop count - using Math.floor to remove decimals
         ctx.fillStyle = '#ffffff';
         ctx.font = '12px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText(this.amount, pos.x, pos.y - 10);
+        ctx.fillText(Math.floor(this.amount), pos.x, pos.y - 10);
     }
 }
 
