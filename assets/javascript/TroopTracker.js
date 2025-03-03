@@ -6,6 +6,9 @@ export default class TroopTracker {
         this.originalTitle = this.headerElement.textContent;
         this.headerContainer = document.querySelector('header');
         
+        // Remove any existing troop bars first (cleanup from previous games)
+        this.cleanupExistingBars();
+        
         // Create and append the troop bar container
         this.troopBarContainer = document.createElement('div');
         this.troopBarContainer.id = 'troop-bar-container';
@@ -16,9 +19,25 @@ export default class TroopTracker {
         this.playerColors = this.game.playersController.playerColors;
     }
     
+    // Clean up any existing troop bars from previous games
+    cleanupExistingBars() {
+        // Remove all existing troop bar containers
+        const existingBars = document.querySelectorAll('#troop-bar-container');
+        existingBars.forEach(bar => bar.remove());
+    }
+    
     // Show the troop bar (called when game starts)
     showTroopBar() {
         this.headerElement.style.display = 'none';
+        
+        // Make sure we're not showing multiple bars
+        this.cleanupExistingBars();
+        
+        // Reattach our container if needed
+        if (!this.troopBarContainer.parentNode) {
+            this.headerContainer.appendChild(this.troopBarContainer);
+        }
+        
         this.troopBarContainer.style.display = 'flex';
         this.update(); // Initial update
     }
@@ -26,12 +45,16 @@ export default class TroopTracker {
     // Hide the troop bar and show title (called when game ends/returns to menu)
     hideTroopBar() {
         this.headerElement.style.display = 'block';
-        this.troopBarContainer.style.display = 'none';
+        
+        // Actually remove the container instead of just hiding it
+        if (this.troopBarContainer && this.troopBarContainer.parentNode) {
+            this.troopBarContainer.remove();
+        }
     }
     
     // Update the troop bar based on current game state
     update() {
-        if (this.troopBarContainer.style.display === 'none') return;
+        if (!this.troopBarContainer || this.troopBarContainer.style.display === 'none') return;
         
         const players = this.game.playersController.players;
         let totalTroops = 0;
@@ -89,5 +112,11 @@ export default class TroopTracker {
                 barElement.appendChild(segment);
             }
         }
+    }
+    
+    // Properly dispose of resources when game ends
+    dispose() {
+        this.hideTroopBar();
+        this.troopBarContainer = null;
     }
 }

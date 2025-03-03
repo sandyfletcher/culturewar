@@ -149,6 +149,77 @@ header h1 {
     font-size: 12px;
     font-weight: bold;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* NEW MENU?? */
+
+.instructions-content, .campaign-content, .settings-content {
+    padding: 1rem;
+    color: white;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.instructions-content h2, .campaign-content h2, .settings-content h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #ffff00;
+}
+
+.instructions-section {
+    margin-bottom: 2rem;
+}
+
+.instructions-section h3 {
+    color: #00ffff;
+    margin-bottom: 0.5rem;
+}
+
+.instructions-section ul {
+    padding-left: 1.5rem;
+}
+
+.instructions-section li {
+    margin-bottom: 0.5rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* GAME SETUP MENU */
 .setup-header {
     position: absolute;

@@ -9,15 +9,21 @@ export default class PlanetGeneration {
         
         // Default configuration
         this.config = {
-            MIN_DISTANCE: 80,
+            // Distances between different types of planets
+            PLAYER_TO_PLAYER_DISTANCE: 180,  // Players should be far from each other
+            PLAYER_TO_NEUTRAL_DISTANCE: 60,  // Players can be closer to neutrals
+            NEUTRAL_TO_NEUTRAL_DISTANCE: 40, // Neutrals can be quite close to each other
+            
+            // Border distances - how close planets can be to map edges
+            PLAYER_BORDER_BUFFER: 30,        // Players can be somewhat close to edges
+            NEUTRAL_BORDER_BUFFER: 10,       // Neutrals can be very close to edges
+            
             MAX_ATTEMPTS: 150,
             NEUTRAL_COUNT: 8,
             MIN_SIZE: 15,
             MAX_SIZE_VARIATION: 20,
             STARTING_PLANET_SIZE: 30,
             STARTING_TROOPS: 30,
-            // Edge buffer for placement
-            EDGE_BUFFER: 50
         };
     }
     
@@ -64,8 +70,8 @@ export default class PlanetGeneration {
             const quadrantIndex = i === 0 ? 0 : Math.floor(Math.random() * quadrants.length);
             const quadrant = quadrants[quadrantIndex];
             
-            // Create buffer space from edges
-            const buffer = this.config.EDGE_BUFFER + this.config.STARTING_PLANET_SIZE;
+            // Create buffer space from edges (using player-specific border buffer)
+            const buffer = this.config.PLAYER_BORDER_BUFFER + this.config.STARTING_PLANET_SIZE;
             
             // Find a valid position within the quadrant
             let x, y, valid = false, attempts = 0;
@@ -82,7 +88,7 @@ export default class PlanetGeneration {
                 y = quadrant.minY + buffer + (Math.random() * centerBias + (1 - centerBias) * 0.5) * 
                     (quadrant.maxY - quadrant.minY - buffer * 2);
                 
-                valid = this.isValidPlanetPosition(x, y, this.config.STARTING_PLANET_SIZE, planets);
+                valid = this.isValidPlayerPosition(x, y, this.config.STARTING_PLANET_SIZE, planets);
                 attempts++;
             }
             
@@ -133,11 +139,11 @@ export default class PlanetGeneration {
             // Try multiple random positions and pick the best one
             for (let attempt = 0; attempt < this.config.MAX_ATTEMPTS; attempt++) {
                 // Generate a random position with edge buffer
-                const buffer = this.config.EDGE_BUFFER + this.config.STARTING_PLANET_SIZE;
+                const buffer = this.config.PLAYER_BORDER_BUFFER + this.config.STARTING_PLANET_SIZE;
                 const x = buffer + Math.random() * (width - buffer * 2);
                 const y = buffer + Math.random() * (height - buffer * 2);
                 
-                // Calculate minimum distance to any existing planet
+                // Calculate minimum distance to any existing player planet
                 let minDistance = Number.MAX_VALUE;
                 for (const planet of [...existingPlanets, ...planets]) {
                     const dx = x - planet.x;
@@ -147,7 +153,7 @@ export default class PlanetGeneration {
                 }
                 
                 // If this position is better than previous best, remember it
-                if (minDistance > bestDistance && minDistance > this.config.MIN_DISTANCE) {
+                if (minDistance > bestDistance && minDistance > this.config.PLAYER_TO_PLAYER_DISTANCE) {
                     bestX = x;
                     bestY = y;
                     bestDistance = minDistance;
@@ -155,7 +161,7 @@ export default class PlanetGeneration {
             }
             
             // Use the best position found or generate a fallback if none is good enough
-            if (bestDistance >= this.config.MIN_DISTANCE) {
+            if (bestDistance >= this.config.PLAYER_TO_PLAYER_DISTANCE) {
                 const aiPlanet = new Planet(
                     bestX, bestY,
                     this.config.STARTING_PLANET_SIZE,
@@ -239,12 +245,12 @@ export default class PlanetGeneration {
                 // Calculate size with some variation
                 const size = this.config.MIN_SIZE + Math.random() * this.config.MAX_SIZE_VARIATION;
                 
-                // Calculate position with edge buffer
-                const buffer = size + this.config.EDGE_BUFFER;
+                // Calculate position with edge buffer (much smaller for neutrals)
+                const buffer = size + this.config.NEUTRAL_BORDER_BUFFER;
                 const x = buffer + Math.random() * (this.canvas.width - buffer * 2);
                 const y = buffer + Math.random() * (this.canvas.height - buffer * 2);
                 
-                valid = this.isValidPlanetPosition(x, y, size, [...existingPlanets, ...targetArray]);
+                valid = this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray]);
                 
                 if (valid) {
                     // Each neutral planet starts with troops proportional to its size
@@ -276,12 +282,14 @@ export default class PlanetGeneration {
                 const dx = clusterX - planet.x;
                 const dy = clusterY - planet.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
-                minDistance = Math.min(minDistance, distance);
+                
+                // Use the appropriate distance requirement based on planet type
+                const minRequiredDistance = this.getRequiredDistanceFromPlanet(planet, true);
+                minDistance = Math.min(minDistance, distance - minRequiredDistance);
             }
             
-            // Check if we have enough space for a cluster 
-            // (need more space than for a single planet)
-            validCluster = minDistance > this.config.MIN_DISTANCE * 1.5;
+            // Check if we have enough space for a cluster
+            validCluster = minDistance > 0;
             attempts++;
         }
         
@@ -292,7 +300,7 @@ export default class PlanetGeneration {
         }
         
         // Generate planets in a cluster around the center point
-        const clusterRadius = this.config.MIN_DISTANCE * 0.8; // Slightly closer than normal spacing
+        const clusterRadius = this.config.NEUTRAL_TO_NEUTRAL_DISTANCE * 0.8; // Slightly closer than normal spacing
         
         for (let i = 0; i < count; i++) {
             let attempts = 0;
@@ -310,7 +318,7 @@ export default class PlanetGeneration {
                 const x = clusterX + Math.cos(angle) * distance;
                 const y = clusterY + Math.sin(angle) * distance;
                 
-                valid = this.isValidPlanetPosition(x, y, size, [...existingPlanets, ...targetArray]);
+                valid = this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray]);
                 
                 if (valid) {
                     // Cluster planets have more troops to make them valuable targets
@@ -345,25 +353,76 @@ export default class PlanetGeneration {
         return Math.max(3, Math.floor(baseCount * areaFactor * playerFactor) + randomVariation);
     }
 
-    isValidPlanetPosition(x, y, size, existingPlanets) {
+    // New method to check if a player planet position is valid
+    isValidPlayerPosition(x, y, size, existingPlanets) {
         // Check distance from existing planets
         for (const planet of existingPlanets) {
             const dx = x - planet.x;
             const dy = y - planet.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const minDistance = this.config.MIN_DISTANCE + (size + planet.size) * 0.5;
+            
+            // For player planets, we enforce strict player-to-player distances
+            const minDistance = this.config.PLAYER_TO_PLAYER_DISTANCE;
             
             if (distance < minDistance) {
                 return false;
             }
         }
         
-        // Check if within canvas bounds
-        if (x - size < 0 || x + size > this.canvas.width || 
-            y - size < 0 || y + size > this.canvas.height) {
+        // Check if within canvas bounds with player-specific border
+        const borderBuffer = this.config.PLAYER_BORDER_BUFFER;
+        if (x - size - borderBuffer < 0 || x + size + borderBuffer > this.canvas.width || 
+            y - size - borderBuffer < 0 || y + size + borderBuffer > this.canvas.height) {
             return false;
         }
         
         return true;
+    }
+    
+    // New method to check if a neutral planet position is valid
+    isValidNeutralPosition(x, y, size, existingPlanets) {
+        // Check distance from existing planets
+        for (const planet of existingPlanets) {
+            const dx = x - planet.x;
+            const dy = y - planet.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Get the required distance based on the planet type
+            const minDistance = this.getRequiredDistanceFromPlanet(planet, false) + size;
+            
+            if (distance < minDistance) {
+                return false;
+            }
+        }
+        
+        // Check if within canvas bounds with neutral-specific border
+        const borderBuffer = this.config.NEUTRAL_BORDER_BUFFER;
+        if (x - size - borderBuffer < 0 || x + size + borderBuffer > this.canvas.width || 
+            y - size - borderBuffer < 0 || y + size + borderBuffer > this.canvas.height) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Helper method to calculate required distance based on planet type
+    getRequiredDistanceFromPlanet(planet, isCluster) {
+        const isPlayerPlanet = planet.owner !== 'neutral';
+        
+        if (isPlayerPlanet) {
+            // Distance from a player planet
+            return this.config.PLAYER_TO_NEUTRAL_DISTANCE;
+        } else {
+            // Distance from another neutral planet
+            return isCluster ? 
+                this.config.NEUTRAL_TO_NEUTRAL_DISTANCE * 0.5 : // Reduced distance for clusters
+                this.config.NEUTRAL_TO_NEUTRAL_DISTANCE;
+        }
+    }
+    
+    // For backward compatibility - can be removed once other code is updated
+    isValidPlanetPosition(x, y, size, existingPlanets) {
+        // Check if this is a neutral planet (called from legacy code)
+        return this.isValidNeutralPosition(x, y, size, existingPlanets);
     }
 }
