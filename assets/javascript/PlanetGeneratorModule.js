@@ -7,13 +7,12 @@ export default class PlanetGeneration {
         this.game = game;
         this.canvas = game.canvas;
         
-        // Default configuration
+        // Default config:
         this.config = {
             // Distances between different types of planets
             PLAYER_TO_PLAYER_DISTANCE: 180,  // Players should be far from each other
             PLAYER_TO_NEUTRAL_DISTANCE: 60,  // Players can be closer to neutrals
             NEUTRAL_TO_NEUTRAL_DISTANCE: 40, // Neutrals can be quite close to each other
-            
             // Border distances - how close planets can be to map edges
             PLAYER_BORDER_BUFFER: 30,        // Players can be somewhat close to edges
             NEUTRAL_BORDER_BUFFER: 10,       // Neutrals can be very close to edges
@@ -24,6 +23,10 @@ export default class PlanetGeneration {
             MAX_SIZE_VARIATION: 20,
             STARTING_PLANET_SIZE: 30,
             STARTING_TROOPS: 30,
+            
+            // New parameter for planet density (0.5 to 2.0)
+            // 1.0 is default, 0.5 is sparse, 2.0 is dense
+            PLANET_DENSITY: 1.0,
         };
     }
     
@@ -338,7 +341,7 @@ export default class PlanetGeneration {
     }
     
     calculateOptimalNeutralCount() {
-        // Calculate a good number of neutral planets based on map size and player count
+        // Calculate a good number of neutral planets based on map size, player count, and density
         const mapArea = this.canvas.width * this.canvas.height;
         const playerCount = this.game.playerCount;
         
@@ -347,10 +350,13 @@ export default class PlanetGeneration {
         const areaFactor = Math.sqrt(mapArea) / 500; // Normalize for a 500x500 map
         const playerFactor = Math.sqrt(playerCount);
         
+        // Apply the density factor to scale the count
+        const densityFactor = this.config.PLANET_DENSITY;
+        
         // Add some randomness to vary the count between games
         const randomVariation = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
         
-        return Math.max(3, Math.floor(baseCount * areaFactor * playerFactor) + randomVariation);
+        return Math.max(3, Math.floor(baseCount * areaFactor * playerFactor * densityFactor) + randomVariation);
     }
 
     // New method to check if a player planet position is valid
@@ -409,17 +415,29 @@ export default class PlanetGeneration {
     getRequiredDistanceFromPlanet(planet, isCluster) {
         const isPlayerPlanet = planet.owner !== 'neutral';
         
+        // Apply the inverse of density to distances (higher density = smaller distances)
+        const densityFactor = 1 / Math.sqrt(this.config.PLANET_DENSITY);
+        
         if (isPlayerPlanet) {
             // Distance from a player planet
-            return this.config.PLAYER_TO_NEUTRAL_DISTANCE;
+            return this.config.PLAYER_TO_NEUTRAL_DISTANCE * densityFactor;
         } else {
             // Distance from another neutral planet
             return isCluster ? 
-                this.config.NEUTRAL_TO_NEUTRAL_DISTANCE * 0.5 : // Reduced distance for clusters
-                this.config.NEUTRAL_TO_NEUTRAL_DISTANCE;
+                this.config.NEUTRAL_TO_NEUTRAL_DISTANCE * 0.5 * densityFactor : // Reduced distance for clusters
+                this.config.NEUTRAL_TO_NEUTRAL_DISTANCE * densityFactor;
         }
     }
     
+    // Add a new method to set the planet density
+    setPlanetDensity(density) {
+        // Ensure density is within valid range
+        this.config.PLANET_DENSITY = Math.max(0.5, Math.min(2.0, density));
+    }
+
+
+
+
     // For backward compatibility - can be removed once other code is updated
     isValidPlanetPosition(x, y, size, existingPlanets) {
         // Check if this is a neutral planet (called from legacy code)

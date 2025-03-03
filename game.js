@@ -51,6 +51,10 @@ class Game {
         this.troopTracker = new TroopTracker(this);
             // Initialize the unified planet generator
         this.planetGenerator = new PlanetGeneration(this);
+        const config = menuManager.getGameConfig();
+        if (config && config.planetDensity !== undefined) {
+            this.planetGenerator.setPlanetDensity(config.planetDensity);
+        }
         
         // Initialize game
         this.initializeGame();

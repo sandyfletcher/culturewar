@@ -7,7 +7,8 @@ class GameConfigManager {
             gameMode: 'singleplayer',
             playerCount: 2,
             aiTypes: ['Claude1'],
-            botBattleCount: 2
+            botBattleCount: 2,
+            planetDensity: 1.0
         };
         
         // AI Types reference data
@@ -47,6 +48,10 @@ class GameConfigManager {
     
     setAITypes(types) {
         this.gameConfig.aiTypes = types;
+    }
+
+    setPlanetDensity(density) {
+        this.gameConfig.planetDensity = parseFloat(density);
     }
     
     getConfig() {

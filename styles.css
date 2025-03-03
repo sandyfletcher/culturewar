@@ -154,7 +154,64 @@ header h1 {
 
 
 
+/* Planet density slider styles */
+.planet-density-container {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
 
+.section-title {
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 18px;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.slider-label {
+    flex: 0 0 60px;
+    color: #ccc;
+}
+
+.density-slider {
+    flex: 1;
+    height: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #444;
+    outline: none;
+    border-radius: 5px;
+}
+
+.density-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+}
+
+.slider-value {
+    text-align: center;
+    font-weight: bold;
+    margin: 5px 0;
+    color: #fff;
+}
+
+.slider-description {
+    font-size: 14px;
+    color: #aaa;
+    text-align: center;
+    margin-top: 5px;
+}
 
 
 
