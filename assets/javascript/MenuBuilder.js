@@ -134,14 +134,14 @@ class MenuBuilder {
             case 'singleplayer':
                 minCount = 1;
                 maxCount = 5;
-                countLabel = 'NUMBER OF OPPONENTS';
-                startButtonText = 'START GAME';
+                countLabel = 'NUMBER OF BOTS';
+                startButtonText = 'BATTLE >';
                 isBotBattle = false;
                 break;
             case 'botbattle':
                 minCount = 2;
                 maxCount = 6;
-                countLabel = 'NUMBER OF BOTS';
+                countLabel = 'NUMBER OF OPPONENTS';
                 startButtonText = 'BATTLE >';
                 isBotBattle = true;
                 break;
@@ -198,7 +198,7 @@ class MenuBuilder {
                 }
                 
                 // Update AI selectors
-                this.updateEntitySelectors(selectionContainer, i, isBotBattle);
+                this.updateEntitySelectors(setupForm, i, isBotBattle);
             });
             
             countSelect.appendChild(countButton);
@@ -208,12 +208,8 @@ class MenuBuilder {
     
         setupForm.appendChild(this.createPlanetDensityControl());
         
-        
-        // AI/Bot selection container - create it below the header
-        const selectionContainer = document.createElement('div');
-        selectionContainer.className = 'ai-selection-container';
-        selectionContainer.id = isBotBattle ? 'bot-selection' : 'ai-selection';
-        setupForm.appendChild(selectionContainer);
+        // Remove separate selectionContainer, will now insert directly into setupForm
+        this.updateEntitySelectors(setupForm, minCount, isBotBattle);
         
         // Bottom button container
         const buttonContainer = document.createElement('div');
@@ -252,9 +248,6 @@ class MenuBuilder {
         setupForm.appendChild(buttonContainer);
         
         menuContainer.appendChild(setupForm);
-        
-        // Initialize selectors with default count - pass the selectionContainer directly
-        this.updateEntitySelectors(selectionContainer, minCount, isBotBattle);
     }
     
     // Extracted planet density control creation to a separate method
@@ -292,21 +285,9 @@ class MenuBuilder {
         rightLabel.className = 'slider-label right-label';
         rightLabel.textContent = 'Dense';
         
-        // Add value display
-        const valueDisplay = document.createElement('div');
-        valueDisplay.className = 'slider-value';
-        valueDisplay.id = 'density-value-display';
-        valueDisplay.textContent = '1.0';
-        
-        // Add description text
-        const description = document.createElement('p');
-        description.className = 'slider-description';
-        description.textContent = 'Adjust the number and spacing of neutral planets';
-        
         // Add event listener for slider
         densitySlider.addEventListener('input', () => {
             const value = parseFloat(densitySlider.value);
-            valueDisplay.textContent = value.toFixed(1);
             
             // Update config in GameConfigManager
             this.configManager.setPlanetDensity(value);
@@ -319,20 +300,15 @@ class MenuBuilder {
         
         // Add all elements to planet density container
         planetDensityContainer.appendChild(sliderContainer);
-        planetDensityContainer.appendChild(valueDisplay);
-        planetDensityContainer.appendChild(description);
-        
         return planetDensityContainer;
     }
 
-    updateEntitySelectors(selectionContainer, count, isBotBattle) {
-        // We're now using the container reference passed directly rather than trying to find it by ID
-        if (!selectionContainer) {
-            console.error(`Selection container not provided!`);
-            return;
+    updateEntitySelectors(setupForm, count, isBotBattle) {
+        // Remove any existing selectors first
+        const existingSelectors = setupForm.querySelector('.ai-selectors-container');
+        if (existingSelectors) {
+            existingSelectors.remove();
         }
-        
-        selectionContainer.innerHTML = '';
         
         // Create a container for the selectors
         const selectorsContainer = document.createElement('div');
@@ -340,7 +316,7 @@ class MenuBuilder {
         
         // Add a small title for the selectors
         const selectorsTitle = document.createElement('h3');
-        selectorsTitle.textContent = isBotBattle ? 'BOT TYPES' : 'OPPONENT TYPES';
+        selectorsTitle.textContent = 'BOT PERSONALITIES';
         selectorsTitle.className = 'selectors-title';
         selectorsContainer.appendChild(selectorsTitle);
         
@@ -384,7 +360,8 @@ class MenuBuilder {
             selectorsContainer.appendChild(container);
         }
         
-        selectionContainer.appendChild(selectorsContainer);
+        // Insert the selectors container directly into the setupForm
+        setupForm.insertBefore(selectorsContainer, setupForm.querySelector('.setup-buttons'));
     }
 
     buildInstructionsScreen() {
@@ -451,7 +428,7 @@ class MenuBuilder {
             <h2>GAME SETTINGS</h2>
             <p>Settings will be available soon! Check back later to customize your game experience.</p>
         `;
-        
+    
         menuContainer.appendChild(content);
         menuContainer.appendChild(backButton);
     }

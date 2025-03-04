@@ -23,7 +23,6 @@ export default class PlanetGeneration {
             MAX_SIZE_VARIATION: 20,
             STARTING_PLANET_SIZE: 30,
             STARTING_TROOPS: 30,
-            
             // New parameter for planet density (0.5 to 2.0)
             // 1.0 is default, 0.5 is sparse, 2.0 is dense
             PLANET_DENSITY: 1.0,

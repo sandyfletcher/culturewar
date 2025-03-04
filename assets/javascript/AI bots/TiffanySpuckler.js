@@ -1,8 +1,8 @@
-// (Claude1.js):
+// (TiffanySpuckler.js):
 // Claude's first attempt at building a bot continues to beat later iterations, and will be kept on
 // Assigned name: Tiffany Spuckler
 
-export default class Claude1 {
+export default class TiffanySpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;

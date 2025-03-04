@@ -1,5 +1,5 @@
 // assets/javascript/AIRegistry.js
-import Claude1 from './AI bots/Claude11.js';
+import TiffanySpuckler from './AI bots/TiffanySpuckler.js';
 import Claude2 from './AI bots/Claude22.js';
 import Claude3 from './AI bots/Claude33.js';
 import Claude4 from './AI bots/Claude44.js';
@@ -7,14 +7,14 @@ import Claude5 from './AI bots/Claude5.js';
 import Claude6 from './AI bots/Claude6.js';
 import Dummy from './AI bots/Dummy.js';
 import Defensive from './AI bots/Defensive.js';
-import AGGRESSIVE from './AI bots/AGGRESSIVE.js';
+import HeatherSpuckler from './AI bots/HeatherSpuckler.js';
+import ZoeSpuckler from './AI bots/ZoeSpuckler.js';
 import Gemini1 from './AI bots/Gemini1.js';
 import Gemini2 from './AI bots/Gemini2.js';
-import GeminiExample from './AI bots/GeminiExample.js';
 
 
 const aiRegistry = {
-    Claude1,
+    TiffanySpuckler,
     Claude2,
     Claude3,
     Claude4,
@@ -22,10 +22,10 @@ const aiRegistry = {
     Claude6,
     Dummy,
     Defensive,
-    AGGRESSIVE,
+    HeatherSpuckler,
+    ZoeSpuckler,
     Gemini1,
     Gemini2,
-    GeminiExample,
 };
 
 export default aiRegistry;

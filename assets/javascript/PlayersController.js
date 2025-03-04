@@ -1,4 +1,4 @@
-import Claude1 from './AI bots/Claude11.js';
+import TiffanySpuckler from './AI bots/TiffanySpuckler.js';
 import Claude2 from './AI bots/Claude22.js';
 import Claude3 from './AI bots/Claude33.js';
 import Claude4 from './AI bots/Claude44.js';
@@ -6,14 +6,10 @@ import Claude5 from './AI bots/Claude5.js';
 import Claude6 from './AI bots/Claude6.js';
 import Dummy from './AI bots/Dummy.js';
 import Defensive from './AI bots/Defensive.js';
-import AGGRESSIVE from './AI bots/AGGRESSIVE.js';
-
+import HeatherSpuckler from './AI bots/HeatherSpuckler.js';
+import ZoeSpuckler from './AI bots/ZoeSpuckler.js';
 import Gemini1 from './AI bots/Gemini1.js';
 import Gemini2 from './AI bots/Gemini2.js';
-import GeminiExample from './AI bots/GeminiExample.js';
-
-
-
 
 export default class PlayersController {
     constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -37,18 +33,18 @@ export default class PlayersController {
         
         // Available AI types
         this.availableAITypes = {
-            'claude1': Claude1,
+            'TiffanySpuckler': TiffanySpuckler,
             'claude2': Claude2,
             'claude3': Claude3,
             'claude4': Claude4,
             'Claude5': Claude5,
             'Claude6': Claude6,
             'defensive': Defensive,
-            'AGGRESSIVE': AGGRESSIVE,
+            'HeatherSpuckler': HeatherSpuckler,
+            'ZoeSpuckler': ZoeSpuckler,
             'dummy': Dummy,
             'Gemini1': Gemini1,
             'Gemini2': Gemini2,
-            'GeminiExample': GeminiExample,
         };
         
         // Initialize players and AI controllers
@@ -64,7 +60,7 @@ export default class PlayersController {
             // Create all AI players for bot battle mode
             for (let i = 0; i < this.playerCount; i++) {
                 const playerId = `player${i + 1}`;
-                const aiType = this.aiTypes[i] || 'claude1'; // Default to claude1 if not specified
+                const aiType = this.aiTypes[i] || 'TiffanySpuckler'; // Default to TiffanySpuckler if not specified
                 
                 this.players.push({
                     id: playerId,
@@ -85,7 +81,7 @@ export default class PlayersController {
             // Create AI players with selected AI types
             for (let i = 0; i < this.playerCount - 1; i++) {
                 const playerId = `player${i + 2}`;
-                const aiType = this.aiTypes[i] || 'claude1'; // Default to claude1 if not specified
+                const aiType = this.aiTypes[i] || 'TiffanySpuckler'; // Default to TiffanySpuckler if not specified
                 
                 this.players.push({
                     id: playerId,
@@ -106,7 +102,7 @@ export default class PlayersController {
         
         for (const player of aiPlayers) {
             // Get the AI class based on the specified type
-            const AIClass = this.availableAITypes[player.aiController] || this.availableAITypes['claude1'];
+            const AIClass = this.availableAITypes[player.aiController] || this.availableAITypes['TiffanySpuckler'];
             this.aiControllers[player.id] = new AIClass(this.game, player.id);
         }
     }
