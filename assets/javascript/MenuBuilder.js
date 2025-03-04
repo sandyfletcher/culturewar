@@ -154,15 +154,11 @@ class MenuBuilder {
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
         
-        // Create a container for the header part
-        const headerContainer = document.createElement('div');
-        headerContainer.className = 'setup-header';
-        
         // Count selection title
         const countLabelElement = document.createElement('h2');
         countLabelElement.textContent = countLabel;
         countLabelElement.className = 'setup-title';
-        headerContainer.appendChild(countLabelElement);
+        setupForm.appendChild(countLabelElement);
         
         // Count selection circles
         const countSelect = document.createElement('div');
@@ -208,17 +204,16 @@ class MenuBuilder {
             countSelect.appendChild(countButton);
         }
         
-        headerContainer.appendChild(countSelect);
-        setupForm.appendChild(headerContainer);
+        setupForm.appendChild(countSelect);
+    
+        setupForm.appendChild(this.createPlanetDensityControl());
         
-        // AI/Bot selection container - create it before trying to update it
+        
+        // AI/Bot selection container - create it below the header
         const selectionContainer = document.createElement('div');
-        selectionContainer.className = 'setup-section ai-selection-container';
+        selectionContainer.className = 'ai-selection-container';
         selectionContainer.id = isBotBattle ? 'bot-selection' : 'ai-selection';
         setupForm.appendChild(selectionContainer);
-        
-        // Add planet density slider section
-        setupForm.appendChild(this.createPlanetDensityControl());
         
         // Bottom button container
         const buttonContainer = document.createElement('div');
@@ -251,7 +246,7 @@ class MenuBuilder {
             // Tell the parent MenuManager to start the game
             window.menuManager.startGame();
         });
-
+    
         buttonContainer.appendChild(backButton);
         buttonContainer.appendChild(startButton);
         setupForm.appendChild(buttonContainer);
@@ -265,7 +260,7 @@ class MenuBuilder {
     // Extracted planet density control creation to a separate method
     createPlanetDensityControl() {
         const planetDensityContainer = document.createElement('div');
-        planetDensityContainer.className = 'setup-section planet-density-container';
+        planetDensityContainer.className = 'planet-density-container';
         
         // Add a title for the planet density section
         const densityTitle = document.createElement('h3');
