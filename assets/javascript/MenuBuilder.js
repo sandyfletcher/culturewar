@@ -134,7 +134,7 @@ class MenuBuilder {
             case 'singleplayer':
                 minCount = 1;
                 maxCount = 5;
-                countLabel = 'OPPONENTS';
+                countLabel = 'NUMBER OF OPPONENTS';
                 startButtonText = 'START GAME';
                 isBotBattle = false;
                 break;
@@ -142,7 +142,7 @@ class MenuBuilder {
                 minCount = 2;
                 maxCount = 6;
                 countLabel = 'NUMBER OF BOTS';
-                startButtonText = 'START BATTLE';
+                startButtonText = 'BATTLE >';
                 isBotBattle = true;
                 break;
         }
@@ -264,7 +264,7 @@ class MenuBuilder {
         
         // Add a title for the planet density section
         const densityTitle = document.createElement('h3');
-        densityTitle.textContent = 'PLANET DENSITY';
+        densityTitle.textContent = 'GALAXY DENSITY';
         densityTitle.className = 'section-title';
         planetDensityContainer.appendChild(densityTitle);
         
@@ -277,7 +277,7 @@ class MenuBuilder {
         densitySlider.type = 'range';
         densitySlider.min = '0.5';
         densitySlider.max = '2.0';
-        densitySlider.step = '0.1';
+        densitySlider.step = '0.05';
         densitySlider.value = '1.0'; // Default value
         densitySlider.className = 'density-slider';
         densitySlider.id = 'planet-density-slider';
