@@ -3,7 +3,7 @@
 
 import SummaryForAI from '../SummaryForAI.js';
 
-class Gemini2 {
+class ScoutSpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
@@ -100,4 +100,4 @@ class Gemini2 {
     }
 }
 
-export default Gemini2;
+export default ScoutSpuckler;

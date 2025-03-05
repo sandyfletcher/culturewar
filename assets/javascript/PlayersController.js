@@ -1,16 +1,17 @@
 import TiffanySpuckler from './AI bots/TiffanySpuckler.js';
-import Claude2 from './AI bots/Claude22.js';
-import Claude3 from './AI bots/Claude33.js';
-import Claude4 from './AI bots/Claude44.js';
-import Claude5 from './AI bots/Claude5.js';
-import Claude6 from './AI bots/Claude6.js';
-import Dummy from './AI bots/Dummy.js';
-import Defensive from './AI bots/Defensive.js';
 import HeatherSpuckler from './AI bots/HeatherSpuckler.js';
+import CodySpuckler from './AI bots/CodySpuckler.js';
+import DylanSpuckler from './AI bots/DylanSpuckler.js';
+import DermotSpuckler from './AI bots/DermotSpuckler.js';
+import JordanSpuckler from './AI bots/JordanSpuckler.js';
+import TaylorSpuckler from './AI bots/TaylorSpuckler.js';
+import BrittanySpuckler from './AI bots/BrittanySpuckler.js';
+import WesleySpuckler from './AI bots/WesleySpuckler.js';
+import RumerSpuckler from './AI bots/RumerSpuckler.js';
+import ScoutSpuckler from './AI bots/ScoutSpuckler.js';
 import ZoeSpuckler from './AI bots/ZoeSpuckler.js';
 import ChloeSpuckler from './AI bots/ChloeSpuckler.js';
-import Gemini1 from './AI bots/Gemini1.js';
-import Gemini2 from './AI bots/Gemini2.js';
+
 
 export default class PlayersController {
     constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -32,22 +33,35 @@ export default class PlayersController {
             'neutral': '#ffffff'  // White
         };
         
-        // Available AI types
-        this.availableAITypes = {
-            'TiffanySpuckler': TiffanySpuckler,
-            'claude2': Claude2,
-            'claude3': Claude3,
-            'claude4': Claude4,
-            'Claude5': Claude5,
-            'Claude6': Claude6,
-            'defensive': Defensive,
-            'HeatherSpuckler': HeatherSpuckler,
-            'ZoeSpuckler': ZoeSpuckler,
-            'ChloeSpuckler': ChloeSpuckler,
-            'dummy': Dummy,
-            'Gemini1': Gemini1,
-            'Gemini2': Gemini2,
-        };
+        // Dynamically create AI types and options from imported classes
+        this.availableAITypes = {};
+        this.aiOptions = [];
+    
+        const aiClasses = [
+            TiffanySpuckler,
+            HeatherSpuckler,
+            CodySpuckler,
+            DylanSpuckler,
+            DermotSpuckler,
+            JordanSpuckler,
+            TaylorSpuckler,
+            BrittanySpuckler,
+            WesleySpuckler,
+            RumerSpuckler,
+            ScoutSpuckler,
+            ZoeSpuckler,
+            ChloeSpuckler
+        ];
+    
+        aiClasses.forEach(AIClass => {
+            const name = AIClass.name; // Assumes the class name matches the bot name
+            this.availableAITypes[name] = AIClass;
+            this.aiOptions.push({ 
+                value: name, 
+                name: name 
+            });
+        });
+        
         
         // Initialize players and AI controllers
         this.initializePlayers();

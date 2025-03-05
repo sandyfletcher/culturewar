@@ -1,5 +1,4 @@
 // (MenuBuilder.js):
-// Builds and manages UI components for menu screens
 
 class MenuBuilder {
     constructor(container, screenManager, configManager) {

@@ -1,6 +1,3 @@
-// GameConfigManager.js
-// Manages game configuration separate from UI concerns
-
 class GameConfigManager {
     constructor() {
         this.gameConfig = {
@@ -14,17 +11,19 @@ class GameConfigManager {
         // AI Types reference data
         this.aiOptions = [
             { value: 'TiffanySpuckler', name: 'TiffanySpuckler' },
-            { value: 'Claude2', name: 'Claude2' },
-            { value: 'Claude3', name: 'Claude3' },
-            { value: 'Claude4', name: 'Claude4' },
-            { value: 'Claude5', name: 'Claude5' },
-            { value: 'Claude6', name: 'Claude6' },
-            { value: 'Defensive', name: 'Defensive' },
             { value: 'HeatherSpuckler', name: 'HeatherSpuckler' },
+            { value: 'CodySpuckler', name: 'CodySpuckler' },
+            { value: 'DylanSpuckler', name: 'DylanSpuckler' },
+            { value: 'DermotSpuckler', name: 'DermotSpuckler' },
+            { value: 'JordanSpuckler', name: 'JordanSpuckler' },
+            { value: 'TaylorSpuckler', name: 'TaylorSpuckler' },
+            { value: 'BrittanySpuckler', name: 'BrittanySpuckler' },
+            { value: 'WesleySpuckler', name: 'WesleySpuckler' },
+            { value: 'RumerSpuckler', name: 'RumerSpuckler' },
+            { value: 'ScoutSpuckler', name: 'ScoutSpuckler' },
+
             { value: 'ZoeSpuckler', name: 'ZoeSpuckler' },
-            { value: 'Dummy', name: 'Dummy' },
-            { value: 'Gemini1', name: 'Gemini1' },
-            { value: 'Gemini2', name: 'Gemini2' },
+            { value: 'ChloeSpuckler', name: 'ChloeSpuckler' },
         ];
         
         this.playerColors = {
@@ -40,41 +39,31 @@ class GameConfigManager {
     setGameMode(mode) {
         this.gameConfig.gameMode = mode;
     }
-    
     setPlayerCount(count) {
         this.gameConfig.playerCount = count;
     }
-    
     setBotBattleCount(count) {
         this.gameConfig.botBattleCount = count;
     }
-    
     setAITypes(types) {
         this.gameConfig.aiTypes = types;
     }
-
     setPlanetDensity(density) {
         this.gameConfig.planetDensity = parseFloat(density);
     }
-    
     getConfig() {
         return this.gameConfig;
     }
-    
     getAIOptions() {
         return this.aiOptions;
     }
-    
     getPlayerColors() {
         return this.playerColors;
     }
-    
-    // Helper method to get friendly display name for players
     getPlayerDisplayName(player) {
         if (!player.isAI) {
             return 'Player';
         }
-        
         // Find the matching AI option to get the display name
         const aiOption = this.aiOptions.find(option => option.value === player.aiController);
         return aiOption ? aiOption.name : player.aiController;

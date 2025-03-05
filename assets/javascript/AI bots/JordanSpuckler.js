@@ -1,4 +1,4 @@
-export default class Claude2 {
+export default class JordanSpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;

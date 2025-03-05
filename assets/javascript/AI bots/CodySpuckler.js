@@ -1,5 +1,6 @@
 // claude1.js - Basic AI implementation for easy difficulty
-export default class Claude1 {
+
+export default class CodySpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;

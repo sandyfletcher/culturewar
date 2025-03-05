@@ -1,4 +1,4 @@
-class Dummy {
+class WesleySpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
@@ -124,4 +124,4 @@ class Dummy {
     }
 }
 
-export default Dummy;
+export default WesleySpuckler;

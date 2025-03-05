@@ -1,6 +1,3 @@
-// ScreenManager.js
-// Handles transitions between different screens in the game
-
 class ScreenManager {
     constructor() {
         this.screens = {
@@ -10,7 +7,6 @@ class ScreenManager {
         };
         this.currentScreen = 'menu';
         this.timer = document.getElementById('timer');
-        
         // Initialize timer with link
         if (this.timer) {
             this.timer.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
@@ -43,7 +39,7 @@ class ScreenManager {
             this.timer.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
         }
     }
-    
+
     // Method to register new screens dynamically
     registerScreen(name, element) {
         this.screens[name] = element;

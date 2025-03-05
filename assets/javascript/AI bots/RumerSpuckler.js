@@ -13,7 +13,7 @@ function getPlanetsOwnedBy(game, playerId) {
     return game.planets.filter(planet => planet.owner === playerId);
 }
 
-class Gemini1 {
+class RumerSpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
@@ -148,4 +148,4 @@ class Gemini1 {
     }
 }
 
-export default Gemini1;
+export default RumerSpuckler;

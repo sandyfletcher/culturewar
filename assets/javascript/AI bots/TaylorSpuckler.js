@@ -1,5 +1,5 @@
 // claude2.js - Advanced AI implementation for hard difficulty
-export default class Claude2 {
+export default class TaylorSpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;

@@ -1,5 +1,5 @@
 
-export default class Claude6 {
+export default class DermotSpuckler {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
