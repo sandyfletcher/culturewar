@@ -1,4 +1,5 @@
 // TroopTracker.js - Tracks and displays troop distribution among players
+
 export default class TroopTracker {
     constructor(game) {
         this.game = game;
