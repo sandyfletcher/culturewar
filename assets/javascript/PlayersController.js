@@ -8,6 +8,7 @@ import Dummy from './AI bots/Dummy.js';
 import Defensive from './AI bots/Defensive.js';
 import HeatherSpuckler from './AI bots/HeatherSpuckler.js';
 import ZoeSpuckler from './AI bots/ZoeSpuckler.js';
+import ChloeSpuckler from './AI bots/ChloeSpuckler.js';
 import Gemini1 from './AI bots/Gemini1.js';
 import Gemini2 from './AI bots/Gemini2.js';
 
@@ -42,6 +43,7 @@ export default class PlayersController {
             'defensive': Defensive,
             'HeatherSpuckler': HeatherSpuckler,
             'ZoeSpuckler': ZoeSpuckler,
+            'ChloeSpuckler': ChloeSpuckler,
             'dummy': Dummy,
             'Gemini1': Gemini1,
             'Gemini2': Gemini2,

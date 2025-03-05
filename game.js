@@ -72,7 +72,7 @@ class Game {
     // Game state updating
     update() {
         if (this.gameOver) return;
-        // setting "dt" variable to 1 second
+        // Setting "dt" variable to 1 second
         const now = Date.now();
         const dt = (now - this.gameState.lastUpdate) / 1000;
         this.gameState.lastUpdate = now;
