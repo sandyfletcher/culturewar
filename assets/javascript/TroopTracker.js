@@ -1,5 +1,3 @@
-// TroopTracker.js - Tracks and displays troop distribution among players
-
 export default class TroopTracker {
     constructor(game) {
         this.game = game;
@@ -95,9 +93,16 @@ export default class TroopTracker {
         troopCountElement.textContent = `${Math.round(totalTroops)}`;
         barElement.appendChild(troopCountElement);
         
-        // Create segments for each player
-        for (const playerId in playerTroops) {
-            if (playerTroops[playerId] > 0) {
+        // Define a consistent order for all players
+        const orderedPlayerIds = [
+            'player1', 'player2', 'player3', 'player4', 
+            'player5', 'player6', 'neutral'
+        ];
+        
+        // Create segments for each player in the predefined order
+        for (const playerId of orderedPlayerIds) {
+            // Only create segments for players with troops
+            if (playerTroops[playerId] && playerTroops[playerId] > 0) {
                 const percentage = (playerTroops[playerId] / totalTroops) * 100;
                 const segment = document.createElement('div');
                 segment.className = 'troop-bar-segment';
@@ -114,7 +119,7 @@ export default class TroopTracker {
             }
         }
     }
-    
+        
     // Properly dispose of resources when game ends
     dispose() {
         this.hideTroopBar();

@@ -126,12 +126,10 @@ class TroopMovement {
         }
         
         // Normalized position within the category (0 to 1)
-        // When amount equals categoryMin, this will be 0
-        // When amount equals categoryMax, this will be 1
+        // When amount equals categoryMin, this will be 0 - When amount equals categoryMax, this will be 1
         const categoryPosition = (this.amount - categoryMin) / (categoryMax - categoryMin);
         
-        // Base size is now the same for all categories
-        // You can adjust these values to change the overall size
+        // Adjust these values to change the overall size
         const minSize = 20;  // Minimum size (for troops of size 1, 10, 100)
         const maxSize = 30;  // Maximum size (for troops of size 9, 99, 999)
         

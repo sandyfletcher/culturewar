@@ -277,12 +277,12 @@ class MenuBuilder {
         // Add left label (Sparse)
         const leftLabel = document.createElement('span');
         leftLabel.className = 'slider-label left-label';
-        leftLabel.textContent = 'Sparse';
+        leftLabel.textContent = 'EMPTY';
         
         // Add right label (Dense)
         const rightLabel = document.createElement('span');
         rightLabel.className = 'slider-label right-label';
-        rightLabel.textContent = 'Dense';
+        rightLabel.textContent = 'DENSE';
         
         // Add event listener for slider
         densitySlider.addEventListener('input', () => {
