@@ -6,6 +6,7 @@
 @font-face { font-family: 'Geostar'; src: url('./assets/fonts/Geostar.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'RubikBrokenFax'; src: url('./assets/fonts/RubikBrokenFax.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'Bungee'; src: url('./assets/fonts/Bungee.ttf') format('truetype'); font-display: block}
 /* BASE RESET */
 * {
     margin: 0;

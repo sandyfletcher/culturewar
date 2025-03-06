@@ -99,17 +99,58 @@ class TroopMovement {
         ctx.lineWidth = 1;
         ctx.stroke();
     
-        // Draw troops - use player color
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = this.game.playersController.getPlayerColor(this.owner);
-        ctx.fill();
-    
-        // Draw troop count - using Math.floor to remove decimals
+        // Get player color
+        const playerColor = this.game.playersController.getPlayerColor(this.owner);
+        
+        // Determine which musical note to use based on troop count
+        let noteSymbol;
+        if (this.amount < 10) {
+            noteSymbol = '♩'; // Quarter note for 1-9 troops
+        } else if (this.amount < 100) {
+            noteSymbol = '♪'; // Eighth note for 10-99 troops
+        } else {
+            noteSymbol = '♫'; // Beamed eighth notes for 100-999 troops
+        }
+        
+        // Calculate size scaling within each category
+        let categoryMin, categoryMax;
+        if (this.amount < 10) {
+            categoryMin = 1;
+            categoryMax = 9;
+        } else if (this.amount < 100) {
+            categoryMin = 10;
+            categoryMax = 99;
+        } else {
+            categoryMin = 100;
+            categoryMax = 999;
+        }
+        
+        // Normalized position within the category (0 to 1)
+        // When amount equals categoryMin, this will be 0
+        // When amount equals categoryMax, this will be 1
+        const categoryPosition = (this.amount - categoryMin) / (categoryMax - categoryMin);
+        
+        // Base size is now the same for all categories
+        // You can adjust these values to change the overall size
+        const minSize = 20;  // Minimum size (for troops of size 1, 10, 100)
+        const maxSize = 30;  // Maximum size (for troops of size 9, 99, 999)
+        
+        // Calculate font size
+        const fontSize = minSize + categoryPosition * (maxSize - minSize);
+        
+        // Draw the music note symbol
+        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.fillStyle = playerColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(noteSymbol, pos.x, pos.y);
+        
+        // Draw troop count
         ctx.fillStyle = '#ffffff';
         ctx.font = '12px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText(Math.floor(this.amount), pos.x, pos.y - 10);
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(Math.floor(this.amount), pos.x, pos.y - fontSize/2 - 2);
     }
 }
 
