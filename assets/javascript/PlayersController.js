@@ -1,16 +1,16 @@
-import TiffanySpuckler from './AI bots/TiffanySpuckler.js';
-import HeatherSpuckler from './AI bots/HeatherSpuckler.js';
-import CodySpuckler from './AI bots/CodySpuckler.js';
-import DylanSpuckler from './AI bots/DylanSpuckler.js';
-import DermotSpuckler from './AI bots/DermotSpuckler.js';
-import JordanSpuckler from './AI bots/JordanSpuckler.js';
-import TaylorSpuckler from './AI bots/TaylorSpuckler.js';
-import BrittanySpuckler from './AI bots/BrittanySpuckler.js';
-import WesleySpuckler from './AI bots/WesleySpuckler.js';
-import RumerSpuckler from './AI bots/RumerSpuckler.js';
-import ScoutSpuckler from './AI bots/ScoutSpuckler.js';
-import ZoeSpuckler from './AI bots/ZoeSpuckler.js';
-import ChloeSpuckler from './AI bots/ChloeSpuckler.js';
+import TiffanySpuckler from './bots/TiffanySpuckler.js';
+import HeatherSpuckler from './bots/HeatherSpuckler.js';
+import CodySpuckler from './bots/CodySpuckler.js';
+import DylanSpuckler from './bots/DylanSpuckler.js';
+import DermotSpuckler from './bots/DermotSpuckler.js';
+import JordanSpuckler from './bots/JordanSpuckler.js';
+import TaylorSpuckler from './bots/TaylorSpuckler.js';
+import BrittanySpuckler from './bots/BrittanySpuckler.js';
+import WesleySpuckler from './bots/WesleySpuckler.js';
+import RumerSpuckler from './bots/RumerSpuckler.js';
+import ScoutSpuckler from './bots/ScoutSpuckler.js';
+import ZoeSpuckler from './bots/ZoeSpuckler.js';
+import ChloeSpuckler from './bots/ChloeSpuckler.js';
 
 
 export default class PlayersController {
