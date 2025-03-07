@@ -1,6 +1,3 @@
-// MenuManager.js
-// Main controller that ties together other components
-
 import ScreenManager from './ScreenManager.js';
 import GameConfigManager from './GameConfigManager.js';
 import MenuBuilder from './MenuBuilder.js';
