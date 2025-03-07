@@ -61,13 +61,22 @@ header h1 {
     align-items: center;
 }
 #troop-bar {
+    position: relative;
     width: 101%;
     height: 1rem;
     background-color: #333;
-    overflow: hidden;
     display: flex;
-    position: relative;
+    justify-content: space-between;
+    overflow: hidden;
 }
+.troop-column {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2; /* Position above the segments */
+    position: relative;
+  }
 #total-troops-count {
     font-size: 1rem;
     font-family: 'Asset', monospace;
@@ -77,12 +86,29 @@ header h1 {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-     font-weight: bold;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
 }
-.troop-bar-segment {
+#game-timer {
+    font-family: 'Asset', monospace;
+    color: black;
+    font-weight: bold;
+    font-size: 1rem;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  }
+  #troop-bar-segments {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    z-index: 1; /* Under the text */
+  }
+  .troop-bar-segment {
     height: 100%;
     transition: width 0.3s ease;
-}
+  }
 /* MENUS */
 #inner-container {
     position: relative;
@@ -565,16 +591,12 @@ footer {
     border-top: 2px solid #fff;
     padding: 0.2rem;
 }
-footer a, #timer a {
+footer a {
     color: inherit;
     text-decoration: none;
 }
-footer a:hover, #timer a:hover {
+footer a:hover {
     text-decoration: none;
-}
-#timer {
-    color: #fff;
-    padding: 0.2rem;
 }
 /* MOBILE SIZING */
 @supports (height: 100dvh) {

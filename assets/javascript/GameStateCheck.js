@@ -1,7 +1,7 @@
 export default class GameState {
     constructor(game) {
         this.game = game;
-        this.timeRemaining = 300; // 5 minutes in seconds
+        this.timeRemaining = 100; // should be reset by timermanager's value
         this.lastUpdate = Date.now();
         this.gameOver = false;
         this.startTime = Date.now();
@@ -29,8 +29,8 @@ export default class GameState {
     update(dt) {
         if (this.gameOver) return;
             
-        // Update timer, but don't let it go below 0
-        this.timeRemaining = Math.max(0, this.timeRemaining - dt);
+        // Get time from timer manager instead of tracking it here
+        this.timeRemaining = this.game.timerManager.getTimeRemaining();
         
         // Check for player eliminations
         this.checkPlayerEliminations();
@@ -38,7 +38,7 @@ export default class GameState {
         // Check win conditions
         this.checkWinConditions();
         
-        // If time has run out, force a win condition check
+        // Check for time-based win conditions - SHOULD THIS BE <= 0??
         if (this.timeRemaining === 0 && !this.gameOver) {
             this.checkWinConditions();
         }

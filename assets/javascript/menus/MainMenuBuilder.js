@@ -37,18 +37,18 @@ class MainMenuBuilder extends MenuBuilderBase {
                 handler: () => this.parentBuilder.buildGameSetup('singleplayer')
             },
             { 
-                id: 'multiplayer', 
-                name: 'MULTIPLAYER', 
-                description: 'You against humans',
-                available: false,
-                handler: null
-            },
-            { 
                 id: 'campaign', 
                 name: 'CAMPAIGN', 
                 description: 'Complete Missions',
                 available: false,
                 handler: () => this.parentBuilder.buildCampaignMenu()
+            },
+            { 
+                id: 'multiplayer', 
+                name: 'MULTIPLAYER', 
+                description: 'You against humans',
+                available: false,
+                handler: null
             },
             { 
                 id: 'settings', 

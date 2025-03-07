@@ -5,6 +5,7 @@ import GameState from './assets/javascript/GameStateCheck.js';
 import PlayersController from './assets/javascript/PlayersController.js';
 import PlanetGeneration from './assets/javascript/PlanetGeneratorModule.js';
 import TroopTracker from './assets/javascript/TroopTracker.js';
+import TimerManager from './assets/javascript/TimerManager.js';
 
 class Game {
     constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -31,6 +32,9 @@ class Game {
         // Reference to entity constructors for other modules
         this.Planet = Planet;
         this.TroopMovement = TroopMovement;
+        // Timer module
+        this.timerManager = new TimerManager(this);
+        this.isActive = false; // Tracks if gameplay is active
         // Game state
         this.gameOver = false;
         this.playersController = new PlayersController(this, playerCount, this.aiTypes, botBattleMode);
@@ -44,6 +48,11 @@ class Game {
         if (config && config.planetDensity !== undefined) {
             this.planetGenerator.setPlanetDensity(config.planetDensity);
         }
+        
+        // Initialize the timer
+        this.timerManager.initialize();
+        this.isActive = true; // Set game as active immediately
+        
         // Initialize game
         this.initializeGame();
         this.gameLoop();
@@ -76,6 +85,8 @@ class Game {
         const now = Date.now();
         const dt = (now - this.gameState.lastUpdate) / 1000;
         this.gameState.lastUpdate = now;
+        // Update the timer
+        this.timerManager.update();
         // Update game state (timer, win conditions)
         this.gameState.update(dt);
         // If game is now over, stop updating

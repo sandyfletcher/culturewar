@@ -24,22 +24,11 @@ class ScreenManager {
             this.screens[screenName].style.display = 
                 screenName === 'menu' ? 'flex' : 'block';
             this.currentScreen = screenName;
-            
-            // Update footer based on screen
-            this.updateFooter(screenName);
         } else {
             console.error(`Screen ${screenName} not found!`);
         }
     }
     
-    updateFooter(screenName) {
-        if (screenName === 'game') {
-            this.timer.innerHTML = '';
-        } else {
-            this.timer.innerHTML = '<a href="https://sandyfletcher.ca" target="_blank">site by sandy</a>';
-        }
-    }
-
     // Method to register new screens dynamically
     registerScreen(name, element) {
         this.screens[name] = element;
