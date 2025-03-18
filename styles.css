@@ -7,7 +7,9 @@
 @font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'RubikBrokenFax'; src: url('./assets/fonts/RubikBrokenFax.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Bungee'; src: url('./assets/fonts/Bungee.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'BungeeShade'; src: url('./assets/fonts/BungeeShade.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Asset'; src: url('./assets/fonts/Asset-Regular.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'LondrinaSketch'; src: url('./assets/fonts/LondrinaSketch.ttf') format('truetype'); font-display: block}
 /* BASE RESET */
 * {
     margin: 0;
@@ -79,7 +81,7 @@ header h1 {
   }
 #total-troops-count {
     font-size: 1rem;
-    font-family: 'Asset', monospace;
+    font-family: 'LondrinaSketch', monospace;
     color: black;
     position: absolute;
     z-index: 10;
@@ -87,10 +89,10 @@ header h1 {
     top: 50%;
     transform: translate(-50%, -50%);
     font-weight: bold;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
 }
 #game-timer {
-    font-family: 'Asset', monospace;
+    font-family: 'LondrinaSketch', monospace;
     color: black;
     font-weight: bold;
     font-size: 1rem;
@@ -189,23 +191,22 @@ header h1 {
 }
 /* INSTRUCTIONS   -  needs to be reworked */
 .instructions-content {
-    padding: 1rem;
-    color: white;
     max-width: 800px;
     margin: 0 auto;
     text-align: left;
+    font-size: 0.8rem;
 }
 .instructions-content h2 {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     color: #ffff00;
 }
 .instructions-section {
-    margin-bottom: 2rem;
+    margin-bottom: 0rem;
 }
 .instructions-section h3 {
     color: #00ffff;
-    margin-bottom: 0.5rem;
+    margin: 0.5rem;
 }
 .instructions-section ul {
     padding-left: 1.5rem;
