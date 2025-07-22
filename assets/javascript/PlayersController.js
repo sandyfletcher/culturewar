@@ -11,6 +11,7 @@ import RumerSpuckler from './bots/RumerSpuckler.js';
 import ScoutSpuckler from './bots/ScoutSpuckler.js';
 import ZoeSpuckler from './bots/ZoeSpuckler.js';
 import ChloeSpuckler from './bots/ChloeSpuckler.js';
+import GameAPI from './GameAPI.js';
 
 
 export default class PlayersController {
@@ -119,6 +120,7 @@ export default class PlayersController {
         for (const player of aiPlayers) {
             // Get the AI class based on the specified type
             const AIClass = this.availableAITypes[player.aiController] || this.availableAITypes['TiffanySpuckler'];
+            // The AI now receives the game and its own ID to instantiate the API
             this.aiControllers[player.id] = new AIClass(this.game, player.id);
         }
     }
@@ -133,10 +135,9 @@ export default class PlayersController {
             }
             
             const aiController = this.aiControllers[playerId];
-            const aiDecision = aiController.makeDecision({
-                planets: this.game.planets,
-                troopMovements: this.game.troopMovements
-            });
+            // The AI no longer needs the game state passed to it,
+            // as it gets all data from its internal API instance.
+            const aiDecision = aiController.makeDecision();
 
             if (aiDecision) {
                 // Execute the AI's decision by sending troops

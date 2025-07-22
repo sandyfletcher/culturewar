@@ -1,39 +1,45 @@
-import GameUtilities from '../GameUtilities.js';
+import GameAPI from '../GameAPI.js';
 
 class ChloeSpuckler {
     constructor(game, playerId) {
-        this.game = game;
-        this.playerId = playerId;
+        this.api = new GameAPI(game, playerId);
         this.lastMoveTime = 0;
         this.moveCooldown = 1000; // 1 move per second
     }
 
-    makeDecision({ planets, troopMovements }) {
+    makeDecision() {
         const now = Date.now();
-        if (now - this.lastMoveTime < this.moveCooldown) return null; // Throttle moves
+        if (now - this.lastMoveTime < this.moveCooldown) return null;
 
-        const myPlanets = GameUtilities.getPlanetsOwnedBy(this.game, this.playerId);
-        const enemyPlanets = GameUtilities.getEnemyPlanets(this.game, this.playerId);
-        const neutralPlanets = GameUtilities.getNeutralPlanets(this.game);
+        const myPlanets = this.api.getMyPlanets();
+        if (myPlanets.length === 0) return null;
+        
+        const enemyPlanets = this.api.getEnemyPlanets();
+        const neutralPlanets = this.api.getNeutralPlanets();
 
         let bestMove = null;
         let bestScore = -Infinity;
 
         for (const from of myPlanets) {
+            if (from.troops <= 20) continue; // Keep defense minimum
+
             const targets = [...enemyPlanets, ...neutralPlanets];
             for (const to of targets) {
-                if (from.troops <= 20) continue; // Keep defense minimum
-                const amount = GameUtilities.recommendTroopSendAmount(from, to);
-                if (amount <= 0) continue;
+                const troopsAtArrival = this.api.estimateTroopsAtArrival(from, to);
+                const troopsToSend = Math.ceil(troopsAtArrival) + 5;
 
-                const threat = GameUtilities.calculatePlanetThreat(this.game, from, this.playerId).threatLevel;
-                const distance = GameUtilities.calculateDistance(from, to);
-                const targetValue = GameUtilities.evaluatePlanetValue(to).totalValue;
-                const score = targetValue - (distance * 0.5) - (threat * 50);
+                if (from.troops <= troopsToSend) continue;
+
+                const threat = this.api.calculateThreat(from);
+                const distance = this.api.getDistance(from, to);
+                const targetValue = this.api.calculatePlanetValue(to);
+                
+                // Chloe's unique scoring logic
+                const score = targetValue - (distance * 0.5) - (threat * 2);
 
                 if (score > bestScore) {
                     bestScore = score;
-                    bestMove = { from, to, troops: amount };
+                    bestMove = { from, to, troops: troopsToSend };
                 }
             }
         }

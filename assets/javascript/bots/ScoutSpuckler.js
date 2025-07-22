@@ -1,102 +1,94 @@
 // (Gemini2.js):
 // Gemini's more sophisticated AI bot for Galcon
-
-import SummaryForAI from '../SummaryForAI.js';
+import GameAPI from '../GameAPI.js';
 
 class ScoutSpuckler {
     constructor(game, playerId) {
-        this.game = game;
-        this.playerId = playerId;
-        this.summary = new SummaryForAI(game);
-        this.aggressionFactor = 0.7; // Adjust for more/less aggressive behavior
+        this.api = new GameAPI(game, playerId);
+        this.aggressionFactor = 0.7;
+        this.lastDecisionTime = 0;
+        this.decisionInterval = 1000; // ms
     }
 
-    makeDecision(dt) {
-        if(this.summary.getGameOver()){
-            return;
+    makeDecision() {
+        const now = Date.now();
+        if (now - this.lastDecisionTime < this.decisionInterval) {
+            return null;
         }
-        // Get my planets
-        const myPlanets = this.summary.getPlanetsOwnedBy(this.playerId);
+        this.lastDecisionTime = now;
+        
+        const myPlanets = this.api.getMyPlanets();
+        if (myPlanets.length === 0) return null;
 
-        if (myPlanets.length === 0) {
-            return; // Nothing to do if I have no planets
-        }
+        // Priority 1: Defend if necessary
+        const defenseMove = this.getDefenseMove(myPlanets);
+        if (defenseMove) return defenseMove;
 
-        // --- Early Game: Expand to nearby neutral planets ---
-        if (this.summary.getTimeRemaining() > 240) { // First minute of the game
-            this.expandToNeutrals(myPlanets);
-        }
+        // Priority 2: Expand to neutrals if viable
+        const expansionMove = this.getExpansionMove(myPlanets);
+        if (expansionMove) return expansionMove;
 
-        // --- Mid Game: Reinforce, Attack, and Defend ---
-        else {
-            this.reinforcePlanets(myPlanets);
-            this.attackBestTarget(myPlanets);
-        }
+        // Priority 3: Attack an enemy
+        const attackMove = this.getAttackMove(myPlanets);
+        if (attackMove) return attackMove;
+        
+        return null; // No valid move found
     }
 
-    expandToNeutrals(myPlanets) {
+    getDefenseMove(myPlanets) {
         for (const myPlanet of myPlanets) {
-            // Find the nearest neutral planet
-            const nearestNeutral = this.summary.getNearestPlanet(myPlanet, planet => planet.owner === 'neutral');
+            const incomingAttackers = this.api.getIncomingAttacks(myPlanet).reduce((sum, m) => sum + m.amount, 0);
+            const reinforcementNeed = incomingAttackers - myPlanet.troops;
 
+            if (reinforcementNeed > 0) {
+                const reinforcers = myPlanets.filter(p => p !== myPlanet && p.troops > 10);
+                if (reinforcers.length === 0) continue;
+
+                const bestSource = this.api.findNearestPlanet(myPlanet, reinforcers);
+                const troopsToSend = Math.min(Math.floor(bestSource.troops * this.aggressionFactor), reinforcementNeed + 5);
+
+                if (troopsToSend > 0) {
+                    return { from: bestSource, to: myPlanet, troops: troopsToSend };
+                }
+            }
+        }
+        return null;
+    }
+    
+    getExpansionMove(myPlanets) {
+        const neutralPlanets = this.api.getNeutralPlanets();
+        if (neutralPlanets.length === 0) return null;
+
+        for (const myPlanet of myPlanets) {
+            if (myPlanet.troops < 15) continue;
+            
+            const nearestNeutral = this.api.findNearestPlanet(myPlanet, neutralPlanets);
             if (nearestNeutral) {
-                // Calculate the attack force needed to take the neutral planet
-                const attackForce = this.summary.calculateAttackForce(nearestNeutral);
-
-                // If we have enough available troops, launch the attack
-                const availableTroops = this.summary.getAvailableTroopsForAttack(myPlanet);
-
-                if (availableTroops > attackForce * this.aggressionFactor) {
-                    this.game.sendTroops(myPlanet, nearestNeutral, Math.floor(availableTroops * this.aggressionFactor));
+                const attackForce = nearestNeutral.troops + 3;
+                if (myPlanet.troops > attackForce) {
+                    return { from: myPlanet, to: nearestNeutral, troops: Math.floor(myPlanet.troops * 0.5) };
                 }
             }
         }
+        return null;
     }
 
-    reinforcePlanets(myPlanets) {
-        for (const myPlanet of myPlanets) {
-            // Calculate the reinforcement need for the planet
-            const reinforcementNeed = this.summary.calculateReinforcementNeed(myPlanet);
+    getAttackMove(myPlanets) {
+        const enemyPlanets = this.api.getEnemyPlanets();
+        if (enemyPlanets.length === 0) return null;
 
-            // If the planet needs reinforcements
-            if (myPlanet.troops < reinforcementNeed) {
-                // Find the best source to send reinforcements from
-                const bestSource = this.summary.findBestDefenseSource(myPlanet);
+        const strongestPlanet = myPlanets.sort((a,b) => b.troops - a.troops)[0];
+        if(!strongestPlanet || strongestPlanet.troops < 20) return null;
 
-                if (bestSource) {
-                    // Calculate the number of troops to send
-                    const availableTroops = this.summary.getAvailableTroopsForAttack(bestSource);
-                    const troopsToSend = Math.min(availableTroops * this.aggressionFactor, reinforcementNeed - myPlanet.troops);
+        // Find weakest enemy
+        const weakestEnemy = enemyPlanets.sort((a,b) => a.troops - b.troops)[0];
+        const troopsAtArrival = this.api.estimateTroopsAtArrival(strongestPlanet, weakestEnemy);
+        const attackForce = troopsAtArrival + 5;
 
-                    // Send the troops
-                    if (troopsToSend > 10) {
-                        this.game.sendTroops(bestSource, myPlanet, Math.floor(troopsToSend));
-                    }
-                }
-            }
+        if (strongestPlanet.troops > attackForce) {
+             return { from: strongestPlanet, to: weakestEnemy, troops: Math.floor(strongestPlanet.troops * this.aggressionFactor) };
         }
-    }
-
-    attackBestTarget(myPlanets) {
-        // Find the best attack target
-        const bestTarget = this.summary.findBestAttackTarget();
-
-        if (bestTarget) {
-            // Find the strongest planet to launch the attack from
-            const strongestPlanet = this.summary.getStrongestPlanet(planet => planet.owner === this.playerId);
-
-            if (strongestPlanet) {
-                // Calculate the attack force needed to take the target planet
-                const attackForce = this.summary.calculateAttackForce(bestTarget);
-
-                // If we have enough available troops, launch the attack
-                const availableTroops = this.summary.getAvailableTroopsForAttack(strongestPlanet);
-
-                if (availableTroops > attackForce * this.aggressionFactor) {
-                    this.game.sendTroops(strongestPlanet, bestTarget, Math.floor(availableTroops * this.aggressionFactor));
-                }
-            }
-        }
+        return null;
     }
 }
 

@@ -1,115 +1,61 @@
 // claude1.js - Basic AI implementation for easy difficulty
+// claude also wrote its own functions to get all planets owned by a particular player
+// this was also intended to be an easy mode, so it created a cooldown timer between decisions
+// that's now a standard feature
+
+import GameAPI from '../GameAPI.js';
 
 export default class CodySpuckler {
     constructor(game, playerId) {
-        this.game = game;
-        this.playerId = playerId;
+        this.api = new GameAPI(game, playerId);
         this.decisionCooldown = 0;
-        this.minDecisionTime = 1.5; // Minimum seconds between decisions
-        this.maxDecisionTime = 3.0; // Maximum seconds between decisions
+        this.minDecisionTime = 1.5;
+        this.maxDecisionTime = 3.0;
     }
     
-    makeDecision(gameState) {
-        // Reduce cooldown
-        this.decisionCooldown -= 1/60; // Assuming 60 FPS
+    makeDecision() {
+        this.decisionCooldown -= 1/60;
+        if (this.decisionCooldown > 0) return null;
         
-        // Only make a decision when cooldown expires
-        if (this.decisionCooldown > 0) {
-            return null;
-        }
+        this.decisionCooldown = this.minDecisionTime + Math.random() * (this.maxDecisionTime - this.minDecisionTime);
         
-        // Set a new random cooldown
-        this.decisionCooldown = this.minDecisionTime + 
-            Math.random() * (this.maxDecisionTime - this.minDecisionTime);
+        const myPlanets = this.api.getMyPlanets();
+        if (myPlanets.length === 0) return null;
         
-        // Get all planets owned by this AI
-        const myPlanets = gameState.planets.filter(planet => planet.owner === this.playerId);
-        
-        // If no planets, can't make a move
-        if (myPlanets.length === 0) {
-            return null;
-        }
-        
-        // Find source planet with most troops
         const sourcePlanet = this.findSourcePlanet(myPlanets);
-        if (!sourcePlanet || sourcePlanet.troops < 10) {
-            return null; // Not enough troops to send
-        }
+        if (!sourcePlanet || sourcePlanet.troops < 10) return null;
         
-        // Find target planet
-        const targetPlanet = this.findTargetPlanet(gameState.planets, sourcePlanet);
-        if (!targetPlanet) {
-            return null; // No suitable target found
-        }
+        const targetPlanet = this.findTargetPlanet(sourcePlanet);
+        if (!targetPlanet) return null;
         
-        // Calculate troops to send (50% of available troops)
         const troopsToSend = Math.floor(sourcePlanet.troops / 2);
         
-        return {
-            from: sourcePlanet,
-            to: targetPlanet,
-            troops: troopsToSend
-        };
+        return { from: sourcePlanet, to: targetPlanet, troops: troopsToSend };
     }
     
     findSourcePlanet(myPlanets) {
-        // Sort planets by troop count (descending)
-        const sortedPlanets = [...myPlanets]
-            .filter(planet => planet.troops >= 10) // Only consider planets with enough troops
-            .sort((a, b) => b.troops - a.troops);
-        
-        // Return planet with most troops, or null if none have sufficient troops
-        return sortedPlanets.length > 0 ? sortedPlanets[0] : null;
+        return [...myPlanets]
+            .filter(planet => planet.troops >= 10)
+            .sort((a, b) => b.troops - a.troops)[0] || null;
     }
     
-    findTargetPlanet(allPlanets, sourcePlanet) {
-        // First priority: Nearby neutral planets
-        const neutralPlanets = allPlanets.filter(planet => 
-            planet.owner === 'neutral' && planet !== sourcePlanet);
-        
-        // Find closest neutral planet
+    findTargetPlanet(sourcePlanet) {
+        const neutralPlanets = this.api.getNeutralPlanets();
         if (neutralPlanets.length > 0) {
-            return this.findClosestPlanet(neutralPlanets, sourcePlanet);
+            return this.api.findNearestPlanet(sourcePlanet, neutralPlanets);
         }
         
-        // Second priority: Enemy planets with fewer troops than we can send
-        const vulnerableEnemyPlanets = allPlanets.filter(planet => 
-            planet.owner !== this.playerId && 
-            planet.owner !== 'neutral' && 
-            planet.troops < sourcePlanet.troops / 2);
+        const enemyPlanets = this.api.getEnemyPlanets();
+        const vulnerableEnemyPlanets = enemyPlanets.filter(p => p.troops < sourcePlanet.troops / 2);
         
         if (vulnerableEnemyPlanets.length > 0) {
-            return this.findClosestPlanet(vulnerableEnemyPlanets, sourcePlanet);
+            return this.api.findNearestPlanet(sourcePlanet, vulnerableEnemyPlanets);
         }
-        
-        // Last resort: Enemy planets (even if they have more troops)
-        const enemyPlanets = allPlanets.filter(planet => 
-            planet.owner !== this.playerId && 
-            planet.owner !== 'neutral');
         
         if (enemyPlanets.length > 0) {
-            return this.findClosestPlanet(enemyPlanets, sourcePlanet);
+            return this.api.findNearestPlanet(sourcePlanet, enemyPlanets);
         }
         
-        // No suitable target found
         return null;
-    }
-    
-    findClosestPlanet(planets, sourcePlanet) {
-        let closestPlanet = null;
-        let shortestDistance = Infinity;
-        
-        for (const planet of planets) {
-            const dx = planet.x - sourcePlanet.x;
-            const dy = planet.y - sourcePlanet.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < shortestDistance) {
-                shortestDistance = distance;
-                closestPlanet = planet;
-            }
-        }
-        
-        return closestPlanet;
     }
 }

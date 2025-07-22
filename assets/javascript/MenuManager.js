@@ -2,6 +2,7 @@ import ScreenManager from './ScreenManager.js';
 import GameConfigManager from './GameConfigManager.js';
 import MenuBuilder from './MenuBuilder.js';
 import GameOverScreen from './GameOverScreen.js';
+import FooterManager from './FooterManager.js'; // Import the new manager
 import Game from '../../../game.js';
 
 class MenuManager {
@@ -9,6 +10,7 @@ class MenuManager {
         // Initialize components
         this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
+        this.footerManager = new FooterManager(); // Instantiate the footer manager
         this.menuBuilder = new MenuBuilder(
             document.getElementById('menu-screen'),
             this.screenManager,
@@ -44,6 +46,8 @@ class MenuManager {
             if (this.game && this.game.troopTracker) {
                 this.game.troopTracker.hideTroopBar();
             }
+            // ** NEW: Hide the slider and restore the default footer **
+            this.footerManager.hideSlider();
         }
     }
     
@@ -55,6 +59,9 @@ class MenuManager {
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
+
+        // ** NEW: Hide the slider on the game over screen **
+        this.footerManager.hideSlider();
         
         // Use the GameOverScreen instance to show the game over screen
         this.gameOverScreen.show(stats, gameInstance);
@@ -66,6 +73,9 @@ class MenuManager {
         
         // Switch to game screen
         this.switchToScreen('game');
+        
+        // ** NEW: Show the slider, passing in the current game mode **
+        this.footerManager.showSlider(config.gameMode);
         
         // Create new Game instance with the current configuration
         if (config.gameMode === 'singleplayer') {

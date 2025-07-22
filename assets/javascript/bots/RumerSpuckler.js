@@ -1,150 +1,81 @@
 // (Gemini1.js):
 // Gemini's first run
+// they've been removed now, but this model wrote its own functions
+// to calculate things like distance between two planets
+// or "function to get all planets owned by a specific player"
+// initially i just let bots do this, write their own workarounds to determine the info they needed
+// later i decided to create a singular file bots pull info from
 
-// Function to calculate distance between two planets
-function calculateDistance(planet1, planet2) {
-    const dx = planet2.x - planet1.x;
-    const dy = planet2.y - planet1.y;
-    return Math.sqrt(dx * dx + dy * dy);
-}
-
-// Function to get all planets owned by a specific player
-function getPlanetsOwnedBy(game, playerId) {
-    return game.planets.filter(planet => planet.owner === playerId);
-}
+import GameAPI from '../GameAPI.js';
 
 class RumerSpuckler {
     constructor(game, playerId) {
-        this.game = game;
-        this.playerId = playerId;
+        this.api = new GameAPI(game, playerId);
         this.lastDecisionTime = 0;
-        this.decisionInterval = 250; // Make decisions every 1/4 second (adjust as needed)
+        this.decisionInterval = 250;
     }
 
-    makeDecision(gameState) {
+    makeDecision() {
         const now = Date.now();
-        if (now - this.lastDecisionTime < this.decisionInterval) {
-            return null; // Don't make a decision yet
-        }
+        if (now - this.lastDecisionTime < this.decisionInterval) return null;
         this.lastDecisionTime = now;
 
-        // Get our planets
-        const myPlanets = getPlanetsOwnedBy(this.game, this.playerId);
+        const myPlanets = this.api.getMyPlanets();
+        if (myPlanets.length === 0) return null;
 
-        if (myPlanets.length === 0) {
-            return null; // No planets, no decisions to make
-        }
-
-        // 1. Defend threatened planets
         const defenseDecision = this.defendThreatenedPlanets(myPlanets);
-        if (defenseDecision) {
-            return defenseDecision;
-        }
+        if (defenseDecision) return defenseDecision;
 
-        // 2. Attack weak planets
         const attackDecision = this.attackWeakestTarget(myPlanets);
-        if (attackDecision) {
-            return attackDecision;
-        }
+        if (attackDecision) return attackDecision;
 
-        return null; // No action this turn
+        return null;
     }
 
     defendThreatenedPlanets(myPlanets) {
-        // Find planets under attack (incoming enemy fleets)
-        const threatenedPlanets = myPlanets.filter(planet => {
-            return this.game.troopMovements.some(movement => {
-                return movement.to === planet && movement.owner !== this.playerId;
-            });
-        });
+        let threatenedPlanets = myPlanets.map(planet => ({
+            planet: planet,
+            incoming: this.api.getIncomingAttacks(planet).reduce((sum, m) => sum + m.amount, 0)
+        })).filter(p => p.incoming > 0);
 
-        if (threatenedPlanets.length === 0) {
-            return null; // No planets to defend
-        }
+        if (threatenedPlanets.length === 0) return null;
+        
+        threatenedPlanets.sort((a, b) => b.incoming - a.incoming);
+        const targetPlanet = threatenedPlanets[0].planet;
+        const incomingTroops = threatenedPlanets[0].incoming;
 
-        // Prioritize defense: Defend the planet with the most incoming troops
-        threatenedPlanets.sort((a, b) => {
-            const incomingA = this.game.troopMovements.filter(movement => movement.to === a && movement.owner !== this.playerId).reduce((sum, movement) => sum + movement.amount, 0);
-            const incomingB = this.game.troopMovements.filter(movement => movement.to === b && movement.owner !== this.playerId).reduce((sum, movement) => sum + movement.amount, 0);
-            return incomingB - incomingA;
-        });
+        const reinforcers = myPlanets.filter(p => p !== targetPlanet);
+        if (reinforcers.length === 0) return null;
 
-        const targetPlanet = threatenedPlanets[0];
+        const bestSourcePlanet = this.api.findNearestPlanet(targetPlanet, reinforcers);
+        if (!bestSourcePlanet) return null;
 
-        // Find closest planet to send reinforcements from
-        let bestSourcePlanet = null;
-        let shortestDistance = Infinity;
-
-        myPlanets.forEach(planet => {
-            if (planet === targetPlanet) return; // Don't send from the planet being attacked
-            const distance = calculateDistance(planet, targetPlanet);
-            if (distance < shortestDistance) {
-                shortestDistance = distance;
-                bestSourcePlanet = planet;
-            }
-        });
-
-        if (!bestSourcePlanet) {
-            return null; // No source planet available
-        }
-
-        // Send enough troops to defend (a bit more than incoming)
-        const incomingTroops = this.game.troopMovements.filter(movement => movement.to === targetPlanet && movement.owner !== this.playerId).reduce((sum, movement) => sum + movement.amount, 0);
-        const troopsToSend = Math.ceil(incomingTroops + 5); // Send 5 more than incoming
-        const availableTroops = Math.floor(bestSourcePlanet.troops * 0.75); // Only send up to 75% of source troops
+        const troopsToSend = Math.ceil(incomingTroops - targetPlanet.troops) + 5;
+        const availableTroops = Math.floor(bestSourcePlanet.troops * 0.75);
         const troopsActuallySent = Math.min(troopsToSend, availableTroops);
 
-        if (troopsActuallySent <= 0) {
-            return null; // Not enough troops to send
-        }
-
-        return {
-            from: bestSourcePlanet,
-            to: targetPlanet,
-            troops: troopsActuallySent
-        };
+        if (troopsActuallySent <= 0) return null;
+        
+        return { from: bestSourcePlanet, to: targetPlanet, troops: troopsActuallySent };
     }
 
     attackWeakestTarget(myPlanets) {
-        // Find the weakest enemy or neutral planet
-        const weakestTarget = this.game.planets
-            .filter(planet => planet.owner !== this.playerId)
-            .sort((a, b) => a.troops - b.troops)[0]; // Sort by troop count ascending
+        const allTargets = this.api.getEnemyPlanets().concat(this.api.getNeutralPlanets());
+        if (allTargets.length === 0) return null;
 
-        if (!weakestTarget) {
-            return null; // No target available
-        }
+        const weakestTarget = allTargets.sort((a, b) => a.troops - b.troops)[0];
+        if (!weakestTarget) return null;
 
-        // Find closest planet to attack from
-        let bestSourcePlanet = null;
-        let shortestDistance = Infinity;
-
-        myPlanets.forEach(planet => {
-            const distance = calculateDistance(planet, weakestTarget);
-            if (distance < shortestDistance) {
-                shortestDistance = distance;
-                bestSourcePlanet = planet;
-            }
-        });
-
-        if (!bestSourcePlanet) {
-            return null; // No source planet available
-        }
-
-        // Send enough troops to conquer (a bit more than the target has)
-        const troopsToSend = Math.ceil(weakestTarget.troops + 5);
-        const availableTroops = Math.floor(bestSourcePlanet.troops * 0.75); // Only send up to 75% of source troops
+        const bestSourcePlanet = this.api.findNearestPlanet(weakestTarget, myPlanets);
+        if (!bestSourcePlanet) return null;
+        
+        const troopsToSend = Math.ceil(weakestTarget.troops) + 5;
+        const availableTroops = Math.floor(bestSourcePlanet.troops * 0.75);
         const troopsActuallySent = Math.min(troopsToSend, availableTroops);
 
-        if (troopsActuallySent <= 0) {
-            return null; // Not enough troops to send
-        }
+        if (troopsActuallySent <= 0 || troopsActuallySent >= bestSourcePlanet.troops) return null;
 
-        return {
-            from: bestSourcePlanet,
-            to: weakestTarget,
-            troops: troopsActuallySent
-        };
+        return { from: bestSourcePlanet, to: weakestTarget, troops: troopsActuallySent };
     }
 }
 
