@@ -2,7 +2,7 @@ import ScreenManager from './ScreenManager.js';
 import GameConfigManager from './GameConfigManager.js';
 import MenuBuilder from './MenuBuilder.js';
 import GameOverScreen from './GameOverScreen.js';
-import FooterManager from './FooterManager.js'; // Import the new manager
+import FooterManager from './FooterManager.js';
 import Game from '../../../game.js';
 
 class MenuManager {
@@ -10,7 +10,7 @@ class MenuManager {
         // Initialize components
         this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
-        this.footerManager = new FooterManager(); // Instantiate the footer manager
+        this.footerManager = new FooterManager();
         this.menuBuilder = new MenuBuilder(
             document.getElementById('menu-screen'),
             this.screenManager,
@@ -70,22 +70,20 @@ class MenuManager {
     startGame() {
         // Get the current configuration
         const config = this.configManager.getConfig();
-        
         // Switch to game screen
         this.switchToScreen('game');
-        
         // ** NEW: Show the slider, passing in the current game mode **
         this.footerManager.showSlider(config.gameMode);
         
         // Create new Game instance with the current configuration
         if (config.gameMode === 'singleplayer') {
-            this.game = new Game(config.playerCount, config.aiTypes);
+            // ** MODIFICATION: Pass the footerManager instance to the Game constructor **
+            this.game = new Game(config.playerCount, config.aiTypes, false, this.footerManager);
         } else if (config.gameMode === 'botbattle') {
-            this.game = new Game(config.botBattleCount, config.aiTypes, true);
+            this.game = new Game(config.botBattleCount, config.aiTypes, true, this.footerManager);
         }
     }
     
-    // Add this method to fix the GameOverScreen error
     getGameConfig() {
         return this.configManager.getConfig();
     }

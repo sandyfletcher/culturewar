@@ -8,7 +8,8 @@ import TroopTracker from './assets/javascript/TroopTracker.js';
 import TimerManager from './assets/javascript/TimerManager.js';
 
 class Game {
-    constructor(playerCount = 2, aiTypes = [], botBattleMode = false) {
+    // ** MODIFICATION: Added footerManager to the constructor parameters **
+    constructor(playerCount = 2, aiTypes = [], botBattleMode = false, footerManager = null) {
         console.log(`Game Launched: Bot Battle? ${botBattleMode}, playerCount: ${playerCount}, players: ${aiTypes.map(p => `${p}`).join(' ')}`);
         // Setup canvas
         this.canvas = document.getElementById('game-canvas');
@@ -24,6 +25,8 @@ class Game {
         this.aiTypes = aiTypes;
         this.botBattleMode = botBattleMode;
         this.playerCount = playerCount;
+        // ** NEW: Store the reference to the footerManager **
+        this.footerManager = footerManager;
         // Game entities
         this.planets = [];
         this.troopMovements = [];
@@ -38,7 +41,8 @@ class Game {
         // Game state
         this.gameOver = false;
         this.playersController = new PlayersController(this, playerCount, this.aiTypes, botBattleMode);
-        this.inputHandler = botBattleMode ? null : new InputHandler(this);
+        // ** MODIFICATION: Pass the footerManager to the InputHandler **
+        this.inputHandler = botBattleMode ? null : new InputHandler(this, this.footerManager);
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
