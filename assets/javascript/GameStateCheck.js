@@ -1,7 +1,7 @@
 export default class GameState {
     constructor(game) {
         this.game = game;
-        this.timeRemaining = 100; // should be reset by timermanager's value
+        // ** MODIFICATION: Removed redundant time tracking. Will get from TimerManager. **
         this.lastUpdate = Date.now();
         this.gameOver = false;
         this.startTime = Date.now();
@@ -26,22 +26,18 @@ export default class GameState {
         }
     }
 
+    // ** MODIFICATION: The 'dt' passed in is now potentially scaled for game speed. **
     update(dt) {
         if (this.gameOver) return;
-            
-        // Get time from timer manager instead of tracking it here
-        this.timeRemaining = this.game.timerManager.getTimeRemaining();
         
-        // Check for player eliminations
+        // The game timer is updated independently in the main game loop.
+        // We just need to check its current value.
+        const timeRemaining = this.game.timerManager.getTimeRemaining();
+        
         this.checkPlayerEliminations();
         
-        // Check win conditions
-        this.checkWinConditions();
-        
-        // Check for time-based win conditions - SHOULD THIS BE <= 0??
-        if (this.timeRemaining === 0 && !this.gameOver) {
-            this.checkWinConditions();
-        }
+        // Pass the time remaining to the win condition check.
+        this.checkWinConditions(timeRemaining);
     }
     
     // Track when players are eliminated
@@ -67,33 +63,23 @@ export default class GameState {
     }
     
     // Increment counters for statistics
-    incrementTroopsSent(amount) {
-        this.troopsSent += amount;
-    }
+    incrementTroopsSent(amount) { this.troopsSent += amount; }
+    incrementTroopsLost(amount) { this.troopsLost += amount; }
+    incrementPlanetsConquered() { this.planetsConquered++; }
     
-    incrementTroopsLost(amount) {
-        this.troopsLost += amount;
-    }
-    
-    incrementPlanetsConquered() {
-        this.planetsConquered++;
-    }
-    
-    // Check win conditions
-    checkWinConditions() {
+    // ** MODIFICATION: Accepts timeRemaining directly. **
+    checkWinConditions(timeRemaining) {
         if (this.gameOver) return false;
     
         // Check for time victory
-        if (this.timeRemaining <= 0) {
-            // Find player with most troops
+        if (timeRemaining <= 0) {
             const winner = this.game.playersController.getWinningPlayer();
             this.endGame(winner, 'time');
             return true;
         }
     
         // Check for domination victories
-        const playerStats = this.game.playersController.getPlayerStats()
-            .filter(stats => stats.id !== 'neutral');
+        const playerStats = this.game.playersController.getPlayerStats().filter(stats => stats.id !== 'neutral');
         
         // Count active players (with planets or troops in movement)
         const activePlayers = playerStats.filter(stats => 
@@ -110,7 +96,6 @@ export default class GameState {
         return false;
     }
     
-    // Updated endGame method to handle both human and bot battles
     endGame(winnerId, victoryType) {
         this.winner = winnerId;
         this.victoryType = victoryType;
@@ -123,11 +108,11 @@ export default class GameState {
         // Create game statistics with universal properties
         const stats = {
             winner: this.winner,
-            time: (Date.now() - this.startTime) / 1000, // elapsed time in seconds
+            time: (Date.now() - this.startTime) / 1000,
             planetsConquered: this.planetsConquered,
             troopsSent: this.troopsSent,
             troopsLost: this.troopsLost,
-            eliminationTimes: this.eliminationTimes // Add elimination times to stats
+            eliminationTimes: this.eliminationTimes
         };
         
         // Add property specific to single player mode
@@ -140,7 +125,7 @@ export default class GameState {
         if (window.menuManager) {
             window.menuManager.showGameOver(stats, this.game);
         } else {
-            console.error("MenuManager not found. Make sure it's initialized before GameState.");
+            console.error("MenuManager not found.");
         }
         
         // Clean up event listener when game ends

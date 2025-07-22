@@ -6,14 +6,13 @@ class TimerManager {
         this.isPaused = false;
         this.lastUpdate = Date.now();
         this.timerElement = null;
-        this.shouldPauseOnHidden = true; // Configurable based on game mode
+        this.shouldPauseOnHidden = true;
     }
 
     initialize() {
         // Get the timer element
         this.timerElement = document.getElementById('game-timer');
         this.setupVisibilityHandler();
-        
         // Only update display if the timer element exists
         if (this.timerElement) {
             this.updateDisplay();
@@ -25,7 +24,6 @@ class TimerManager {
             // Only pause if we're in a game mode that should pause
             if (this.shouldPauseOnHidden) {
                 this.isPaused = document.visibilityState !== 'visible';
-                
                 if (!this.isPaused) {
                     // Reset lastUpdate when resuming
                     this.lastUpdate = Date.now();
@@ -35,23 +33,13 @@ class TimerManager {
     }
 
     setGameMode(mode) {
-        // Configure behavior based on game mode
-        switch(mode) {
-            case 'singlePlayer':
-                this.shouldPauseOnHidden = true;
-                break;
-            case 'botBattle':
-                this.shouldPauseOnHidden = false;
-                break;
-            case 'multiplayer':
-                this.shouldPauseOnHidden = false;
-                break;
-            default:
-                this.shouldPauseOnHidden = true;
-        }
+        // This is a good place for this logic, but it's not currently called.
+        // We can leave it for future use.
+        this.shouldPauseOnHidden = (mode === 'singlePlayer');
     }
 
-    update() {
+    // ** MODIFICATION: 'update' now accepts a speed multiplier. **
+    update(speedMultiplier = 1.0) {
         if (this.isPaused) return;
         
         const now = Date.now();
@@ -60,7 +48,8 @@ class TimerManager {
         
         // Only update time if the game is active
         if (this.game.isActive) {
-            this.timeRemaining = Math.max(0, this.timeRemaining - dt);
+            // ** MODIFICATION: Scale the time reduction by the multiplier. **
+            this.timeRemaining = Math.max(0, this.timeRemaining - (dt * speedMultiplier));
         }
         
         this.updateDisplay();
@@ -69,11 +58,7 @@ class TimerManager {
     }
 
     updateDisplay() {
-        if (!this.timerElement) {
-            // If timer element doesn't exist, just return
-            // Do NOT try to initialize again here
-            return;
-        }
+        if (!this.timerElement) return;
         
         const minutes = Math.floor(this.timeRemaining / 60);
         const seconds = Math.floor(this.timeRemaining % 60);
@@ -88,10 +73,7 @@ class TimerManager {
         this.updateDisplay();
     }
 
-    pause() {
-        this.isPaused = true;
-    }
-
+    pause() { this.isPaused = true; }
     resume() {
         this.isPaused = false;
         this.lastUpdate = Date.now();

@@ -8,10 +8,11 @@ export default class InputHandler {
         this.selectionStart = { x: 0, y: 0 };
         this.selectionEnd = { x: 0, y: 0 };
         this.touchStartTime = 0;
-        this.doubleClickTimeThreshold = 300; // ms
+        // For double-click detection
         this.lastClickedPlanet = null;
         this.lastClickTime = 0;
-        // mouse event listeners with passive option for touch events
+        this.doubleClickTimeThreshold = 300; // ms
+        // Add mouse event listeners with passive option for touch events
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
@@ -25,10 +26,12 @@ export default class InputHandler {
         const rect = this.canvas.getBoundingClientRect();
         this.mousePos.x = e.clientX - rect.left;
         this.mousePos.y = e.clientY - rect.top;
+        // Update selection box if currently selecting
         if (this.isSelecting) {
             this.selectionEnd.x = this.mousePos.x;
             this.selectionEnd.y = this.mousePos.y;
         }
+        // Update the game's reference to mouse position
         this.game.mousePos = this.mousePos;
     }
     handleMouseDown(e) {
@@ -36,6 +39,7 @@ export default class InputHandler {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+        // Start selection box
         this.selectionStart.x = x;
         this.selectionStart.y = y;
         this.selectionEnd.x = x;
@@ -56,8 +60,11 @@ export default class InputHandler {
             this.handleClick(e);
             return;
         }
+        
+        // Process selection box
         this.processSelectionBox();
     }
+
     handleTouchStart(e) {
         if (this.game.gameOver) return;
         e.preventDefault(); // prevent scrolling
@@ -71,7 +78,9 @@ export default class InputHandler {
             this.selectionEnd.x = x;
             this.selectionEnd.y = y;
             this.isSelecting = true;
-            this.touchStartTime = Date.now(); // timestamp to detect tap vs drag
+            
+            // Store timestamp to detect tap vs drag
+            this.touchStartTime = Date.now();
         }
     }
     handleTouchMove(e) {
@@ -84,6 +93,7 @@ export default class InputHandler {
             this.mousePos.y = touch.clientY - rect.top;
             this.selectionEnd.x = this.mousePos.x;
             this.selectionEnd.y = this.mousePos.y;
+            // Update the game's reference to mouse position
             this.game.mousePos = this.mousePos;
         }
     }
@@ -98,6 +108,7 @@ export default class InputHandler {
             Math.pow(this.selectionStart.y - this.selectionEnd.y, 2)
         );
         if (touchDuration < 300 && distMoved < 10) {
+            // Create a synthetic click event
             const clickEvent = {
                 clientX: this.selectionEnd.x + this.canvas.getBoundingClientRect().left,
                 clientY: this.selectionEnd.y + this.canvas.getBoundingClientRect().top
@@ -108,14 +119,19 @@ export default class InputHandler {
         this.processSelectionBox(); // selection box for drag
     }
     processSelectionBox() {
+        // Normalize selection box coordinates
         const left = Math.min(this.selectionStart.x, this.selectionEnd.x);
         const right = Math.max(this.selectionStart.x, this.selectionEnd.x);
         const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
         const bottom = Math.max(this.selectionStart.y, this.selectionEnd.y);
+        // Clear previous selection
         this.game.clearSelection();
+        // Get human player ID (player1 is the human player)
         const humanPlayerId = this.game.playersController.getHumanPlayers()[0].id;
-        for (const planet of this.game.planets) { // find all player planets within or touched by selection box
+        // Find all player planets within the selection box
+        for (const planet of this.game.planets) {
             if (planet.owner === humanPlayerId) {
+                // Check if planet is within or touched by the selection box
                 if (planet.x + planet.size >= left && 
                     planet.x - planet.size <= right && 
                     planet.y + planet.size >= top && 
@@ -131,41 +147,60 @@ export default class InputHandler {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        const clickedPlanet = this.game.planets.find(planet => planet.containsPoint(x, y)); // find clicked planet
-        if (!clickedPlanet) { // clicking on empty space clears selection
+        // Find clicked planet
+        const clickedPlanet = this.game.planets.find(planet => planet.containsPoint(x, y));
+        // If clicking on empty space, clear selection
+        if (!clickedPlanet) {
             this.game.clearSelection();
             return;
         }
+        // Get human player ID
         const humanPlayerId = this.game.playersController.getHumanPlayers()[0].id;
+        // Check for double-click on player's planet
         const now = Date.now();
-        if (clickedPlanet.owner === humanPlayerId && clickedPlanet === this.lastClickedPlanet && now - this.lastClickTime < this.doubleClickTimeThreshold) {
-            this.selectAllPlayerPlanets(humanPlayerId); // double-click detected on player planet, select all
-            this.lastClickedPlanet = null; // reset double-click tracking
+        if (clickedPlanet.owner === humanPlayerId && 
+            clickedPlanet === this.lastClickedPlanet && 
+            now - this.lastClickTime < this.doubleClickTimeThreshold) {
+            // Double-click detected on own planet - select all player's planets
+            this.selectAllPlayerPlanets(humanPlayerId);
+            // Reset double-click tracking
+            this.lastClickedPlanet = null;
             this.lastClickTime = 0;
             return;
         }
-        this.lastClickedPlanet = clickedPlanet; // update double-click tracking
+        // Update double-click tracking
+        this.lastClickedPlanet = clickedPlanet;
         this.lastClickTime = now;
-        if (this.game.selectedPlanets.length > 0 && !this.game.selectedPlanets.includes(clickedPlanet)) { // if we have planets selected and click on a different planet
-            if (this.game.selectedPlanets.every(planet => planet.owner === humanPlayerId)) { // send troops from all selected planets
-                const troopPercentage = this.footerManager.getValue() / 100;
-                for (const sourcePlanet of this.game.selectedPlanets) { // calculate troops to send based on slider
+        // If we have planets selected and click on a different planet
+        if (this.game.selectedPlanets.length > 0 && !this.game.selectedPlanets.includes(clickedPlanet)) {
+            if (this.game.selectedPlanets.every(planet => planet.owner === humanPlayerId)) {
+                // Get the troop percentage from the footer slider
+                const troopPercentage = this.footerManager.getTroopPercentage() / 100;
+                for (const sourcePlanet of this.game.selectedPlanets) {
+                    // Calculate troops to send based on the slider percentage
                     const troopsToSend = Math.floor(sourcePlanet.troops * troopPercentage);
                     if (troopsToSend > 0) {
                         this.game.sendTroops(sourcePlanet, clickedPlanet, troopsToSend);
                     }
                 }
+                // Clear selection after sending troops
                 this.game.clearSelection();
             }
         } 
-        else if (clickedPlanet.owner === humanPlayerId) { // clicking on a player's planet selects it
+        // If clicking on a player's planet, select it
+        else if (clickedPlanet.owner === humanPlayerId) {
             this.game.clearSelection();
             clickedPlanet.selected = true;
             this.game.selectedPlanets = [clickedPlanet];
         }
     }
+    
+    // New method to select all player's planets
     selectAllPlayerPlanets(playerId) {
+        // Clear current selection
         this.game.clearSelection();
+        
+        // Select all planets owned by the player
         for (const planet of this.game.planets) {
             if (planet.owner === playerId) {
                 planet.selected = true;
@@ -173,8 +208,11 @@ export default class InputHandler {
             }
         }
     }
-    getSelectionBox() { // getter for selection state
+
+    // Getter for selection state
+    getSelectionBox() {
         if (!this.isSelecting) return null;
+        
         return {
             left: Math.min(this.selectionStart.x, this.selectionEnd.x),
             top: Math.min(this.selectionStart.y, this.selectionEnd.y),
