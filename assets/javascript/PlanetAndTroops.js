@@ -6,8 +6,11 @@ class Planet {
         this.troops = troops;
         this.owner = owner;
         this.game = game;
-        this.productionRate = size / 20; // Larger planets produce more troops
-        this.selected = false; // Track selection state directly on the planet
+        this.productionRate = size / 20;
+        this.selected = false;
+        // ** NEW: Properties to track incoming troops for glow effect **
+        this.incomingAttackGlow = 0;
+        this.incomingReinforcementGlow = 0;
     }
 
     // Check if a point is inside this planet
@@ -19,6 +22,26 @@ class Planet {
 
     // Update planet state
     update(dt) {
+        // ** NEW: Calculate incoming troop totals for glows **
+        // Reset each frame before recalculating
+        this.incomingAttackGlow = 0;
+        this.incomingReinforcementGlow = 0;
+
+        for (const movement of this.game.troopMovements) {
+            // Check if this planet is the destination
+            if (movement.to === this) {
+                // If the owner is different and not neutral, it's an attack
+                if (movement.owner !== this.owner && movement.owner !== 'neutral') {
+                    this.incomingAttackGlow += movement.amount;
+                } 
+                // If the owner is the same, it's a reinforcement
+                else if (movement.owner === this.owner) {
+                    this.incomingReinforcementGlow += movement.amount;
+                }
+            }
+        }
+
+        // Original troop production logic
         if (this.owner !== 'neutral') {
             this.troops = Math.min(999, this.troops + this.productionRate * dt);
         }
@@ -26,7 +49,43 @@ class Planet {
 
     // Draw the planet
     draw(ctx) {
-        // Draw planet circle
+        // --- Glow Rendering Logic ---
+        // We use shadows to create an efficient and nice-looking glow effect.
+        const originalShadowBlur = ctx.shadowBlur;
+        const originalShadowColor = ctx.shadowColor;
+
+        // Draw Attack Glow (fiery red/orange)
+        if (this.incomingAttackGlow > 0) {
+            // Scale glow intensity with troop count, with a max cap for visual clarity
+            const glowIntensity = Math.min(35, 10 + Math.sqrt(this.incomingAttackGlow) * 2);
+            ctx.shadowBlur = glowIntensity;
+            ctx.shadowColor = 'rgba(255, 60, 0, 0.9)';
+            
+            // Draw a temporary circle path to apply the shadow to
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.stroke(); // The stroke itself will be mostly invisible, but it casts the shadow
+        }
+
+        // Draw Reinforcement Glow (calm blue)
+        if (this.incomingReinforcementGlow > 0) {
+            const glowIntensity = Math.min(35, 10 + Math.sqrt(this.incomingReinforcementGlow) * 2);
+            ctx.shadowBlur = glowIntensity;
+            ctx.shadowColor = 'rgba(0, 150, 255, 0.9)';
+
+            // Draw a temporary circle path to apply the shadow to
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Restore original shadow settings so it doesn't affect other elements
+        ctx.shadowBlur = originalShadowBlur;
+        ctx.shadowColor = originalShadowColor;
+        // --- End Glow Rendering ---
+
+
+        // --- Original Planet Drawing ---
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         
@@ -104,36 +163,21 @@ class TroopMovement {
         
         // Determine which musical note to use based on troop count
         let noteSymbol;
-        if (this.amount < 10) {
-            noteSymbol = '♩'; // Quarter note for 1-9 troops
-        } else if (this.amount < 100) {
-            noteSymbol = '♪'; // Eighth note for 10-99 troops
-        } else {
-            noteSymbol = '♫'; // Beamed eighth notes for 100-999 troops
-        }
+        if (this.amount < 10) noteSymbol = '♩';
+        else if (this.amount < 100) noteSymbol = '♪';
+        else noteSymbol = '♫';
         
         // Calculate size scaling within each category
         let categoryMin, categoryMax;
-        if (this.amount < 10) {
-            categoryMin = 1;
-            categoryMax = 9;
-        } else if (this.amount < 100) {
-            categoryMin = 10;
-            categoryMax = 99;
-        } else {
-            categoryMin = 100;
-            categoryMax = 999;
-        }
+        if (this.amount < 10) { categoryMin = 1; categoryMax = 9; } 
+        else if (this.amount < 100) { categoryMin = 10; categoryMax = 99; } 
+        else { categoryMin = 100; categoryMax = 999; }
         
         // Normalized position within the category (0 to 1)
         // When amount equals categoryMin, this will be 0 - When amount equals categoryMax, this will be 1
         const categoryPosition = (this.amount - categoryMin) / (categoryMax - categoryMin);
-        
-        // Adjust these values to change the overall size
-        const minSize = 20;  // Minimum size (for troops of size 1, 10, 100)
-        const maxSize = 30;  // Maximum size (for troops of size 9, 99, 999)
-        
-        // Calculate font size
+        const minSize = 20;
+        const maxSize = 30;
         const fontSize = minSize + categoryPosition * (maxSize - minSize);
         
         // Draw the music note symbol
