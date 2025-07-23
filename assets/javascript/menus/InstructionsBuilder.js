@@ -5,10 +5,8 @@ class InstructionsBuilder extends MenuBuilderBase {
         super(container, screenManager, configManager);
         this.parentBuilder = parentBuilder;
     }
-    
     build() {
         const menuContainer = this.createMenuContainer();
-        
         // Instructions content
         const content = document.createElement('div');
         content.className = 'instructions-content';
@@ -35,13 +33,10 @@ class InstructionsBuilder extends MenuBuilderBase {
                 <p>Keep an eye on the top bar for live troop updates and time left in the game</p>
             </div>
         `;
-
         // Back button
         const backButton = this.getBackButton(() => this.parentBuilder.buildMainMenu());
-        
         menuContainer.appendChild(content);
         menuContainer.appendChild(backButton);
-        
         return menuContainer;
     }
 }

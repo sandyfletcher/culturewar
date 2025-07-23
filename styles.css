@@ -420,19 +420,6 @@ header h1 {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
-/* NEW MENUS - add multiplayer too */
-.campaign-content, .settings-content {
-    padding: 1rem;
-    color: white;
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: left;
-}
-.campaign-content h2, .settings-content h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #ffff00;
-}
 /* GAME SCREEN */
 #game-screen {
     position: absolute;
