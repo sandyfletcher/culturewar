@@ -24,6 +24,8 @@ class GameConfigManager {
 
             { value: 'ZoeSpuckler', name: 'ZoeSpuckler' },
             { value: 'ChloeSpuckler', name: 'ChloeSpuckler' },
+
+            { value: 'MorganSpuckler', name: 'MorganSpuckler' },
         ];
         
         this.playerColors = {

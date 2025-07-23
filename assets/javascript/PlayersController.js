@@ -11,6 +11,7 @@ import RumerSpuckler from './bots/RumerSpuckler.js';
 import ScoutSpuckler from './bots/ScoutSpuckler.js';
 import ZoeSpuckler from './bots/ZoeSpuckler.js';
 import ChloeSpuckler from './bots/ChloeSpuckler.js';
+import MorganSpuckler from './bots/MorganSpuckler.js';
 import GameAPI from './GameAPI.js';
 
 
@@ -51,7 +52,8 @@ export default class PlayersController {
             RumerSpuckler,
             ScoutSpuckler,
             ZoeSpuckler,
-            ChloeSpuckler
+            ChloeSpuckler,
+            MorganSpuckler
         ];
     
         aiClasses.forEach(AIClass => {
