@@ -141,28 +141,21 @@ class Game {
             }
         }
     }
-    // Battle / reinforcement math
     processTroopArrival(movement) {
         const targetPlanet = movement.to;
-        if (targetPlanet.owner === movement.owner) {
-            // Reinforcing owned planet
+        if (targetPlanet.owner === movement.owner) { // reinforcing
             targetPlanet.troops += movement.amount;
-        } else {
-            // Attacking enemy planet
+        } else { // attacking
             const previousTroops = targetPlanet.troops;
             targetPlanet.troops -= movement.amount;
-            // Calculate troops lost (from both sides)
-            const defenderLosses = Math.min(previousTroops, movement.amount);
+            const defenderLosses = Math.min(previousTroops, movement.amount); // calculate troops lost (both sides)
             const attackerLosses = targetPlanet.troops < 0 ? 0 : movement.amount;
-            // Track troops lost for statistics
-            this.gameState.incrementTroopsLost(defenderLosses);
+            this.gameState.incrementTroopsLost(defenderLosses); // track losses for statistics
             this.gameState.incrementTroopsLost(attackerLosses);
-            // Capture planet if troops < 0
-            if (targetPlanet.troops < 0) {
+            if (targetPlanet.troops < 0) { // capture planet if troops < 0
                 targetPlanet.owner = movement.owner;
                 targetPlanet.troops = Math.abs(targetPlanet.troops);
-                // Update game state for statistics
-                this.gameState.incrementPlanetsConquered();
+                this.gameState.incrementPlanetsConquered(); // update game state for statistics
             }
         }
     }

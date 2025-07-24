@@ -8,97 +8,69 @@ class Planet {
         this.game = game;
         this.productionRate = size / 20;
         this.selected = false;
-        // ** NEW: Properties to track incoming troops for glow effect **
         this.incomingAttackGlow = 0;
         this.incomingReinforcementGlow = 0;
     }
-
-    // Check if a point is inside this planet
-    containsPoint(x, y) {
+    containsPoint(x, y) { // check if a point is inside this planet
         const dx = x - this.x;
         const dy = y - this.y;
         return Math.sqrt(dx * dx + dy * dy) < this.size;
     }
-
-    // Update planet state
-    update(dt) {
-        // ** NEW: Calculate incoming troop totals for glows **
-        // Reset each frame before recalculating
+    update(dt) { // Update planet state, calculate incoming troop totals for glows, reset each frame before recalculating
         this.incomingAttackGlow = 0;
         this.incomingReinforcementGlow = 0;
-
         for (const movement of this.game.troopMovements) {
-            // Check if this planet is the destination
-            if (movement.to === this) {
-                // If the owner is different and not neutral, it's an attack
-                if (movement.owner !== this.owner && movement.owner !== 'neutral') {
+            if (movement.to === this) { // Check if this planet is the destination
+                if (movement.owner !== this.owner && movement.owner !== 'neutral') { // If the owner is different and not neutral, it's an attack
                     this.incomingAttackGlow += movement.amount;
                 } 
-                // If the owner is the same, it's a reinforcement
-                else if (movement.owner === this.owner) {
+                else if (movement.owner === this.owner) { // If the owner is the same, it's a reinforcement
                     this.incomingReinforcementGlow += movement.amount;
                 }
             }
         }
-
-        // Original troop production logic
-        if (this.owner !== 'neutral') {
+        if (this.owner !== 'neutral') { // Original troop production logic
             this.troops = Math.min(999, this.troops + this.productionRate * dt);
         }
     }
-
-    // Draw the planet
-    draw(ctx) {
-        // --- Glow Rendering Logic ---
-        // We use shadows to create an efficient and nice-looking glow effect.
-        const originalShadowBlur = ctx.shadowBlur;
+    draw(ctx) { // Draw planet
+        const originalShadowBlur = ctx.shadowBlur; // Glow Rendering Logic uses shadows to create an efficient and nice-looking glow effect
         const originalShadowColor = ctx.shadowColor;
-
-        // Draw Attack Glow (fiery red/orange)
-        if (this.incomingAttackGlow > 0) {
+        if (this.incomingAttackGlow > 0) { // Draw Attack Glow (fiery red/orange)
             // Scale glow intensity with troop count, with a max cap for visual clarity
             const glowIntensity = Math.min(35, 10 + Math.sqrt(this.incomingAttackGlow) * 2);
             ctx.shadowBlur = glowIntensity;
             ctx.shadowColor = 'rgba(255, 60, 0, 0.9)';
-            
             // Draw a temporary circle path to apply the shadow to
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
             ctx.stroke(); // The stroke itself will be mostly invisible, but it casts the shadow
         }
-
         // Draw Reinforcement Glow (calm blue)
         if (this.incomingReinforcementGlow > 0) {
             const glowIntensity = Math.min(35, 10 + Math.sqrt(this.incomingReinforcementGlow) * 2);
             ctx.shadowBlur = glowIntensity;
             ctx.shadowColor = 'rgba(0, 150, 255, 0.9)';
-
             // Draw a temporary circle path to apply the shadow to
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
             ctx.stroke();
         }
-
         // Restore original shadow settings so it doesn't affect other elements
         ctx.shadowBlur = originalShadowBlur;
         ctx.shadowColor = originalShadowColor;
         // --- End Glow Rendering ---
-
-
         // --- Original Planet Drawing ---
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        
         // Set color based on owner
         if (this.owner === 'neutral') {
             ctx.strokeStyle = '#ffffff'; // White for neutral
         } else {
             ctx.strokeStyle = this.game.playersController.getPlayerColor(this.owner);
         }
-        
         ctx.lineWidth = 2;
         ctx.stroke();
-
         // Draw selection highlight if selected
         if (this.selected) {
             ctx.beginPath();
@@ -106,7 +78,6 @@ class Planet {
             ctx.strokeStyle = '#ffffff';
             ctx.stroke();
         }
-
         // Draw troop count
         ctx.fillStyle = '#ffffff';
         ctx.font = '14px Courier New';
@@ -132,7 +103,6 @@ class TroopMovement {
         this.speed = 150; // pixels per second
         this.duration = this.distance / this.speed; // seconds to reach target
     }
-
     update(dt) {
         this.progress += dt / this.duration;
         return this.progress >= 1;

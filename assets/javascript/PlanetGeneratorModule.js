@@ -1,4 +1,4 @@
-// (PlanetGeneration.js):
+// root/assets/javascript/PlanetGeneratorModule.js
 
 import { Planet } from './PlanetAndTroops.js';
 
@@ -6,9 +6,7 @@ export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
         this.canvas = game.canvas;
-        
-        // Default config:
-        this.config = {
+        this.config = { // default config
             // Distances between different types of planets
             PLAYER_TO_PLAYER_DISTANCE: 180,  // Players should be far from each other
             PLAYER_TO_NEUTRAL_DISTANCE: 60,  // Players can be closer to neutrals
@@ -23,9 +21,7 @@ export default class PlanetGeneration {
             MAX_SIZE_VARIATION: 20,
             STARTING_PLANET_SIZE: 30,
             STARTING_TROOPS: 30,
-            // New parameter for planet density (0.5 to 2.0)
-            // 1.0 is default, 0.5 is sparse, 2.0 is dense
-            PLANET_DENSITY: 1.0,
+            PLANET_DENSITY: 1.0, // 1.0 is default, 0.5 is sparse, 2.0 is dense
         };
     }
     
