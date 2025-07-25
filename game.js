@@ -82,23 +82,18 @@ class Game {
     // Game state updating
     update() {
         if (this.gameOver) return;
-
         const now = Date.now();
         let dt = (now - this.gameState.lastUpdate) / 1000;
         this.gameState.lastUpdate = now;
-
         let speedMultiplier = 1.0;
-
         if (this.botBattleMode && this.footerManager) {
             // Get the speed multiplier from the footer manager
             speedMultiplier = this.footerManager.getSpeedMultiplier();
             // Apply the multiplier to our delta time for game simulation
             dt *= speedMultiplier;
         }
-        
         // Update the timer, passing the multiplier to sync it with game speed
         this.timerManager.update(speedMultiplier);
-        
         // Update game state (win conditions) - pass the potentially scaled dt
         this.gameState.update(dt);
         
@@ -107,10 +102,8 @@ class Game {
         // Update planets and troop movements with the scaled dt
         this.updatePlanets(dt);
         this.updateTroopMovements(dt);
-        
         // Let AI make decisions
         this.playersController.updateAIPlayers(dt);
-        
         // Update troop tracker
         this.troopTracker.update();
     }
