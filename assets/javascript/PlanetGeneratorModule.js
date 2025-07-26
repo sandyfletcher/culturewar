@@ -1,4 +1,6 @@
+// ===========================================================
 // root/assets/javascript/PlanetGeneratorModule.js
+// ===========================================================
 
 import { Planet } from './PlanetAndTroops.js';
 
@@ -6,63 +8,42 @@ export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
         this.canvas = game.canvas;
-        this.config = {
-            // Player-planet generation is now handled by the grid system.
-            // These constants are now only used for neutral planet generation.
+        this.config = { // player planets are handled by grid system, these constants are for neutral planets
             PLAYER_TO_NEUTRAL_DISTANCE: 60,
             NEUTRAL_TO_NEUTRAL_DISTANCE: 40,
             NEUTRAL_BORDER_BUFFER: 10,
-            
-            MAX_ATTEMPTS: 150, // For placing neutral planets
+            MAX_ATTEMPTS: 150,
             NEUTRAL_COUNT: 8,
             MIN_SIZE: 15,
             MAX_SIZE_VARIATION: 20,
             STARTING_PLANET_SIZE: 30,
             STARTING_TROOPS: 30,
-            PLANET_DENSITY: 1.0, // Affects neutral planet count and spacing
+            PLANET_DENSITY: 1.0,
         };
     }
-
-    /**
-     * Main method to generate all planets for the game.
-     * Orchestrates player planet generation, then fills the map with neutrals.
-     */
     generatePlanets() {
         const planets = [];
         const allPlayers = this.game.playersController.players;
-
-        // 1. Generate starting planets for all players using the new grid system.
+        // 1. generate starting planets for all players using grid system
         const playerPlanets = this.generatePlayerPlanets(allPlayers);
         planets.push(...playerPlanets);
-
-        // 2. Add neutral planets to fill in the map around the player planets.
+        // 2. add neutral planets to fill in map around player planets
         const neutralPlanets = this.generateNeutralPlanets(planets);
         planets.push(...neutralPlanets);
-        
         return planets;
     }
-
-    /**
-     * Generates one starting planet for each player, ensuring fair and random distribution.
-     * This new method replaces the old quadrant and fallback systems.
-     * @param {Array} players - An array of all player objects in the game.
-     * @returns {Planet[]} An array of the generated player-owned planets.
-     */
     generatePlayerPlanets(players) {
         const playerPlanets = [];
         const playerCount = players.length;
         if (playerCount === 0) return [];
-
         const { width, height } = this.canvas;
         const planetSize = this.config.STARTING_PLANET_SIZE;
-
-        // --- Step 1: Calculate grid dimensions to divide the map into chunks ---
+        // 1. calculate grid dimensions to divide map into chunks
         const cols = Math.ceil(Math.sqrt(playerCount));
         const rows = Math.ceil(playerCount / cols);
         const cellWidth = width / cols;
         const cellHeight = height / rows;
-        
-        // --- Step 2: Create a list of all available grid chunks ---
+        // 2. create list of all available grid chunks
         let chunks = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -74,34 +55,23 @@ export default class PlanetGeneration {
                 });
             }
         }
-        
-        // --- Step 3: Randomly assign a unique chunk to each player ---
+        // 3. randomly assign a unique chunk to each player
         this._shuffleArray(chunks);
-
-        // --- Step 4: Iterate through players and place a planet within their assigned chunk ---
+        // 4. iterate through players and place a planet within their assigned chunk
         for (let i = 0; i < playerCount; i++) {
             const player = players[i];
-            const chunk = chunks[i]; // Get the pre-shuffled, unique chunk
-
-            // Calculate the valid placement area within the chunk to ensure the
-            // planet's perimeter does not extend beyond the chunk's boundaries.
-            const validPlacementWidth = chunk.width - (planetSize * 2);
+            const chunk = chunks[i]; // get pre-shuffled unique chunk
+            const validPlacementWidth = chunk.width - (planetSize * 2); // calculate valid placement area within chunk to ensure perimeter does not extend beyond boundaries
             const validPlacementHeight = chunk.height - (planetSize * 2);
-
             let pX, pY;
-
-            if (validPlacementWidth <= 0 || validPlacementHeight <= 0) {
-                // This is an edge case: the chunk is too small for the planet.
-                // Warn the user and place the planet directly in the center.
+            if (validPlacementWidth <= 0 || validPlacementHeight <= 0) { // edge case: chunk is too small for planet, warn user and place planet directly in center
                 console.warn(`Planet generation: Chunk is too small for planet size. Placing at center.`);
                 pX = chunk.x + chunk.width / 2;
                 pY = chunk.y + chunk.height / 2;
-            } else {
-                // Place the planet randomly within the valid area.
+            } else { // place planet randomly within valid area
                 pX = chunk.x + planetSize + (Math.random() * validPlacementWidth);
                 pY = chunk.y + planetSize + (Math.random() * validPlacementHeight);
             }
-            
             const playerPlanet = new Planet(
                 pX, pY,
                 planetSize,
@@ -111,56 +81,37 @@ export default class PlanetGeneration {
             );
             playerPlanets.push(playerPlanet);
         }
-
         return playerPlanets;
     }
-
-    /**
-     * Fisher-Yates shuffle algorithm to randomize an array in place.
-     * Used to ensure random chunk assignment for players.
-     * @param {Array} array - The array to be shuffled.
-     */
-    _shuffleArray(array) {
+    _shuffleArray(array) { // Fisher-Yates shuffle algorithm randomizes player array
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]]; // ES6 destructuring swap
         }
     }
-    
-    // =======================================================================
-    // == NEUTRAL PLANET GENERATION (Largely Unchanged)                     ==
-    // =======================================================================
-
     generateNeutralPlanets(existingPlanets = []) {
         const neutralPlanets = [];
         const neutralCount = this.calculateOptimalNeutralCount();
         const randomPlanetCount = Math.floor(neutralCount * 0.7);
         const clusterPlanetCount = neutralCount - randomPlanetCount;
-        
         this.generateRandomNeutralPlanets(randomPlanetCount, existingPlanets, neutralPlanets);
-        
         if (clusterPlanetCount >= 3) {
             this.generateClusteredNeutralPlanets(clusterPlanetCount, [...existingPlanets, ...neutralPlanets], neutralPlanets);
         } else {
             this.generateRandomNeutralPlanets(clusterPlanetCount, [...existingPlanets, ...neutralPlanets], neutralPlanets);
         }
-        
         return neutralPlanets;
     }
-    
     generateRandomNeutralPlanets(count, existingPlanets, targetArray) {
         for (let i = 0; i < count; i++) {
             let attempts = 0;
             let valid = false;
-            
             while (!valid && attempts < this.config.MAX_ATTEMPTS) {
                 const size = this.config.MIN_SIZE + Math.random() * this.config.MAX_SIZE_VARIATION;
                 const buffer = size + this.config.NEUTRAL_BORDER_BUFFER;
                 const x = buffer + Math.random() * (this.canvas.width - buffer * 2);
                 const y = buffer + Math.random() * (this.canvas.height - buffer * 2);
-                
                 valid = this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray]);
-                
                 if (valid) {
                     const startingTroops = Math.floor(size / 3);
                     targetArray.push(new Planet(x, y, size, startingTroops, 'neutral', this.game));
@@ -170,15 +121,12 @@ export default class PlanetGeneration {
             }
         }
     }
-    
     generateClusteredNeutralPlanets(count, existingPlanets, targetArray) {
         const { width, height } = this.canvas;
         let clusterX = 0, clusterY = 0, validCluster = false, attempts = 0;
-        
         while (!validCluster && attempts < this.config.MAX_ATTEMPTS) {
             clusterX = width * 0.2 + Math.random() * width * 0.6;
             clusterY = height * 0.2 + Math.random() * height * 0.6;
-            
             let minDistance = Number.MAX_VALUE;
             for (const planet of existingPlanets) {
                 const dx = clusterX - planet.x;
@@ -187,18 +135,14 @@ export default class PlanetGeneration {
                 const minRequiredDistance = this.getRequiredDistanceFromPlanet(planet, true);
                 minDistance = Math.min(minDistance, distance - minRequiredDistance);
             }
-            
             validCluster = minDistance > 0;
             attempts++;
         }
-        
         if (!validCluster) {
             this.generateRandomNeutralPlanets(count, existingPlanets, targetArray);
             return;
         }
-        
         const clusterRadius = this.config.NEUTRAL_TO_NEUTRAL_DISTANCE * 0.8;
-        
         for (let i = 0; i < count; i++) {
             let placed = false;
             for (let j = 0; j < this.config.MAX_ATTEMPTS; j++) {
@@ -207,7 +151,6 @@ export default class PlanetGeneration {
                 const size = this.config.MIN_SIZE + Math.random() * (this.config.MAX_SIZE_VARIATION * 0.7);
                 const x = clusterX + Math.cos(angle) * distance;
                 const y = clusterY + Math.sin(angle) * distance;
-                
                 if (this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray])) {
                     const startingTroops = Math.floor(size / 2) + 5;
                     targetArray.push(new Planet(x, y, size, startingTroops, 'neutral', this.game));
@@ -220,7 +163,6 @@ export default class PlanetGeneration {
             }
         }
     }
-    
     calculateOptimalNeutralCount() {
         const mapArea = this.canvas.width * this.canvas.height;
         const playerCount = this.game.playerCount;
@@ -231,7 +173,6 @@ export default class PlanetGeneration {
         const randomVariation = Math.floor(Math.random() * 3) - 1;
         return Math.max(3, Math.floor(baseCount * areaFactor * playerFactor * densityFactor) + randomVariation);
     }
-    
     isValidNeutralPosition(x, y, size, existingPlanets) {
         for (const planet of existingPlanets) {
             const dx = x - planet.x;
@@ -242,20 +183,16 @@ export default class PlanetGeneration {
                 return false;
             }
         }
-        
         const borderBuffer = this.config.NEUTRAL_BORDER_BUFFER;
         if (x - size - borderBuffer < 0 || x + size + borderBuffer > this.canvas.width || 
             y - size - borderBuffer < 0 || y + size + borderBuffer > this.canvas.height) {
             return false;
         }
-        
         return true;
     }
-    
     getRequiredDistanceFromPlanet(planet, isCluster) {
         const isPlayerPlanet = planet.owner !== 'neutral';
         const densityFactor = 1 / Math.sqrt(this.config.PLANET_DENSITY);
-        
         if (isPlayerPlanet) {
             return this.config.PLAYER_TO_NEUTRAL_DISTANCE * densityFactor;
         } else {
@@ -264,7 +201,6 @@ export default class PlanetGeneration {
                 this.config.NEUTRAL_TO_NEUTRAL_DISTANCE) * densityFactor;
         }
     }
-    
     setPlanetDensity(density) {
         this.config.PLANET_DENSITY = Math.max(0.5, Math.min(2.0, density));
     }
