@@ -9,6 +9,8 @@ export default class PlanetGeneration {
         this.game = game;
         this.canvas = game.canvas;
         this.config = { // player planets are handled by grid system, these constants are for neutral planets
+            STARTING_PLANET_SIZE: 30,
+            STARTING_TROOPS: 30,
             PLAYER_TO_NEUTRAL_DISTANCE: 60,
             NEUTRAL_TO_NEUTRAL_DISTANCE: 40,
             NEUTRAL_BORDER_BUFFER: 10,
@@ -16,19 +18,15 @@ export default class PlanetGeneration {
             NEUTRAL_COUNT: 8,
             MIN_SIZE: 15,
             MAX_SIZE_VARIATION: 20,
-            STARTING_PLANET_SIZE: 30,
-            STARTING_TROOPS: 30,
             PLANET_DENSITY: 1.0,
         };
     }
     generatePlanets() {
         const planets = [];
         const allPlayers = this.game.playersController.players;
-        // 1. generate starting planets for all players using grid system
-        const playerPlanets = this.generatePlayerPlanets(allPlayers);
+        const playerPlanets = this.generatePlayerPlanets(allPlayers); // 1. generate starting planets for all players using grid system
         planets.push(...playerPlanets);
-        // 2. add neutral planets to fill in map around player planets
-        const neutralPlanets = this.generateNeutralPlanets(planets);
+        const neutralPlanets = this.generateNeutralPlanets(planets); // 2. add neutral planets to fill in map around player planets
         planets.push(...neutralPlanets);
         return planets;
     }
@@ -38,13 +36,11 @@ export default class PlanetGeneration {
         if (playerCount === 0) return [];
         const { width, height } = this.canvas;
         const planetSize = this.config.STARTING_PLANET_SIZE;
-        // 1. calculate grid dimensions to divide map into chunks
-        const cols = Math.ceil(Math.sqrt(playerCount));
+        const cols = Math.ceil(Math.sqrt(playerCount)); // 1. calculate grid dimensions to divide map into chunks
         const rows = Math.ceil(playerCount / cols);
         const cellWidth = width / cols;
         const cellHeight = height / rows;
-        // 2. create list of all available grid chunks
-        let chunks = [];
+        let chunks = []; // 2. create list of all available grid chunks
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 chunks.push({
@@ -55,10 +51,8 @@ export default class PlanetGeneration {
                 });
             }
         }
-        // 3. randomly assign a unique chunk to each player
-        this._shuffleArray(chunks);
-        // 4. iterate through players and place a planet within their assigned chunk
-        for (let i = 0; i < playerCount; i++) {
+        this._shuffleArray(chunks); // 3. randomly assign a unique chunk to each player
+        for (let i = 0; i < playerCount; i++) { // 4. iterate through players and place a planet within their assigned chunk
             const player = players[i];
             const chunk = chunks[i]; // get pre-shuffled unique chunk
             const validPlacementWidth = chunk.width - (planetSize * 2); // calculate valid placement area within chunk to ensure perimeter does not extend beyond boundaries
