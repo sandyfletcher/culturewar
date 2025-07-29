@@ -4,25 +4,16 @@ export default class DylanSpuckler {
     constructor(game, playerId) {
         this.api = new GameAPI(game, playerId);
         this.gameStartTime = Date.now();
-        
-        // Decision timers (seconds)
-        this.decisionCooldown = 1.0;
+        this.decisionCooldown = 1.0; // Decision timers (seconds)
         this.minDecisionTime = 0.8;
         this.maxDecisionTime = 1.5;
-        
-        // Analysis cooldowns
-        this.threatAssessmentCooldown = 0.5;
+        this.threatAssessmentCooldown = 0.5; // Analysis cooldowns
         this.strategyUpdateCooldown = 3.0;
-        
-        // Strategy state
-        this.currentStrategy = 'balanced';
+        this.currentStrategy = 'balanced'; // Strategy state
         this.threats = [];
         this.gamePhase = 'early'; // early, mid, late
-        
-        // Memory of recent actions to prevent thrashing
-        this.recentTargets = new Map();
+        this.recentTargets = new Map(); // Memory of recent actions to prevent thrashing
         this.recentSources = new Map();
-        
         this.config = {
             reserveTroopPercentage: 0.3,
             minTroopsForAttack: 15,
@@ -35,40 +26,30 @@ export default class DylanSpuckler {
             targetMemoryTime: 5
         };
     }
-
     makeDecision() {
-        // Approximate time delta assuming 60fps
-        const dt = 1/60;
+        const dt = 1/60; // Approximate time delta assuming 60fps
         this.decisionCooldown -= dt;
         this.threatAssessmentCooldown -= dt;
         this.strategyUpdateCooldown -= dt;
-        
         this.cleanupRecentMemory();
         this.updateGamePhase();
-        
         if (this.threatAssessmentCooldown <= 0) {
             this.assessThreats();
             this.threatAssessmentCooldown = 0.5;
         }
-        
         if (this.strategyUpdateCooldown <= 0) {
             this.updateStrategy();
             this.strategyUpdateCooldown = 3.0;
         }
-        
         if (this.decisionCooldown > 0) return null;
-        
         this.decisionCooldown = this.minDecisionTime + Math.random() * (this.maxDecisionTime - this.minDecisionTime);
-        
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
-        
         let decision = this.makeDefensiveDecision(myPlanets);
         if (decision) {
              if (decision.troops > 0) this.recordAction(decision.from, decision.to);
              return decision;
         }
-        
         switch (this.currentStrategy) {
             case 'expansion':
                 decision = this.makeExpansionDecision(myPlanets);
@@ -77,8 +58,7 @@ export default class DylanSpuckler {
                 decision = this.makeAttackDecision(myPlanets);
                 if (!decision) decision = this.makeExpansionDecision(myPlanets);
                 break;
-            case 'defense':
-                // Defensive decision is already prioritized above the switch
+            case 'defense': // Defensive decision is already prioritized above the switch
                 decision = this.makeExpansionDecision(myPlanets); // Fallback to expansion
                 break;
             case 'balanced':
@@ -86,14 +66,10 @@ export default class DylanSpuckler {
                 decision = this.makeBalancedDecision(myPlanets);
                 break;
         }
-        
         if (!decision) decision = this.makeOpportunisticDecision(myPlanets);
-        
         if (decision && decision.troops > 0) this.recordAction(decision.from, decision.to);
-        
         return decision;
     }
-    
     cleanupRecentMemory() {
         const now = Date.now();
         const expirationTime = this.config.targetMemoryTime * 1000;
@@ -104,29 +80,24 @@ export default class DylanSpuckler {
             if (now - timestamp > expirationTime) this.recentSources.delete(id);
         }
     }
-    
     recordAction(source, target) {
         const now = Date.now();
         this.recentSources.set(`${source.x},${source.y}`, now);
         this.recentTargets.set(`${target.x},${target.y}`, now);
     }
-    
     wasRecentlyUsed(planet, asSource = true) {
         const id = `${planet.x},${planet.y}`;
         return asSource ? this.recentSources.has(id) : this.recentTargets.has(id);
     }
-
     updateGamePhase() {
         const gameTime = (Date.now() - this.gameStartTime) / 1000;
         const totalPlanets = this.api.getAllPlanets().length;
         const occupiedPlanets = totalPlanets - this.api.getNeutralPlanets().length;
         const occupationPercentage = occupiedPlanets / totalPlanets;
-        
         if (gameTime < 60 && occupationPercentage < 0.5) this.gamePhase = 'early';
         else if (gameTime < 180 || occupationPercentage < 0.8) this.gamePhase = 'mid';
         else this.gamePhase = 'late';
     }
-
     updateStrategy() {
         const myTroops = this.api.getMyTotalTroops();
         const opponentIds = this.api.getOpponentIds();
@@ -135,36 +106,28 @@ export default class DylanSpuckler {
             const enemyTroops = this.api.getPlayerTotalTroops(id);
             if (enemyTroops > strongestEnemyTroops) strongestEnemyTroops = enemyTroops;
         });
-
         let expansionValue = this.config.expansionWeight;
         let attackValue = this.config.attackWeight;
         let defenseValue = this.config.defenseWeight;
-
         if (this.gamePhase === 'early') expansionValue *= this.config.earlyGameExpansionBonus;
         else if (this.gamePhase === 'mid') attackValue *= this.config.midGameAttackBonus;
         else if (this.gamePhase === 'late') {
             attackValue *= this.config.lateGameAttackBonus;
             if (myTroops > strongestEnemyTroops * 1.5) attackValue *= 1.5;
         }
-
         if (this.threats.length > 0) defenseValue *= 1.5;
         if (this.api.getNeutralPlanets().length > 3) expansionValue *= 1.2;
-
-        // RESTORED: The 'balanced' strategy option was re-added.
         const strategies = [
             { name: 'expansion', value: expansionValue },
             { name: 'attack', value: attackValue },
             { name: 'defense', value: defenseValue },
             { name: 'balanced', value: (expansionValue + attackValue + defenseValue) / 3 }
         ];
-        
         this.currentStrategy = strategies.sort((a, b) => b.value - a.value)[0].name;
     }
-    
     assessThreats() {
         this.threats = [];
         const myPlanets = this.api.getMyPlanets();
-
         for (const myPlanet of myPlanets) {
             const incoming = this.api.getIncomingAttacks(myPlanet);
             if(incoming.length > 0) {
@@ -176,16 +139,11 @@ export default class DylanSpuckler {
         }
         this.threats.sort((a, b) => b.priority - a.priority);
     }
-
-    // RESTORED: The missing makeBalancedDecision method.
     makeBalancedDecision(myPlanets) {
         const possibleMoves = [];
-        
         for (const source of myPlanets) {
             if (source.troops < this.config.minTroopsForAttack || this.wasRecentlyUsed(source, true)) continue;
-
-            // Expansion targets
-            this.api.getNeutralPlanets().forEach(target => {
+            this.api.getNeutralPlanets().forEach(target => { // Expansion targets
                 if (this.wasRecentlyUsed(target, false)) return;
                 const troopsNeeded = Math.ceil(target.troops * 1.2);
                 if (source.troops > troopsNeeded + this.getReserveTroops(source)) {
@@ -193,9 +151,7 @@ export default class DylanSpuckler {
                     possibleMoves.push({ from: source, to: target, troops: troopsNeeded, score });
                 }
             });
-
-            // Attack targets
-            this.api.getEnemyPlanets().forEach(target => {
+            this.api.getEnemyPlanets().forEach(target => { // Attack targets
                 if (this.wasRecentlyUsed(target, false)) return;
                 const troopsNeeded = Math.ceil(this.api.estimateTroopsAtArrival(source, target) * 1.2);
                 if (source.troops > troopsNeeded + this.getReserveTroops(source)) {
@@ -203,9 +159,7 @@ export default class DylanSpuckler {
                     possibleMoves.push({ from: source, to: target, troops: troopsNeeded, score });
                 }
             });
-
-            // Reinforcement targets
-            myPlanets.forEach(target => {
+            myPlanets.forEach(target => { // Reinforcement targets
                 if (source === target || target.troops > source.troops * 0.7 || this.wasRecentlyUsed(target, false)) return;
                 const troopsToSend = Math.floor((source.troops - this.getReserveTroops(source)) * 0.6);
                 if (troopsToSend > 10) {
@@ -214,22 +168,17 @@ export default class DylanSpuckler {
                 }
             });
         }
-        
         if (possibleMoves.length > 0) {
             possibleMoves.sort((a, b) => b.score - a.score);
             return possibleMoves[0];
         }
         return null;
     }
-
-    // RESTORED: The crucial calculateMoveScore helper method.
     calculateMoveScore(source, target, moveType) {
         let score = 0;
         const distance = this.api.getDistance(source, target);
         const distanceFactor = 100 / (distance + 50);
-        
         score = this.api.calculatePlanetValue(target) * distanceFactor;
-
         switch (moveType) {
             case 'expansion':
                 score *= this.config.expansionWeight;
@@ -244,12 +193,9 @@ export default class DylanSpuckler {
                 score *= this.config.defenseWeight * (1 + this.api.calculateThreat(target) / (target.troops + 1));
                 break;
         }
-        
         if (this.api.calculateThreat(source) > source.troops * 0.5) score *= 0.7;
-        
         return score;
     }
-    
     makeDefensiveDecision(myPlanets) {
         if (this.threats.length === 0) return null;
         
@@ -269,11 +215,9 @@ export default class DylanSpuckler {
         }
         return null;
     }
-
     makeExpansionDecision(myPlanets) {
         const neutralPlanets = this.api.getNeutralPlanets();
         if (neutralPlanets.length === 0) return null;
-
         const neutralTargets = [];
         for (const neutral of neutralPlanets) {
             if (this.wasRecentlyUsed(neutral, false)) continue;
@@ -285,18 +229,14 @@ export default class DylanSpuckler {
                 neutralTargets.push({ planet: neutral, source, score, troopsNeeded: Math.ceil(neutral.troops * 1.2) });
             }
         }
-        
         if (neutralTargets.length === 0) return null;
-        
         neutralTargets.sort((a, b) => b.score - a.score);
         const bestTarget = neutralTargets[0];
         return { from: bestTarget.source, to: bestTarget.planet, troops: bestTarget.troopsNeeded };
     }
-
     makeAttackDecision(myPlanets) {
         const enemyPlanets = this.api.getEnemyPlanets();
         if (enemyPlanets.length === 0) return null;
-        
         const attackTargets = [];
         for (const enemy of enemyPlanets) {
             if (this.wasRecentlyUsed(enemy, false)) continue;
@@ -308,22 +248,17 @@ export default class DylanSpuckler {
                 attackTargets.push({ planet: enemy, source, score, troopsNeeded: Math.ceil(this.api.estimateTroopsAtArrival(source, enemy) * 1.5) });
             }
         }
-
         if (attackTargets.length === 0) return null;
-        
         attackTargets.sort((a, b) => b.score - a.score);
         const bestTarget = attackTargets[0];
         return { from: bestTarget.source, to: bestTarget.planet, troops: bestTarget.troopsNeeded };
     }
-    
     makeOpportunisticDecision(myPlanets) {
         const planetsWithExcess = myPlanets.filter(p => p.troops > 30 && !this.wasRecentlyUsed(p, true));
         if (planetsWithExcess.length === 0) return null;
-
         const sourcePlanet = planetsWithExcess.sort((a,b) => b.troops - a.troops)[0];
         const allTargets = this.api.getEnemyPlanets().concat(this.api.getNeutralPlanets()).filter(p => !this.wasRecentlyUsed(p, false));
         if (allTargets.length === 0) return null;
-
         const scoredTargets = allTargets.map(target => {
             const troopsNeeded = Math.ceil(target.troops * (target.owner === 'neutral' ? 1.2 : 1.5));
             if (sourcePlanet.troops <= troopsNeeded + this.getReserveTroops(sourcePlanet)) {
@@ -333,14 +268,11 @@ export default class DylanSpuckler {
             const score = this.api.calculatePlanetValue(target) / (distance + 1);
             return { target, score, troopsNeeded };
         }).filter(t => t.score > 0);
-
         if (scoredTargets.length === 0) return null;
-
         scoredTargets.sort((a, b) => b.score - a.score);
         const bestOption = scoredTargets[0];
         return { from: sourcePlanet, to: bestOption.target, troops: bestOption.troopsNeeded };
     }
-    
     getReserveTroops(planet) {
         const baseReserve = this.config.reserveTroopPercentage * planet.troops;
         const sizeBonus = planet.size * 0.5;

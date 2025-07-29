@@ -1,3 +1,7 @@
+// assets/javascript/GameConfigManager.js
+
+import botRegistry from './bots/index.js';
+
 class GameConfigManager {
     constructor() {
         this.gameConfig = {
@@ -8,25 +12,12 @@ class GameConfigManager {
             planetDensity: 1.0
         };
         
-        // AI Types reference data
-        this.aiOptions = [
-            { value: 'TiffanySpuckler', name: 'TiffanySpuckler' },
-            { value: 'HeatherSpuckler', name: 'HeatherSpuckler' },
-            { value: 'CodySpuckler', name: 'CodySpuckler' },
-            { value: 'DylanSpuckler', name: 'DylanSpuckler' },
-            { value: 'DermotSpuckler', name: 'DermotSpuckler' },
-            { value: 'JordanSpuckler', name: 'JordanSpuckler' },
-            { value: 'TaylorSpuckler', name: 'TaylorSpuckler' },
-            { value: 'BrittanySpuckler', name: 'BrittanySpuckler' },
-            { value: 'WesleySpuckler', name: 'WesleySpuckler' },
-            { value: 'RumerSpuckler', name: 'RumerSpuckler' },
-            { value: 'ScoutSpuckler', name: 'ScoutSpuckler' },
-
-            { value: 'ZoeSpuckler', name: 'ZoeSpuckler' },
-            { value: 'ChloeSpuckler', name: 'ChloeSpuckler' },
-
-            { value: 'MorganSpuckler', name: 'MorganSpuckler' },
-        ];
+        // We only need the 'name' and 'value' for the UI dropdowns.
+        // The .map() function creates a new array with just the data we need.
+        this.aiOptions = botRegistry.map(bot => ({
+            value: bot.value,
+            name: bot.name
+        }));
         
         this.playerColors = {
             'player1': '#ffff00', // Yellow
