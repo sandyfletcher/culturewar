@@ -1,11 +1,11 @@
-import { Planet, TroopMovement } from './assets/javascript/PlanetAndTroops.js';
-import InputHandler from './assets/javascript/InputHandlerModule.js';
-import Renderer from './assets/javascript/RendererModule.js';
-import GameState from './assets/javascript/GameStateCheck.js';
-import PlayersController from './assets/javascript/PlayersController.js';
-import PlanetGeneration from './assets/javascript/PlanetGeneratorModule.js';
-import TroopTracker from './assets/javascript/TroopTracker.js';
-import TimerManager from './assets/javascript/TimerManager.js';
+import { Planet, TroopMovement } from './javascript/PlanetAndTroops.js';
+import InputHandler from './javascript/InputHandlerModule.js';
+import Renderer from './javascript/RendererModule.js';
+import GameState from './javascript/GameStateCheck.js';
+import PlayersController from './javascript/PlayersController.js';
+import PlanetGeneration from './javascript/PlanetGeneratorModule.js';
+import TroopTracker from './javascript/TroopTracker.js';
+import TimerManager from './javascript/TimerManager.js';
 
 class Game {
     constructor(playerCount = 2, aiTypes = [], botBattleMode = false, footerManager = null) {

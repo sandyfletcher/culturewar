@@ -6,6 +6,7 @@ export default class FooterManager {
         this.value = 50; // Internal representation (1-100)
         this.mode = 'troop'; // 'troop' or 'speed'
     }
+// ===========================================================
 
     /**
      * Replaces the default footer with the interactive slider.
