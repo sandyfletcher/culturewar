@@ -3,11 +3,10 @@ import GameConfigManager from './GameConfigManager.js';
 import MenuBuilder from './MenuBuilder.js';
 import GameOverScreen from './GameOverScreen.js';
 import FooterManager from './FooterManager.js';
-import Game from '../../../game.js';
+import Game from '../game.js';
 
 class MenuManager {
     constructor() {
-        // Initialize components
         this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
         this.footerManager = new FooterManager();
@@ -16,25 +15,14 @@ class MenuManager {
             this.screenManager,
             this.configManager
         );
-        
-        // Make MenuManager globally accessible for GameState
         window.menuManager = this;
-        
-        // Game instance reference
         this.game = null;
-        
-        // Initialize game over screen
         this.gameOverScreen = new GameOverScreen(document.getElementById('inner-container'));
-        
-        // Build initial menu
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
-    
-    // Switch between screens (menu, game, game-over)
     switchToScreen(screenName) {
         this.screenManager.switchToScreen(screenName);
-        
         // Additional screen-specific logic
         if (screenName === 'game') {
             // Show troop tracker when switching to game
