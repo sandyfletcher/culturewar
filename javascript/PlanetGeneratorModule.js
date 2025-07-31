@@ -3,13 +3,12 @@
 // ===========================================================
 
 import { Planet } from './PlanetAndTroops.js';
-import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+import { config } from './config.js';
 
 export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
         this.canvas = game.canvas;
-        // Use the centralized config directly
         this.config = {
             STARTING_PLANET_SIZE: config.planetGeneration.startingPlanetSize,
             STARTING_TROOPS: config.planetGeneration.startingPlanetTroops,
@@ -26,9 +25,9 @@ export default class PlanetGeneration {
     generatePlanets() {
         const planets = [];
         const allPlayers = this.game.playersController.players;
-        const playerPlanets = this.generatePlayerPlanets(allPlayers); // 1. generate starting planets for all players using grid system
+        const playerPlanets = this.generatePlayerPlanets(allPlayers);
         planets.push(...playerPlanets);
-        const neutralPlanets = this.generateNeutralPlanets(planets); // 2. add neutral planets to fill in map around player planets
+        const neutralPlanets = this.generateNeutralPlanets(planets);
         planets.push(...neutralPlanets);
         return planets;
     }
@@ -38,11 +37,11 @@ export default class PlanetGeneration {
         if (playerCount === 0) return [];
         const { width, height } = this.canvas;
         const planetSize = this.config.STARTING_PLANET_SIZE;
-        const cols = Math.ceil(Math.sqrt(playerCount)); // 1. calculate grid dimensions to divide map into chunks
+        const cols = Math.ceil(Math.sqrt(playerCount));
         const rows = Math.ceil(playerCount / cols);
         const cellWidth = width / cols;
         const cellHeight = height / rows;
-        let chunks = []; // 2. create list of all available grid chunks
+        let chunks = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 chunks.push({
@@ -53,18 +52,18 @@ export default class PlanetGeneration {
                 });
             }
         }
-        this._shuffleArray(chunks); // 3. randomly assign a unique chunk to each player
-        for (let i = 0; i < playerCount; i++) { // 4. iterate through players and place a planet within their assigned chunk
+        this._shuffleArray(chunks);
+        for (let i = 0; i < playerCount; i++) {
             const player = players[i];
-            const chunk = chunks[i]; // get pre-shuffled unique chunk
-            const validPlacementWidth = chunk.width - (planetSize * 2); // calculate valid placement area within chunk to ensure perimeter does not extend beyond boundaries
+            const chunk = chunks[i];
+            const validPlacementWidth = chunk.width - (planetSize * 2);
             const validPlacementHeight = chunk.height - (planetSize * 2);
             let pX, pY;
-            if (validPlacementWidth <= 0 || validPlacementHeight <= 0) { // edge case: chunk is too small for planet, warn user and place planet directly in center
+            if (validPlacementWidth <= 0 || validPlacementHeight <= 0) {
                 console.warn(`Planet generation: Chunk is too small for planet size. Placing at center.`);
                 pX = chunk.x + chunk.width / 2;
                 pY = chunk.y + chunk.height / 2;
-            } else { // place planet randomly within valid area
+            } else {
                 pX = chunk.x + planetSize + (Math.random() * validPlacementWidth);
                 pY = chunk.y + planetSize + (Math.random() * validPlacementHeight);
             }
@@ -79,10 +78,10 @@ export default class PlanetGeneration {
         }
         return playerPlanets;
     }
-    _shuffleArray(array) { // Fisher-Yates shuffle algorithm randomizes player array
+    _shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]]; // ES6 destructuring swap
+            [array[i], array[j]] = [array[j], array[i]];
         }
     }
     generateNeutralPlanets(existingPlanets = []) {
@@ -161,7 +160,8 @@ export default class PlanetGeneration {
     }
     calculateOptimalNeutralCount() {
         const mapArea = this.canvas.width * this.canvas.height;
-        const playerCount = this.game.playerCount;
+        // MODIFIED: Get player count directly from the game's config.
+        const playerCount = this.game.config.players.length;
         const baseCount = this.config.NEUTRAL_COUNT;
         const areaFactor = Math.sqrt(mapArea) / 500;
         const playerFactor = Math.sqrt(playerCount);
@@ -198,7 +198,6 @@ export default class PlanetGeneration {
         }
     }
     setPlanetDensity(density) {
-        // Use min/max from the central config file
         this.config.PLANET_DENSITY = Math.max(
             config.planetGeneration.density.min,
             Math.min(config.planetGeneration.density.max, density)

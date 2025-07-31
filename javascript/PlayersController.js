@@ -1,17 +1,16 @@
 // assets/javascript/PlayersController.js
 
 import botRegistry from './bots/index.js';
-import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+import { config } from './config.js';
 
 export default class PlayersController {
-    constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
+    // MODIFIED: Constructor now accepts a single config object.
+    constructor(game, gameConfig) {
         this.game = game;
+        this.config = gameConfig; // Store the config.
         this.players = [];
-        this.playerCount = playerCount;
-        this.aiTypes = aiTypes;
-        this.botBattleMode = botBattleMode;
         this.aiControllers = {};
-        // Get player colors and default AI from the config file
+        
         this.playerColors = config.player.colors;
         this.defaultAIName = config.player.defaultAIValue;
 
@@ -21,59 +20,43 @@ export default class PlayersController {
         this.initializePlayers();
         this.initializeAIControllers();
     }
+    
+    // MODIFIED: This is much simpler now. It just reads from the config.
     initializePlayers() {
-        this.players = []; // clear any existing players
-        if (this.botBattleMode) {
-            for (let i = 0; i < this.playerCount; i++) { // create AI players
-                const playerId = `player${i + 1}`;
-                const aiType = this.aiTypes[i] || this.defaultAIName; // Use default from config
-                this.players.push({
-                    id: playerId,
-                    color: this.playerColors[playerId],
-                    isAI: true,
-                    aiController: aiType
-                });
-            }
-        } else {
-            this.players.push({ // create human player
-                id: 'player1',
-                color: this.playerColors['player1'],
-                isAI: false,
-                aiController: null
+        this.players = [];
+        
+        // Loop through the player definitions in the game config.
+        for (const playerConfig of this.config.players) {
+            this.players.push({
+                id: playerConfig.id,
+                color: this.playerColors[playerConfig.id],
+                isAI: playerConfig.type === 'bot',
+                aiController: playerConfig.aiController || null
             });
-            for (let i = 0; i < this.playerCount - 1; i++) { // create AI players with selected AI types
-                const playerId = `player${i + 2}`;
-                const aiType = this.aiTypes[i] || this.defaultAIName; // Use default from config
-                this.players.push({
-                    id: playerId,
-                    color: this.playerColors[playerId],
-                    isAI: true,
-                    aiController: aiType
-                });
-            }
         }
     }
+
     initializeAIControllers() {
-        this.aiControllers = {}; // clear existing controllers
-        const aiPlayers = this.getAIPlayers(); // Create AI controllers for each AI player
+        this.aiControllers = {};
+        const aiPlayers = this.getAIPlayers();
         for (const player of aiPlayers) {
-            const AIClass = this.availableAITypes.get(player.aiController) || this.availableAITypes.get(this.defaultAIName); // Fallback
-            if (AIClass) { // Get the AI class directly from our Ma
-                this.aiControllers[player.id] = new AIClass(this.game, player.id); // The AI now receives the game and its own ID to instantiate the API
+            const AIClass = this.availableAITypes.get(player.aiController) || this.availableAITypes.get(this.defaultAIName);
+            if (AIClass) {
+                this.aiControllers[player.id] = new AIClass(this.game, player.id);
             } else {
                 console.error(`AI type "${player.aiController}" not found in registry!`);
             }
         }
     }
     updateAIPlayers(dt) {
-        for (const playerId in this.aiControllers) { // Let each AI make decisions
-            if (!this.hasPlayerPlanets(playerId) && !this.hasPlayerTroopsInMovement(playerId)) { // Skip if player is eliminated
+        for (const playerId in this.aiControllers) {
+            if (!this.hasPlayerPlanets(playerId) && !this.hasPlayerTroopsInMovement(playerId)) {
                 continue;
             }
             const aiController = this.aiControllers[playerId];
             const aiDecision = aiController.makeDecision();
             if (aiDecision) {
-                this.game.sendTroops( // Execute the AI's decision by sending troops
+                this.game.sendTroops(
                     aiDecision.from,
                     aiDecision.to,
                     aiDecision.troops
@@ -81,13 +64,14 @@ export default class PlayersController {
             }
         }
     }
-    getPlayerById(playerId) { // Player information methods
+    getPlayerById(playerId) {
         return this.players.find(player => player.id === playerId);
     }
 
     getPlayerColor(playerId) {
         return this.playerColors[playerId] || this.playerColors['neutral'];
     }
+    // MODIFIED: getHumanPlayers now just reads from the initialized players list.
     getHumanPlayers() {
         return this.players.filter(player => !player.isAI);
     }
@@ -104,17 +88,17 @@ export default class PlayersController {
         const nextIndex = (currentIndex + 1) % this.players.length;
         return this.players[nextIndex].id;
     }
-    hasPlayerPlanets(playerId) { // win conditions
+    hasPlayerPlanets(playerId) {
         return this.game.planets.some(planet => planet.owner === playerId);
     }
     hasPlayerTroopsInMovement(playerId) {
         return this.game.troopMovements.some(movement => movement.owner === playerId);
     }
     calculateTotalTroops(playerId) {
-        const planetTroops = this.game.planets // Sum troops from planets
+        const planetTroops = this.game.planets
             .filter(planet => planet.owner === playerId)
             .reduce((total, planet) => total + planet.troops, 0);
-        const movementTroops = this.game.troopMovements // Sum troops from movements
+        const movementTroops = this.game.troopMovements
             .filter(movement => movement.owner === playerId)
             .reduce((total, movement) => total + movement.amount, 0);
         return planetTroops + movementTroops;
@@ -129,7 +113,7 @@ export default class PlayersController {
                 isActive: this.hasPlayerPlanets(player.id) || this.hasPlayerTroopsInMovement(player.id)
             });
         } 
-        stats.push({ // Add neutral stats
+        stats.push({
             id: 'neutral',
             troops: this.calculateTotalTroops('neutral'),
             planets: this.game.planets.filter(planet => planet.owner === 'neutral').length
@@ -140,10 +124,10 @@ export default class PlayersController {
         const activePlayerStats = this.getPlayerStats()
             .filter(stats => stats.id !== 'neutral')
             .sort((a, b) => b.troops - a.troops);
-        const activePlayers = activePlayerStats.filter(stats => stats.isActive); // If only one player is active, they are the winner
+        const activePlayers = activePlayerStats.filter(stats => stats.isActive);
         if (activePlayers.length === 1) {
             return activePlayers[0].id;
         }
-        return activePlayerStats[0].id; // Otherwise, player with most troops is winning
+        return activePlayerStats[0].id;
     }
 }

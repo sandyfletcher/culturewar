@@ -1,17 +1,22 @@
-
-// ===========================================================
-// assets/javascript/config.js — centralizes magic numbers and configuration settings for game balancing
-// ===========================================================
+// assets/javascript/config.js
 
 export const config = {
-    // --- GAME TIMER ---
+    //-------------------------------------------------
+    // GAME & TIMER SETTINGS
+    //-------------------------------------------------
     game: {
-        defaultDuration: 300, // duration of a game in seconds
+        // Default duration of a game in seconds (5 minutes)
+        defaultDuration: 300,
     },
-    // --- PLAYERS ---
+
+    //-------------------------------------------------
+    // PLAYER & AI SETTINGS
+    //-------------------------------------------------
     player: {
-        defaultAIValue: 'TiffanySpuckler', // unique value of default AI to use when one isn't specified
-        colors: { // colours assigned to each player ID and neutral faction
+        // The unique value of the default AI to use when one isn't specified
+        defaultAIValue: 'TiffanySpuckler',
+        // Colors assigned to each player ID and the neutral faction
+        colors: {
             'player1': '#ffff00', // Yellow
             'player2': '#ff0000', // Red
             'player3': '#00ffff', // Cyan
@@ -21,7 +26,10 @@ export const config = {
             'neutral': '#ffffff', // White
         },
     },
-    // --- PLANET GENERATION & BEHAVIOUR ---
+
+    //-------------------------------------------------
+    // PLANET GENERATION & BEHAVIOR
+    //-------------------------------------------------
     planetGeneration: {
         startingPlanetSize: 30,
         startingPlanetTroops: 30,
@@ -123,12 +131,11 @@ export const config = {
     //-------------------------------------------------
     // MENU DEFAULTS
     //-------------------------------------------------
+    // MODIFIED: This section is now simpler. Default player counts are handled by GameConfigManager.
     menuDefaults: {
         // Default number of players for the setup screen
-        playerCount: 2, // (1 Human + 1 AI)
-        // Default number of bots for the bot battle setup screen
-        botBattleCount: 2,
-        // Default AI types selected for a new game
-        aiTypes: ['TiffanySpuckler'],
+        playerCount: 2,
+        // The minimum and maximum number of players allowed in a game.
+        playerCountRange: [2, 6],
     },
 };
