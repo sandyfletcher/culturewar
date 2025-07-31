@@ -1,6 +1,6 @@
 
 // ===========================================================
-// assets/javascript/config.js — centralizes all "magic numbers" and configuration settings for the game to tweak and balance
+// assets/javascript/config.js — centralizes magic numbers and configuration settings for game balancing
 // ===========================================================
 
 export const config = {
