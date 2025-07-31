@@ -9,7 +9,6 @@ class GameSetupBuilder extends MenuBuilderBase {
         this.parentBuilder = parentBuilder;
     }
 
-    // MODIFIED: This method is now the single entry point for setting up a game.
     build() {
         const menuContainer = this.createMenuContainer();
         const setupForm = document.createElement('div');
@@ -17,18 +16,16 @@ class GameSetupBuilder extends MenuBuilderBase {
 
         // 1. Player Count Selection
         setupForm.appendChild(this.createPlayerCountControl());
-        
         // 2. Planet Density Slider
         setupForm.appendChild(this.createPlanetDensityControl());
 
         // 3. Dynamic Player Configuration List
         const playerSelectorsContainer = document.createElement('div');
         playerSelectorsContainer.className = 'ai-selectors-container';
-        playerSelectorsContainer.id = 'player-selectors-container'; // ID for easy targeting
+        playerSelectorsContainer.id = 'player-selectors-container';
         setupForm.appendChild(playerSelectorsContainer);
-        this.updatePlayerSelectors(); // Initial population of the list
+        this.updatePlayerSelectors();
 
-        // 4. Bottom Buttons (Back / Start)
         setupForm.appendChild(this.createBottomButtons());
         
         menuContainer.appendChild(setupForm);
@@ -69,11 +66,10 @@ class GameSetupBuilder extends MenuBuilderBase {
         return container;
     }
 
-    // NEW: Renders the list of player configuration rows.
     updatePlayerSelectors() {
         const container = document.getElementById('player-selectors-container');
         if (!container) return;
-        container.innerHTML = ''; // Clear existing
+        container.innerHTML = '';
 
         const selectorsTitle = document.createElement('h3');
         selectorsTitle.textContent = 'PLAYER SETUP';
@@ -85,17 +81,17 @@ class GameSetupBuilder extends MenuBuilderBase {
         const aiOptions = this.configManager.getAIOptions();
 
         players.forEach((player, index) => {
+            // REVERTED: We are back to a simple, flat row structure.
             const playerRow = document.createElement('div');
-            playerRow.className = 'ai-selector'; // Re-using class for styling
+            playerRow.className = 'ai-selector';
 
             // Player color swatch and name
             const circleLabel = document.createElement('div');
             circleLabel.className = 'player-circle';
             circleLabel.style.backgroundColor = playerColors[player.id];
             circleLabel.innerHTML = `<span>${index + 1}</span>`;
-            playerRow.appendChild(circleLabel);
-
             // Type selector (Human / Bot)
+            
             const typeSelector = document.createElement('select');
             typeSelector.innerHTML = `<option value="human">Human</option><option value="bot">Bot</option>`;
             typeSelector.value = player.type;
@@ -109,12 +105,15 @@ class GameSetupBuilder extends MenuBuilderBase {
                 aiSelector.appendChild(option);
             });
             aiSelector.value = player.aiController || config.player.defaultAIValue;
-            aiSelector.style.display = player.type === 'bot' ? 'block' : 'none';
+            
+            // MODIFIED: Use `visibility` instead of `display` to prevent layout shifts.
+            aiSelector.style.visibility = player.type === 'bot' ? 'visible' : 'hidden';
 
             // Event listener for type change
             typeSelector.addEventListener('change', (e) => {
                 const newType = e.target.value;
-                aiSelector.style.display = newType === 'bot' ? 'block' : 'none';
+                // MODIFIED: Toggle visibility.
+                aiSelector.style.visibility = newType === 'bot' ? 'visible' : 'hidden';
                 this.configManager.updatePlayerConfig(index, { 
                     type: newType,
                     aiController: newType === 'bot' ? aiSelector.value : undefined
@@ -126,6 +125,7 @@ class GameSetupBuilder extends MenuBuilderBase {
                 this.configManager.updatePlayerConfig(index, { aiController: e.target.value });
             });
 
+            playerRow.appendChild(circleLabel);
             playerRow.appendChild(typeSelector);
             playerRow.appendChild(aiSelector);
             container.appendChild(playerRow);
@@ -175,7 +175,6 @@ class GameSetupBuilder extends MenuBuilderBase {
         startButton.className = 'menu-button start-game';
         startButton.textContent = 'BATTLE >';
         startButton.addEventListener('click', () => {
-            // The config is already up to date, just start the game.
             window.menuManager.startGame();
         });
 

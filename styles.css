@@ -142,6 +142,7 @@ header h1 {
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     box-shadow: 0 0 20px rgba(0, 100, 255, 0.3);
+    overflow-y: auto; /* NEW: Allow scrolling for long lists */
   }
 .game-mode-container {
     display: flex;
@@ -161,7 +162,7 @@ header h1 {
     position: relative;
     text-align: left;
 }
-.game-mode-button:hover:not(.coming-soon) {
+.game-mode-button:hover {
     background-color: rgba(50, 50, 50, 0.7);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -174,27 +175,13 @@ header h1 {
     opacity: 0.8;
     font-size: 1rem;
 }
-.game-mode-button.coming-soon {
-    opacity: 0.7;
-    cursor: default;
-}
-.badge {
-    position: absolute;
-    top: 2rem;
-    right: 1rem;
-    background-color: #ff9900;
-    color: #000;
-    padding: 0.1rem;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-}
 /* INSTRUCTIONS */
 .instructions-content {
     max-width: 800px;
     margin: 0 auto;
     text-align: left;
     font-size: 0.8rem;
+    width: 100%;
 }
 .instructions-content h2 {
     text-align: center;
@@ -213,6 +200,46 @@ header h1 {
 }
 .instructions-section li {
     margin-bottom: 0.5rem;
+}
+/* NEW: COMBATANTS SCREEN STYLES */
+.combatants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.combatant-entry {
+    border: 1px solid #555;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+.combatant-entry.active {
+    border-color: #ffaa00;
+}
+.combatant-name {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: #00ffff;
+    margin: 0;
+    font-size: 1.2rem;
+}
+.combatant-card {
+    background-color: rgba(30, 30, 30, 0.8);
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid #555;
+}
+.combatant-card h4 {
+    display: none; /* Name is already visible above */
+}
+.combatant-card p {
+    margin: 0.5rem 0 0 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #ccc;
+}
+.combatant-card p.blurb {
+    opacity: 0.8;
 }
 /* GAME SETUP MENU */
 .setup-form {
@@ -321,7 +348,7 @@ header h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 10px;
+    flex-shrink: 0;
 }
 .player-circle span {
     color: #000;
@@ -332,6 +359,7 @@ header h1 {
     width: 100%;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
 }
 .ai-selector select {
     width: 100%;
@@ -350,6 +378,7 @@ header h1 {
     background-position: right 10px center;
     background-size: 16px;
     transition: all 0.3s;
+    flex-grow: 1;
 }
 .ai-selector select:hover {
     background-color: #444;
@@ -510,6 +539,11 @@ header h1 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.leaderboard .winner td {
+    background-color: rgba(255, 204, 0, 0.2); /* A faint gold/yellow */
+    color: #ffcc00;
+    font-weight: bold;
 }
 /* COLUMN WIDTHS */
 .leaderboard th:nth-child(1), .leaderboard td:nth-child(1) { width: 12%; } /* Rank */

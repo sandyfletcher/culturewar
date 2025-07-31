@@ -10,35 +10,31 @@ class MainMenuBuilder extends MenuBuilderBase {
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';
         
-        // MODIFIED: All options now lead to a more specific screen or are consolidated.
+        // MODIFIED: This array now defines the final 4-button main menu.
         const options = [
-            { 
-                id: 'creategame', // NEW ID
-                name: 'CREATE GAME', // NEW NAME
-                description: 'configure and start a new game',
-                available: true,
-                handler: () => this.parentBuilder.buildGameSetup() // MODIFIED: No argument needed.
-            },
             { 
                 id: 'instructions', 
                 name: 'INSTRUCTIONS', 
                 description: 'how to play the game',
-                available: true,
                 handler: () => this.parentBuilder.buildInstructionsScreen()
             },
             { 
-                id: 'botbattle', 
-                name: 'SPECTATE', // Changed from BATTLEBOTS for clarity
-                description: 'watch AI battle each other',
-                available: true,
-                handler: () => {
-                    // NEW: A shortcut to a bot-only game setup.
-                    this.configManager.setPlayerCount(config.menuDefaults.playerCountRange[0]);
-                    this.configManager.gameConfig.players.forEach((_, index) => {
-                        this.configManager.updatePlayerConfig(index, { type: 'bot' });
-                    });
-                    this.parentBuilder.buildGameSetup();
-                }
+                id: 'combatants', 
+                name: 'COMBATANTS', 
+                description: 'view the available AI bots',
+                handler: () => this.parentBuilder.buildCombatantsScreen()
+            },
+            { 
+                id: 'creategame',
+                name: 'CREATE GAME',
+                description: 'configure and start a new game',
+                handler: () => this.parentBuilder.buildGameSetup()
+            },
+            { 
+                id: 'standings', 
+                name: 'STANDINGS', 
+                description: 'view bot rankings (coming soon)',
+                handler: () => this.parentBuilder.buildStandingsScreen()
             },
         ];
         

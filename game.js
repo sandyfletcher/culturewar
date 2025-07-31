@@ -8,7 +8,6 @@ import TroopTracker from './javascript/TroopTracker.js';
 import TimerManager from './javascript/TimerManager.js';
 
 class Game {
-    // MODIFIED: Constructor now accepts a single config object.
     constructor(gameConfig, footerManager = null) {
         console.log(`Game Launched: Players: ${gameConfig.players.length}`);
         this.canvas = document.getElementById('game-canvas');
@@ -19,10 +18,8 @@ class Game {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => this.resize(), 100);
         });
-
-        this.config = gameConfig; // MODIFIED: Store the whole config.
+        this.config = gameConfig;
         this.footerManager = footerManager;
-        
         this.planets = [];
         this.troopMovements = [];
         this.selectedPlanets = [];
@@ -32,22 +29,16 @@ class Game {
         this.timerManager = new TimerManager(this);
         this.isActive = false;
         this.gameOver = false;
-        
-        // NEW: Determine which players are human from the config.
-        this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id);
-
+        this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from the config
         this.playersController = new PlayersController(this, this.config);
-        // MODIFIED: InputHandler is created only if there are human players.
-        this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this, this.footerManager, this.humanPlayerIds) : null;
+        this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this, this.footerManager, this.humanPlayerIds) : null; // InputHandler is created only if there are human players
         this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
         this.planetGenerator = new PlanetGeneration(this);
-        
         if (this.config && this.config.planetDensity !== undefined) {
             this.planetGenerator.setPlanetDensity(this.config.planetDensity);
         }
-
         this.timerManager.initialize();
         this.isActive = true;
         this.initializeGame();
@@ -77,14 +68,11 @@ class Game {
         let dt = (now - this.gameState.lastUpdate) / 1000;
         this.gameState.lastUpdate = now;
         let speedMultiplier = 1.0;
-
-        // MODIFIED: The footer slider can now exist even in "human" games (if the human is eliminated).
-        if (this.footerManager && this.footerManager.mode === 'speed') {
+        if (this.footerManager && this.footerManager.mode === 'speed') { // footer slider can now exist even in "human" games if human is eliminated
             speedMultiplier = this.footerManager.getSpeedMultiplier();
         }
-        
         this.timerManager.update(speedMultiplier);
-        this.gameState.update(dt, speedMultiplier); // Pass speed multiplier for accurate stats
+        this.gameState.update(dt, speedMultiplier); // pass speed multiplier for accurate stats
         if (this.gameOver) return;
         this.updatePlanets(dt);
         this.updateTroopMovements(dt);
@@ -92,10 +80,10 @@ class Game {
         this.troopTracker.update();
     }
     updatePlanets(dt) {
+        const activePlayerIds = this.gameState.activePlayers; // get set of currently active players from game state
         for (const planet of this.planets) {
             planet.update(dt);
-            // MODIFIED: Deselect planets not owned by any active human player.
-            if (planet.selected && !this.humanPlayerIds.includes(planet.owner)) {
+            if (planet.selected && !activePlayerIds.has(planet.owner)) { // an active player is one who still has planets or troops
                 planet.selected = false;
                 this.selectedPlanets = this.selectedPlanets.filter(p => p !== planet);
             }
@@ -149,4 +137,5 @@ class Game {
         }
     }
 }
+
 export default Game;
