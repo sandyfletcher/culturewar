@@ -1,3 +1,5 @@
+// assets/javascript/MenuManager.js
+
 import ScreenManager from './ScreenManager.js';
 import GameConfigManager from './GameConfigManager.js';
 import MenuBuilder from './MenuBuilder.js';
@@ -21,6 +23,7 @@ class MenuManager {
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
+
     switchToScreen(screenName) {
         this.screenManager.switchToScreen(screenName);
         if (screenName === 'game') {
@@ -31,7 +34,12 @@ class MenuManager {
             if (this.game && this.game.troopTracker) {
                 this.game.troopTracker.hideTroopBar();
             }
-            this.footerManager.hideSlider();
+            // MODIFIED: When switching to the menu screen, we don't know *which* menu
+            // we're showing yet. The builder will handle the footer. We just need
+            // to make sure the slider is gone.
+            if (this.footerManager.sliderContainer) {
+                 this.footerManager.revertToDefault();
+            }
         }
     }
     
@@ -40,21 +48,19 @@ class MenuManager {
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
-        this.footerManager.hideSlider();
+        // MODIFIED: Revert to the default footer text on the game over screen.
+        this.footerManager.revertToDefault();
         this.gameOverScreen.show(stats, gameInstance);
     }
     
-    // MODIFIED: This is now much simpler.
     startGame() {
         const config = this.configManager.getConfig();
         this.switchToScreen('game');
         
-        // NEW: Determine slider mode based on whether any humans are playing.
         const hasHumanPlayer = config.players.some(p => p.type === 'human');
         const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
         this.footerManager.showSlider(initialSliderMode);
         
-        // MODIFIED: Create new Game instance with the unified config object.
         this.game = new Game(config, this.footerManager);
     }
     
@@ -68,7 +74,6 @@ class MenuManager {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
     
-    // MODIFIED: This now needs the gameInstance to look up the correct config.
     getPlayerDisplayName(playerData, gameInstance) {
         return this.configManager.getPlayerDisplayName(playerData, gameInstance);
     }

@@ -1,3 +1,5 @@
+// menus/StandingsBuilder.js
+
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
 class StandingsBuilder extends MenuBuilderBase {
@@ -18,7 +20,6 @@ class StandingsBuilder extends MenuBuilderBase {
             </p>
         `;
 
-        // Fake leaderboard content
         const leaderboardHTML = `
             <div class="leaderboard">
                 <table>
@@ -46,8 +47,10 @@ class StandingsBuilder extends MenuBuilderBase {
         content.innerHTML += leaderboardHTML;
         menuContainer.appendChild(content);
 
-        const backButton = this.getBackButton(() => this.parentBuilder.buildMainMenu());
-        menuContainer.appendChild(backButton);
+        // NEW: Set the footer to be a back button.
+        window.menuManager.footerManager.showBackButton(() => {
+            this.parentBuilder.buildMainMenu();
+        });
         
         return menuContainer;
     }

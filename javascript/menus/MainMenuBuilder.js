@@ -1,3 +1,5 @@
+// menus/MainMenuBuilder.js
+
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
 class MainMenuBuilder extends MenuBuilderBase {
@@ -6,6 +8,9 @@ class MainMenuBuilder extends MenuBuilderBase {
         this.parentBuilder = parentBuilder;
     }
     build() {
+        // NEW: When the main menu is built, ensure the footer is set to default.
+        window.menuManager.footerManager.showDefault();
+
         const menuContainer = this.createMenuContainer();
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';
@@ -34,7 +39,7 @@ class MainMenuBuilder extends MenuBuilderBase {
                 name: 'CREATE GAME',
                 description: 'configure and start a new game',
                 handler: () => this.parentBuilder.buildGameSetup(),
-                primary: true // NEW: A flag to identify our special button.
+                primary: true 
             },
         ];
         
@@ -43,7 +48,6 @@ class MainMenuBuilder extends MenuBuilderBase {
             modeButton.className = 'game-mode-button';
             modeButton.dataset.mode = option.id;
             
-            // NEW: If the button is flagged as primary, add a special class.
             if (option.primary) {
                 modeButton.classList.add('primary-action');
             }

@@ -1,4 +1,4 @@
-// NEW FILE
+// menus/CombatantsBuilder.js
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
 import botRegistry from '../bots/index.js';
@@ -36,7 +36,6 @@ class CombatantsBuilder extends MenuBuilderBase {
                 <p class="blurb">${bot.description}</p>
             `;
 
-            // Click event to toggle the card's visibility
             name.addEventListener('click', () => {
                 const isHidden = card.style.display === 'none';
                 card.style.display = isHidden ? 'block' : 'none';
@@ -51,8 +50,10 @@ class CombatantsBuilder extends MenuBuilderBase {
         content.appendChild(combatantsList);
         menuContainer.appendChild(content);
 
-        const backButton = this.getBackButton(() => this.parentBuilder.buildMainMenu());
-        menuContainer.appendChild(backButton);
+        // NEW: Set the footer to be a back button.
+        window.menuManager.footerManager.showBackButton(() => {
+            this.parentBuilder.buildMainMenu();
+        });
         
         return menuContainer;
     }

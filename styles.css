@@ -405,9 +405,9 @@ header h1 {
     left: 0;
     right: 0;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* MODIFIED: Centers the single button */
     padding: 0 0.5rem;
-    gap: 5rem;
+    gap: 1rem; /* MODIFIED: Reduced gap, less important now */
 }
 .menu-button {
     display: block;
@@ -428,18 +428,9 @@ header h1 {
     color: #000;
     transform: scale(1.1);
 }
-.back-button {
-    padding: 0.5rem 1rem;
-    margin: 0;
-    border: 2px solid #fff;
-    cursor: pointer;
-    transition: all 0.3s;
-    max-width: 45%;
-    letter-spacing: 2px;
-}
-.back-button:hover {
-    transform: translateX(-5px);
-}
+
+/* REMOVED: .back-button styles are no longer needed */
+
 .start-game {
     padding: 0.5rem 1rem;
     margin: 0;
@@ -621,7 +612,7 @@ footer {
     padding: 0.2rem;
     justify-content: center;
     align-items: center;
-    height: 2rem;
+    height: 2.5rem; /* MODIFIED: Made slightly taller for buttons */
 }
 footer a {
     color: inherit;
@@ -629,6 +620,23 @@ footer a {
 }
 footer a:hover {
     text-decoration: none;
+}
+
+/* NEW: Style for the footer back button */
+#footer-back-button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-family: 'Tourney', monospace;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    letter-spacing: 2px;
+}
+#footer-back-button:hover {
+    color: #ffaa00;
+    transform: scale(1.1);
 }
 
 /* FOOTER SLIDER */

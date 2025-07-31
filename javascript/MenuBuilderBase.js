@@ -1,3 +1,5 @@
+// assets/javascript/MenuBuilderBase.js
+
 // MenuBuilderBase.js - Contains shared functionality for all menu builders
 
 class MenuBuilderBase {
@@ -6,18 +8,22 @@ class MenuBuilderBase {
         this.screenManager = screenManager;
         this.configManager = configManager;
         
-        // Create reusable UI elements
-        this.createReusableElements();
+        // MODIFIED: This method is no longer needed.
+        // this.createReusableElements(); 
     }
     
+    // MODIFIED: Entire method removed.
+    /*
     createReusableElements() {
         // Create a reusable back button template
         this.backButtonTemplate = document.createElement('button');
         this.backButtonTemplate.className = 'menu-button back-button';
         this.backButtonTemplate.textContent = '< BACK';
     }
+    */
     
-    // Helper to get a configured back button for any screen
+    // MODIFIED: Entire method removed.
+    /*
     getBackButton(handler) {
         // Clone the template button
         const backButton = this.backButtonTemplate.cloneNode(true);
@@ -25,6 +31,7 @@ class MenuBuilderBase {
         backButton.addEventListener('click', handler);
         return backButton;
     }
+    */
     
     // Helper to clear and get a fresh menu container
     createMenuContainer() {

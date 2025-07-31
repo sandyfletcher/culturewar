@@ -1,3 +1,5 @@
+// assets/javascript/FooterManager.js
+
 import { config } from './config.js';
 
 export default class FooterManager {
@@ -9,38 +11,55 @@ export default class FooterManager {
         this.mode = 'troop';
     }
 
+    // NEW: Clears any dynamic content from the footer.
+    clearFooter() {
+        this.footerElement.innerHTML = '';
+        this.sliderContainer = null;
+    }
+
+    // NEW: Shows the default "site by sandy" link.
+    showDefault() {
+        this.clearFooter();
+        this.footerElement.innerHTML = this.originalFooterHTML;
+    }
+
+    // NEW: Shows a functional back button.
+    showBackButton(onClickHandler) {
+        this.clearFooter();
+        const backButton = document.createElement('button');
+        backButton.id = 'footer-back-button';
+        backButton.innerHTML = '< BACK'; // Use HTML entity for '<'
+        backButton.addEventListener('click', onClickHandler);
+        this.footerElement.appendChild(backButton);
+    }
+
     showSlider(mode) {
-        if (this.sliderContainer) return;
+        this.clearFooter(); // Use the new clear method
         this.mode = (mode === 'singleplayer') ? 'troop' : 'speed';
         this.value = config.ui.footerSlider.defaultValue;
         
-        this.footerElement.innerHTML = '';
         this.sliderContainer = document.createElement('div');
         this.sliderContainer.id = 'footer-slider-container';
-
-        // MODIFIED: Label text is now determined by the current mode, not the initial one.
-        this.updateSliderUI(this.value); // This will set the label and value
         
+        this.updateSliderUI(this.value); 
         this.footerElement.appendChild(this.sliderContainer);
         
         const track = document.getElementById('slider-track');
         track.addEventListener('click', (e) => this.handleSliderClick(e));
     }
 
-    // NEW: Method to explicitly switch the slider to speed control mode mid-game.
     switchToSpeedMode() {
-        if (this.mode === 'speed') return; // Already in speed mode.
+        if (this.mode === 'speed') return; 
         
         this.mode = 'speed';
         console.log("All human players eliminated. Switching footer to game speed control.");
-        // Update the UI to reflect the new mode.
         this.updateSliderUI(this.value);
     }
 
-    hideSlider() {
-        if (!this.sliderContainer) return;
-        this.footerElement.innerHTML = this.originalFooterHTML;
-        this.sliderContainer = null;
+    // MODIFIED: Renamed from hideSlider to be more generic.
+    // This is now primarily used for when the game ends.
+    revertToDefault() {
+        this.showDefault();
     }
 
     handleSliderClick(e) {
@@ -55,7 +74,6 @@ export default class FooterManager {
     }
 
     updateSliderUI(percent) {
-        // MODIFIED: Completely re-renders the slider content based on the current mode.
         if (!this.sliderContainer) return;
 
         const labelText = (this.mode === 'troop') ? 'TROOP %' : 'GAME PACE';
@@ -76,7 +94,6 @@ export default class FooterManager {
             <span class="slider-value" id="slider-value-display">${valueText}</span>
         `;
 
-        // Re-add the event listener since we overwrote the innerHTML
         const track = document.getElementById('slider-track');
         if (track) {
             track.addEventListener('click', (e) => this.handleSliderClick(e));

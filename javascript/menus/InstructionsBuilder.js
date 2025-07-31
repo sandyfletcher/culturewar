@@ -1,3 +1,5 @@
+// menus/InstructionsBuilder.js
+
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
 class InstructionsBuilder extends MenuBuilderBase {
@@ -33,10 +35,13 @@ class InstructionsBuilder extends MenuBuilderBase {
                 <p>Keep an eye on the top bar for live troop updates and time left in the game</p>
             </div>
         `;
-        // Back button
-        const backButton = this.getBackButton(() => this.parentBuilder.buildMainMenu());
         menuContainer.appendChild(content);
-        menuContainer.appendChild(backButton);
+
+        // NEW: Set the footer to be a back button.
+        window.menuManager.footerManager.showBackButton(() => {
+            this.parentBuilder.buildMainMenu();
+        });
+
         return menuContainer;
     }
 }

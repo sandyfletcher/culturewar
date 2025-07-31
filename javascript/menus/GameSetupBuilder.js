@@ -13,21 +13,29 @@ class GameSetupBuilder extends MenuBuilderBase {
         const menuContainer = this.createMenuContainer();
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
+
         // 1. Player Count Selection
         setupForm.appendChild(this.createPlayerCountControl());
         // 2. Planet Density Slider
         setupForm.appendChild(this.createPlanetDensityControl());
+
         // 3. Dynamic Player Configuration List
         const playerSelectorsContainer = document.createElement('div');
         playerSelectorsContainer.className = 'ai-selectors-container';
         playerSelectorsContainer.id = 'player-selectors-container';
         setupForm.appendChild(playerSelectorsContainer);
-        // The call to updatePlayerSelectors() is moved from here.
+        
+        // 4. Start Button
         setupForm.appendChild(this.createBottomButtons());
-        // FIX: Append the form to the live container FIRST.
+        
         menuContainer.appendChild(setupForm);
-        // FIX: NOW call the update function. The elements are guaranteed to be in the DOM.
         this.updatePlayerSelectors();
+
+        // NEW: Set the footer to be a back button for this screen.
+        window.menuManager.footerManager.showBackButton(() => {
+            this.parentBuilder.buildMainMenu();
+        });
+
         return menuContainer;
     }
 
@@ -80,24 +88,20 @@ class GameSetupBuilder extends MenuBuilderBase {
         const aiOptions = this.configManager.getAIOptions();
 
         players.forEach((player, index) => {
-            // REVERTED: We are back to a simple, flat row structure.
             const playerRow = document.createElement('div');
             playerRow.className = 'ai-selector';
 
-            // Player color swatch and name
             const circleLabel = document.createElement('div');
             circleLabel.className = 'player-circle';
             circleLabel.style.backgroundColor = playerColors[player.id];
             circleLabel.innerHTML = `<span>${index + 1}</span>`;
-            // Type selector (Human / Bot)
             
             const typeSelector = document.createElement('select');
             typeSelector.innerHTML = `<option value="human">Human</option><option value="bot">Bot</option>`;
             typeSelector.value = player.type;
             
-            // AI selector
             const aiSelector = document.createElement('select');
-            aiOptions.forEach(opt => {
+aiOptions.forEach(opt => {
                 const option = document.createElement('option');
                 option.value = opt.value;
                 option.textContent = opt.name;
@@ -105,13 +109,10 @@ class GameSetupBuilder extends MenuBuilderBase {
             });
             aiSelector.value = player.aiController || config.player.defaultAIValue;
             
-            // MODIFIED: Use `visibility` instead of `display` to prevent layout shifts.
             aiSelector.style.visibility = player.type === 'bot' ? 'visible' : 'hidden';
 
-            // Event listener for type change
             typeSelector.addEventListener('change', (e) => {
                 const newType = e.target.value;
-                // MODIFIED: Toggle visibility.
                 aiSelector.style.visibility = newType === 'bot' ? 'visible' : 'hidden';
                 this.configManager.updatePlayerConfig(index, { 
                     type: newType,
@@ -119,7 +120,6 @@ class GameSetupBuilder extends MenuBuilderBase {
                 });
             });
 
-            // Event listener for AI change
             aiSelector.addEventListener('change', (e) => {
                 this.configManager.updatePlayerConfig(index, { aiController: e.target.value });
             });
@@ -164,11 +164,10 @@ class GameSetupBuilder extends MenuBuilderBase {
         return planetDensityContainer;
     }
 
+    // MODIFIED: This method now only creates the start button and its container.
     createBottomButtons() {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'setup-buttons';
-        
-        const backButton = this.getBackButton(() => this.parentBuilder.buildMainMenu());
         
         const startButton = document.createElement('button');
         startButton.className = 'menu-button start-game';
@@ -177,7 +176,6 @@ class GameSetupBuilder extends MenuBuilderBase {
             window.menuManager.startGame();
         });
 
-        buttonContainer.appendChild(backButton);
         buttonContainer.appendChild(startButton);
         return buttonContainer;
     }
