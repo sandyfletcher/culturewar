@@ -142,7 +142,7 @@ header h1 {
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     box-shadow: 0 0 20px rgba(0, 100, 255, 0.3);
-    overflow-y: auto; /* NEW: Allow scrolling for long lists */
+    overflow-y: auto;
   }
 .game-mode-container {
     display: flex;
@@ -175,6 +175,15 @@ header h1 {
     opacity: 0.8;
     font-size: 1rem;
 }
+/* NEW: Style for the primary action button */
+.game-mode-button.primary-action {
+    margin-top: 2rem; /* Creates the visual gap */
+    border-color: #ffaa00; /* Makes it stand out */
+}
+.game-mode-button.primary-action:hover {
+    box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+}
+
 /* INSTRUCTIONS */
 .instructions-content {
     max-width: 800px;
@@ -201,7 +210,7 @@ header h1 {
 .instructions-section li {
     margin-bottom: 0.5rem;
 }
-/* NEW: COMBATANTS SCREEN STYLES */
+/* COMBATANTS SCREEN STYLES */
 .combatants-list {
     display: flex;
     flex-direction: column;
@@ -229,7 +238,7 @@ header h1 {
     border-top: 1px solid #555;
 }
 .combatant-card h4 {
-    display: none; /* Name is already visible above */
+    display: none;
 }
 .combatant-card p {
     margin: 0.5rem 0 0 0;
@@ -420,7 +429,6 @@ header h1 {
     transform: scale(1.1);
 }
 .back-button {
-    width: auto;
     padding: 0.5rem 1rem;
     margin: 0;
     border: 2px solid #fff;
@@ -433,7 +441,6 @@ header h1 {
     transform: translateX(-5px);
 }
 .start-game {
-    width: auto;
     padding: 0.5rem 1rem;
     margin: 0;
     max-width: 45%;
@@ -612,7 +619,6 @@ footer {
     text-align: center;
     border-top: 2px solid #fff;
     padding: 0.2rem;
-    /* Added for slider layout */
     justify-content: center;
     align-items: center;
     height: 2rem;

@@ -10,7 +10,6 @@ class MainMenuBuilder extends MenuBuilderBase {
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';
         
-        // MODIFIED: This array now defines the final 4-button main menu.
         const options = [
             { 
                 id: 'instructions', 
@@ -25,16 +24,17 @@ class MainMenuBuilder extends MenuBuilderBase {
                 handler: () => this.parentBuilder.buildCombatantsScreen()
             },
             { 
-                id: 'creategame',
-                name: 'CREATE GAME',
-                description: 'configure and start a new game',
-                handler: () => this.parentBuilder.buildGameSetup()
-            },
-            { 
                 id: 'standings', 
                 name: 'STANDINGS', 
                 description: 'view bot rankings (coming soon)',
                 handler: () => this.parentBuilder.buildStandingsScreen()
+            },
+            { 
+                id: 'creategame',
+                name: 'CREATE GAME',
+                description: 'configure and start a new game',
+                handler: () => this.parentBuilder.buildGameSetup(),
+                primary: true // NEW: A flag to identify our special button.
             },
         ];
         
@@ -42,6 +42,12 @@ class MainMenuBuilder extends MenuBuilderBase {
             const modeButton = document.createElement('div');
             modeButton.className = 'game-mode-button';
             modeButton.dataset.mode = option.id;
+            
+            // NEW: If the button is flagged as primary, add a special class.
+            if (option.primary) {
+                modeButton.classList.add('primary-action');
+            }
+
             modeButton.innerHTML = `
                 <h3>${option.name}</h3>
                 <p>${option.description}</p>
