@@ -13,22 +13,21 @@ class GameSetupBuilder extends MenuBuilderBase {
         const menuContainer = this.createMenuContainer();
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
-
         // 1. Player Count Selection
         setupForm.appendChild(this.createPlayerCountControl());
         // 2. Planet Density Slider
         setupForm.appendChild(this.createPlanetDensityControl());
-
         // 3. Dynamic Player Configuration List
         const playerSelectorsContainer = document.createElement('div');
         playerSelectorsContainer.className = 'ai-selectors-container';
         playerSelectorsContainer.id = 'player-selectors-container';
         setupForm.appendChild(playerSelectorsContainer);
-        this.updatePlayerSelectors();
-
+        // The call to updatePlayerSelectors() is moved from here.
         setupForm.appendChild(this.createBottomButtons());
-        
+        // FIX: Append the form to the live container FIRST.
         menuContainer.appendChild(setupForm);
+        // FIX: NOW call the update function. The elements are guaranteed to be in the DOM.
+        this.updatePlayerSelectors();
         return menuContainer;
     }
 
