@@ -1,12 +1,10 @@
-// (HeatherSpuckler.js):
-// Claude's attempt at building a modular bot - this one is tuned to be very aggressive
-// Makes insane decisions, sends 100% of its troops out, but makes for short games and will be kept on
-// Assigned name: Heather Spuckler
-import GameAPI from '../GameAPI.js';
+// assets/javascript/bots/HeatherSpuckler.js
+import BaseBot from './BaseBot.js';
 
-export default class HeatherSpuckler {
+export default class HeatherSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.personality = {
             aggressiveness: 1,
             expansion: 0.4,

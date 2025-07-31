@@ -1,9 +1,10 @@
-import GameAPI from '../GameAPI.js';
+// assets/javascript/bots/BrittanySpuckler.js
+import BaseBot from './BaseBot.js';
 
-export default class BrittanySpuckler {
+export default class BrittanySpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
-        this.playerId = playerId;
+        super(game, playerId);
+        
         this.personality = {
             aggressiveness: 0.2,     // Low - rarely attacks enemy planets
             expansion: 0.4,          // Medium-low - some neutral planet expansion

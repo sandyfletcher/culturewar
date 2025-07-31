@@ -1,9 +1,10 @@
-import GameAPI from '../GameAPI.js';
+// assets/javascript/bots/DermotSpuckler.js
+import BaseBot from './BaseBot.js';
 
-export default class DermotSpuckler {
+export default class DermotSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
-        this.playerId = playerId;
+        super(game, playerId);
+        
         this.decisionCooldown = 0;
         this.targetPlanetIds = new Set();
         this.threatAssessmentCooldown = 0;

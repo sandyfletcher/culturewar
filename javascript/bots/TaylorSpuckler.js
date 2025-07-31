@@ -1,9 +1,9 @@
-// claude2.js - Advanced AI implementation for hard difficulty
-import GameAPI from '../GameAPI.js';
+import BaseBot from './BaseBot.js';
 
-export default class TaylorSpuckler {
+export default class TaylorSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.decisionCooldown = 0;
         this.minDecisionTime = 0.5;
         this.maxDecisionTime = 1.2;

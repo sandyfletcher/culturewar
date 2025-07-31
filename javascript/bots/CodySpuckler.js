@@ -1,13 +1,10 @@
-// claude1.js - Basic AI implementation for easy difficulty
-// claude also wrote its own functions to get all planets owned by a particular player
-// this was also intended to be an easy mode, so it created a cooldown timer between decisions
-// that's now a standard feature
+// assets/javascript/bots/CodySpuckler.js
+import BaseBot from './BaseBot.js';
 
-import GameAPI from '../GameAPI.js';
-
-export default class CodySpuckler {
+export default class CodySpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.decisionCooldown = 0;
         this.minDecisionTime = 1.5;
         this.maxDecisionTime = 3.0;

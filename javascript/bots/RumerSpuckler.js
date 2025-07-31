@@ -1,16 +1,9 @@
-// (Gemini1.js):
-// Gemini's first run
-// they've been removed now, but this model wrote its own functions
-// to calculate things like distance between two planets
-// or "function to get all planets owned by a specific player"
-// initially i just let bots do this, write their own workarounds to determine the info they needed
-// later i decided to create a singular file bots pull info from
+import BaseBot from './BaseBot.js';
 
-import GameAPI from '../GameAPI.js';
-
-class RumerSpuckler {
+class RumerSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.lastDecisionTime = 0;
         this.decisionInterval = 250;
     }

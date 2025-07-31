@@ -1,12 +1,10 @@
-import GameAPI from '../GameAPI.js';
+// assets/javascript/bots/ChloeSpuckler.js
+import BaseBot from './BaseBot.js';
 
-// Claude 3 v1
-
-
-
-class ChloeSpuckler {
+class ChloeSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.lastMoveTime = 0;
         this.moveCooldown = 1000; // 1 move per second
     }

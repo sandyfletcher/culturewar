@@ -1,8 +1,10 @@
-import GameAPI from '../GameAPI.js';
+// assets/javascript/bots/DylanSpuckler.js
+import BaseBot from './BaseBot.js';
 
-export default class DylanSpuckler {
+export default class DylanSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+
         this.gameStartTime = Date.now();
         this.decisionCooldown = 1.0; // Decision timers (seconds)
         this.minDecisionTime = 0.8;

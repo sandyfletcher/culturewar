@@ -1,13 +1,9 @@
-// Given the GameUtilities interface, Claude initially wrote a bot it called "The Calculated Expansionist"
-// It was the worst performing bot because it rapid-fired fractions of a troop at neutral planets
-// Other bots would sweep in, steal their work, and take over the home planet
-// I explained the problem to give it another shot:
-// Assigned Zoe Spuckler
-import GameAPI from '../GameAPI.js';
+import BaseBot from './BaseBot.js';
 
-class ZoeSpuckler {
+class ZoeSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.lastActionTime = 0;
         this.actionCooldown = 2000; // 2 seconds
         this.minTroopsToSend = 5;

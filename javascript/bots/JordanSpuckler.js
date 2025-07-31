@@ -1,8 +1,9 @@
-import GameAPI from '../GameAPI.js';
+import BaseBot from './BaseBot.js';
 
-export default class JordanSpuckler {
+export default class JordanSpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.decisionCooldown = 0;
         this.expansionPhase = true;
         this.threatAssessmentCooldown = 3;

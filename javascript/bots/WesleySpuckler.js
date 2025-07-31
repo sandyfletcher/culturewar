@@ -1,8 +1,9 @@
-import GameAPI from '../GameAPI.js';
+import BaseBot from './BaseBot.js';
 
-class WesleySpuckler {
+class WesleySpuckler extends BaseBot {
     constructor(game, playerId) {
-        this.api = new GameAPI(game, playerId);
+        super(game, playerId);
+        
         this.lastDecisionTime = 0;
         this.decisionDelay = 1000;
     }
