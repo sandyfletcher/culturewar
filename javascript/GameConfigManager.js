@@ -1,15 +1,17 @@
 // assets/javascript/GameConfigManager.js
 
 import botRegistry from './bots/index.js';
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
 
 class GameConfigManager {
     constructor() {
+        // Use the new config file for all default values
         this.gameConfig = {
             gameMode: 'singleplayer',
-            playerCount: 2,
-            aiTypes: ['TiffanySpuckler'],
-            botBattleCount: 2,
-            planetDensity: 1.0
+            playerCount: config.menuDefaults.playerCount,
+            aiTypes: [...config.menuDefaults.aiTypes], // Use spread to create a new array
+            botBattleCount: config.menuDefaults.botBattleCount,
+            planetDensity: config.planetGeneration.density.default
         };
         
         // We only need the 'name' and 'value' for the UI dropdowns.
@@ -19,14 +21,8 @@ class GameConfigManager {
             name: bot.name
         }));
         
-        this.playerColors = {
-            'player1': '#ffff00', // Yellow
-            'player2': '#ff0000', // Red
-            'player3': '#00ffff', // Cyan
-            'player4': '#00ff00', // Green
-            'player5': '#ff00ff', // Magenta/Purple
-            'player6': '#ff8000', // Orange
-        };
+        // Get player colors directly from the config file
+        this.playerColors = config.player.colors;
     }
     
     setGameMode(mode) {

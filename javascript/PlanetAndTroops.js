@@ -1,3 +1,5 @@
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+
 class Planet {
     constructor(x, y, size, troops = 0, owner = 'neutral', game) {
         this.x = x;
@@ -6,7 +8,8 @@ class Planet {
         this.troops = troops;
         this.owner = owner;
         this.game = game;
-        this.productionRate = size / 20;
+        // Use the production factor from the config
+        this.productionRate = size / config.planet.productionFactor;
         this.selected = false;
         this.incomingAttackGlow = 0;
         this.incomingReinforcementGlow = 0;
@@ -30,15 +33,19 @@ class Planet {
             }
         }
         if (this.owner !== 'neutral') { // Original troop production logic
-            this.troops = Math.min(999, this.troops + this.productionRate * dt);
+            // Use max troop count from config
+            this.troops = Math.min(config.planet.maxTroops, this.troops + this.productionRate * dt);
         }
     }
     draw(ctx) { // Draw planet
         const originalShadowBlur = ctx.shadowBlur; // Glow Rendering Logic uses shadows to create an efficient and nice-looking glow effect
         const originalShadowColor = ctx.shadowColor;
         if (this.incomingAttackGlow > 0) { // Draw Attack Glow (fiery red/orange)
-            // Scale glow intensity with troop count, with a max cap for visual clarity
-            const glowIntensity = Math.min(35, 10 + Math.sqrt(this.incomingAttackGlow) * 2);
+            // Use glow parameters from config
+            const glowIntensity = Math.min(
+                config.ui.visuals.glow.maxIntensity, 
+                config.ui.visuals.glow.baseIntensity + Math.sqrt(this.incomingAttackGlow) * config.ui.visuals.glow.intensityScalar
+            );
             ctx.shadowBlur = glowIntensity;
             ctx.shadowColor = 'rgba(255, 60, 0, 0.9)';
             // Draw a temporary circle path to apply the shadow to
@@ -48,7 +55,10 @@ class Planet {
         }
         // Draw Reinforcement Glow (calm blue)
         if (this.incomingReinforcementGlow > 0) {
-            const glowIntensity = Math.min(35, 10 + Math.sqrt(this.incomingReinforcementGlow) * 2);
+            const glowIntensity = Math.min(
+                config.ui.visuals.glow.maxIntensity, 
+                config.ui.visuals.glow.baseIntensity + Math.sqrt(this.incomingReinforcementGlow) * config.ui.visuals.glow.intensityScalar
+            );
             ctx.shadowBlur = glowIntensity;
             ctx.shadowColor = 'rgba(0, 150, 255, 0.9)';
             // Draw a temporary circle path to apply the shadow to
@@ -99,8 +109,8 @@ class TroopMovement {
         this.dx = to.x - from.x;
         this.dy = to.y - from.y;
         this.distance = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
-        // Adjusted speed calculation based on distance
-        this.speed = 150; // pixels per second
+        // Use troop movement speed from config
+        this.speed = config.troop.movementSpeed;
         this.duration = this.distance / this.speed; // seconds to reach target
     }
     update(dt) {
@@ -131,23 +141,22 @@ class TroopMovement {
         // Get player color
         const playerColor = this.game.playersController.getPlayerColor(this.owner);
         
-        // Determine which musical note to use based on troop count
+        // Determine which musical note to use based on troop count from config
         let noteSymbol;
-        if (this.amount < 10) noteSymbol = '♩';
-        else if (this.amount < 100) noteSymbol = '♪';
+        if (this.amount < config.ui.visuals.troopIcon.tier1MaxTroops) noteSymbol = '♩';
+        else if (this.amount < config.ui.visuals.troopIcon.tier2MaxTroops) noteSymbol = '♪';
         else noteSymbol = '♫';
         
         // Calculate size scaling within each category
         let categoryMin, categoryMax;
-        if (this.amount < 10) { categoryMin = 1; categoryMax = 9; } 
-        else if (this.amount < 100) { categoryMin = 10; categoryMax = 99; } 
-        else { categoryMin = 100; categoryMax = 999; }
+        if (this.amount < config.ui.visuals.troopIcon.tier1MaxTroops) { categoryMin = 1; categoryMax = config.ui.visuals.troopIcon.tier1MaxTroops - 1; } 
+        else if (this.amount < config.ui.visuals.troopIcon.tier2MaxTroops) { categoryMin = config.ui.visuals.troopIcon.tier1MaxTroops; categoryMax = config.ui.visuals.troopIcon.tier2MaxTroops - 1; } 
+        else { categoryMin = config.ui.visuals.troopIcon.tier2MaxTroops; categoryMax = config.planet.maxTroops; }
         
         // Normalized position within the category (0 to 1)
-        // When amount equals categoryMin, this will be 0 - When amount equals categoryMax, this will be 1
         const categoryPosition = (this.amount - categoryMin) / (categoryMax - categoryMin);
-        const minSize = 20;
-        const maxSize = 30;
+        const minSize = config.ui.visuals.troopIcon.minFontSize;
+        const maxSize = config.ui.visuals.troopIcon.maxFontSize;
         const fontSize = minSize + categoryPosition * (maxSize - minSize);
         
         // Draw the music note symbol

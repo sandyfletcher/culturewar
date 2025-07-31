@@ -1,3 +1,5 @@
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+
 export default class TroopTracker {
     constructor(game) {
         this.game = game;
@@ -151,8 +153,8 @@ export default class TroopTracker {
                     segment.className = 'troop-bar-segment';
                     segment.style.width = `${percentage}%`;
                     
-                    // Get color directly from player ID
-                    const color = this.playerColors[playerId] || '#888'; // Fallback color
+                    // Get color directly from player ID, use fallback from config
+                    const color = this.playerColors[playerId] || config.ui.visuals.fallbackColor;
                     segment.style.backgroundColor = color;
                     
                     // Add tooltip with player info

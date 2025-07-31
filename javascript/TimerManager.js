@@ -1,8 +1,11 @@
 // TimerManager.js
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+
 class TimerManager {
     constructor(game) {
         this.game = game;
-        this.timeRemaining = 300; // 5 minutes in seconds
+        // Use default game duration from config
+        this.timeRemaining = config.game.defaultDuration;
         this.isPaused = false;
         this.lastUpdate = Date.now();
         this.timerElement = null;
@@ -66,7 +69,7 @@ class TimerManager {
         this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    reset(time = 300) {
+    reset(time = config.game.defaultDuration) { // Use default from config here too
         this.timeRemaining = time;
         this.isPaused = false;
         this.lastUpdate = Date.now();

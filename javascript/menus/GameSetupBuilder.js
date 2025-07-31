@@ -1,6 +1,7 @@
 // menus/GameSetupBuilder.js - Builds the game setup screen for single player and bot battle modes
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
+import { config } from '../config.js'; // <-- IMPORT THE NEW CONFIG (note the path)
 
 class GameSetupBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager) {
@@ -126,10 +127,11 @@ class GameSetupBuilder extends MenuBuilderBase {
         // Add slider
         const densitySlider = document.createElement('input');
         densitySlider.type = 'range';
-        densitySlider.min = '0.5';
-        densitySlider.max = '2.0';
+        // Use min/max/default from config
+        densitySlider.min = config.planetGeneration.density.min.toString();
+        densitySlider.max = config.planetGeneration.density.max.toString();
         densitySlider.step = '0.05';
-        densitySlider.value = '1.0'; // Default value
+        densitySlider.value = config.planetGeneration.density.default.toString();
         densitySlider.className = 'density-slider';
         densitySlider.id = 'planet-density-slider';
         // Add left label (Sparse)

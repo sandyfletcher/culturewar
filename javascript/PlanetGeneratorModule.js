@@ -3,22 +3,24 @@
 // ===========================================================
 
 import { Planet } from './PlanetAndTroops.js';
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
 
 export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
         this.canvas = game.canvas;
-        this.config = { // player planets are handled by grid system, these constants are for neutral planets
-            STARTING_PLANET_SIZE: 30,
-            STARTING_TROOPS: 30,
-            PLAYER_TO_NEUTRAL_DISTANCE: 60,
-            NEUTRAL_TO_NEUTRAL_DISTANCE: 40,
-            NEUTRAL_BORDER_BUFFER: 10,
-            MAX_ATTEMPTS: 150,
-            NEUTRAL_COUNT: 8,
-            MIN_SIZE: 15,
-            MAX_SIZE_VARIATION: 20,
-            PLANET_DENSITY: 1.0,
+        // Use the centralized config directly
+        this.config = {
+            STARTING_PLANET_SIZE: config.planetGeneration.startingPlanetSize,
+            STARTING_TROOPS: config.planetGeneration.startingPlanetTroops,
+            PLAYER_TO_NEUTRAL_DISTANCE: config.planetGeneration.playerToNeutralDistance,
+            NEUTRAL_TO_NEUTRAL_DISTANCE: config.planetGeneration.neutralToNeutralDistance,
+            NEUTRAL_BORDER_BUFFER: config.planetGeneration.neutralBorderBuffer,
+            MAX_ATTEMPTS: config.planetGeneration.maxPlacementAttempts,
+            NEUTRAL_COUNT: config.planetGeneration.baseNeutralCount,
+            MIN_SIZE: config.planetGeneration.minNeutralSize,
+            MAX_SIZE_VARIATION: config.planetGeneration.maxNeutralSizeVariation,
+            PLANET_DENSITY: config.planetGeneration.density.default,
         };
     }
     generatePlanets() {
@@ -196,6 +198,10 @@ export default class PlanetGeneration {
         }
     }
     setPlanetDensity(density) {
-        this.config.PLANET_DENSITY = Math.max(0.5, Math.min(2.0, density));
+        // Use min/max from the central config file
+        this.config.PLANET_DENSITY = Math.max(
+            config.planetGeneration.density.min,
+            Math.min(config.planetGeneration.density.max, density)
+        );
     }
 }

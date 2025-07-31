@@ -1,6 +1,7 @@
 // assets/javascript/PlayersController.js
 
 import botRegistry from './bots/index.js';
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
 
 export default class PlayersController {
     constructor(game, playerCount = 2, aiTypes = [], botBattleMode = false) {
@@ -10,15 +11,10 @@ export default class PlayersController {
         this.aiTypes = aiTypes;
         this.botBattleMode = botBattleMode;
         this.aiControllers = {};
-        this.playerColors = {
-            'player1': '#ffff00',
-            'player2': '#ff0000',
-            'player3': '#00ffff',
-            'player4': '#00ff00',
-            'player5': '#ff00ff',
-            'player6': '#ff8000',
-            'neutral': '#ffffff'
-        };
+        // Get player colors and default AI from the config file
+        this.playerColors = config.player.colors;
+        this.defaultAIName = config.player.defaultAIValue;
+
         this.availableAITypes = new Map(
             botRegistry.map(bot => [bot.value, bot.class])
         );
@@ -30,7 +26,7 @@ export default class PlayersController {
         if (this.botBattleMode) {
             for (let i = 0; i < this.playerCount; i++) { // create AI players
                 const playerId = `player${i + 1}`;
-                const aiType = this.aiTypes[i] || 'TiffanySpuckler'; // default to TiffanySpuckler if not specified
+                const aiType = this.aiTypes[i] || this.defaultAIName; // Use default from config
                 this.players.push({
                     id: playerId,
                     color: this.playerColors[playerId],
@@ -47,7 +43,7 @@ export default class PlayersController {
             });
             for (let i = 0; i < this.playerCount - 1; i++) { // create AI players with selected AI types
                 const playerId = `player${i + 2}`;
-                const aiType = this.aiTypes[i] || 'TiffanySpuckler'; // default to TiffanySpuckler if not specified
+                const aiType = this.aiTypes[i] || this.defaultAIName; // Use default from config
                 this.players.push({
                     id: playerId,
                     color: this.playerColors[playerId],
@@ -61,7 +57,7 @@ export default class PlayersController {
         this.aiControllers = {}; // clear existing controllers
         const aiPlayers = this.getAIPlayers(); // Create AI controllers for each AI player
         for (const player of aiPlayers) {
-            const AIClass = this.availableAITypes.get(player.aiController) || this.availableAITypes.get('TiffanySpuckler'); // Fallback
+            const AIClass = this.availableAITypes.get(player.aiController) || this.availableAITypes.get(this.defaultAIName); // Fallback
             if (AIClass) { // Get the AI class directly from our Ma
                 this.aiControllers[player.id] = new AIClass(this.game, player.id); // The AI now receives the game and its own ID to instantiate the API
             } else {

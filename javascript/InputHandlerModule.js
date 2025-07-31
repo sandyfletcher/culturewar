@@ -1,3 +1,5 @@
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+
 export default class InputHandler {
     constructor(game, footerManager) {
         this.game = game;
@@ -8,10 +10,10 @@ export default class InputHandler {
         this.selectionStart = { x: 0, y: 0 };
         this.selectionEnd = { x: 0, y: 0 };
         this.touchStartTime = 0;
-        // For double-click detection
+        // For double-click detection - use threshold from config
         this.lastClickedPlanet = null;
         this.lastClickTime = 0;
-        this.doubleClickTimeThreshold = 300; // ms
+        this.doubleClickTimeThreshold = config.ui.input.doubleClickThreshold;
         // Add mouse event listeners with passive option for touch events
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
@@ -56,7 +58,8 @@ export default class InputHandler {
             Math.pow(this.selectionStart.x - x, 2) + 
             Math.pow(this.selectionStart.y - y, 2)
         ); // small movement treated as a click
-        if (distMoved < 5) {
+        // Use click move threshold from config
+        if (distMoved < config.ui.input.clickMoveThreshold) {
             this.handleClick(e);
             return;
         }
@@ -107,7 +110,8 @@ export default class InputHandler {
             Math.pow(this.selectionStart.x - this.selectionEnd.x, 2) + 
             Math.pow(this.selectionStart.y - this.selectionEnd.y, 2)
         );
-        if (touchDuration < 300 && distMoved < 10) {
+        // Use touch thresholds from config
+        if (touchDuration < config.ui.input.touchDurationThreshold && distMoved < config.ui.input.touchMoveThreshold) {
             // Create a synthetic click event
             const clickEvent = {
                 clientX: this.selectionEnd.x + this.canvas.getBoundingClientRect().left,

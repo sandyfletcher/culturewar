@@ -1,12 +1,14 @@
+import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+
 export default class FooterManager {
     constructor() {
         this.footerElement = document.querySelector('footer');
         this.originalFooterHTML = this.footerElement.innerHTML;
         this.sliderContainer = null;
-        this.value = 50; // Internal representation (1-100)
+        // Use default value from config
+        this.value = config.ui.footerSlider.defaultValue;
         this.mode = 'troop'; // 'troop' or 'speed'
     }
-// ===========================================================
 
     /**
      * Replaces the default footer with the interactive slider.
@@ -17,7 +19,7 @@ export default class FooterManager {
         if (this.sliderContainer) return;
 
         this.mode = (mode === 'singleplayer') ? 'troop' : 'speed';
-        this.value = 50; // Reset to default on show
+        this.value = config.ui.footerSlider.defaultValue; // Reset to default on show
         
         // Clear footer and build slider
         this.footerElement.innerHTML = '';
@@ -107,17 +109,17 @@ export default class FooterManager {
      * @returns {number} The speed multiplier (e.g., 0.01, 1.0, 4.0).
      */
     getSpeedMultiplier() {
-        // We still use the internal 1-100 value to calculate the multiplier.
-        // Let's define the new range: 0.01x to 4.0x
-        // We'll make 50% the 1.0x mark for intuitive control.
-        if (this.value <= 50) {
-            // Scale from 0.01x to 1.0x over the first half of the slider
-            const range = 1.0 - 0.01;
-            return 0.01 + (this.value - 1) * (range / 49);
+        const { min, mid, max } = config.ui.footerSlider.speed;
+        const midPoint = config.ui.footerSlider.defaultValue;
+
+        if (this.value <= midPoint) {
+            // Scale from min to mid over the first half
+            const range = mid - min;
+            return min + (this.value - 1) * (range / (midPoint - 1));
         } else {
-            // Scale from 1.0x to 4.0x over the second half
-            const range = 4.0 - 1.0;
-            return 1.0 + (this.value - 50) * (range / 50);
+            // Scale from mid to max over the second half
+            const range = max - mid;
+            return mid + (this.value - midPoint) * (range / (100 - midPoint));
         }
     }
 }
