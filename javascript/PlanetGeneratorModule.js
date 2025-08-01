@@ -1,5 +1,5 @@
 // ===========================================================
-// root/assets/javascript/PlanetGeneratorModule.js
+// root/javascript/PlanetGeneratorModule.js
 // ===========================================================
 
 import { Planet } from './PlanetAndTroops.js';
@@ -160,7 +160,6 @@ export default class PlanetGeneration {
     }
     calculateOptimalNeutralCount() {
         const mapArea = this.canvas.width * this.canvas.height;
-        // MODIFIED: Get player count directly from the game's config.
         const playerCount = this.game.config.players.length;
         const baseCount = this.config.NEUTRAL_COUNT;
         const areaFactor = Math.sqrt(mapArea) / 500;

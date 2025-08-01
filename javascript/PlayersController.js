@@ -1,37 +1,28 @@
-// assets/javascript/PlayersController.js
+// ===========================================
+// root/javascript/PlayersController.js
+// ===========================================
 
 import botRegistry from './bots/index.js';
 import { config } from './config.js';
 
 export default class PlayersController {
-    // MODIFIED: Constructor now accepts a single config object.
     constructor(game, gameConfig) {
         this.game = game;
-        this.config = gameConfig; // Store the config.
+        this.config = gameConfig;
         this.players = [];
         this.aiControllers = {};
-        
         this.playerColors = config.player.colors;
         this.defaultAIName = config.player.defaultAIValue;
-
         this.availableAITypes = new Map(
             botRegistry.map(bot => [bot.value, bot.class])
         );
-
-        // --- NEW: Round-robin AI scheduler state ---
         this.aiDecisionCooldown = 0;
         this.nextAiToActIndex = 0;
-        // --- End of new state ---
-
         this.initializePlayers();
         this.initializeAIControllers();
     }
-    
-    // MODIFIED: This is much simpler now. It just reads from the config.
     initializePlayers() {
         this.players = [];
-        
-        // Loop through the player definitions in the game config.
         for (const playerConfig of this.config.players) {
             this.players.push({
                 id: playerConfig.id,
@@ -41,7 +32,6 @@ export default class PlayersController {
             });
         }
     }
-
     initializeAIControllers() {
         this.aiControllers = {};
         const aiPlayers = this.getAIPlayers();
@@ -57,27 +47,18 @@ export default class PlayersController {
     updateAIPlayers(dt) {
         this.aiDecisionCooldown -= dt;
         if (this.aiDecisionCooldown > 0) {
-            return; // Still on global cooldown, do nothing.
+            return;
         }
-
         const activeAiIds = this.getAIPlayers()
             .map(p => p.id)
             .filter(id => this.game.gameState.activePlayers.has(id));
-
         if (activeAiIds.length === 0) {
-            return; // No active AIs to make a decision.
+            return;
         }
-
-        // Reset the global cooldown.
         this.aiDecisionCooldown = config.ai.globalDecisionCooldown;
-
-        // Ensure the index is valid for the current number of active AIs.
         this.nextAiToActIndex = this.nextAiToActIndex % activeAiIds.length;
-
-        // Get the ID of the bot whose turn it is.
         const botIdToAct = activeAiIds[this.nextAiToActIndex];
         const aiController = this.aiControllers[botIdToAct];
-
         if (aiController) {
             const aiDecision = aiController.makeDecision(dt);
             if (aiDecision) {
@@ -88,18 +69,14 @@ export default class PlayersController {
                 );
             }
         }
-        
-        // Move to the next AI for the next turn.
         this.nextAiToActIndex++;
     }
     getPlayerById(playerId) {
         return this.players.find(player => player.id === playerId);
     }
-
     getPlayerColor(playerId) {
         return this.playerColors[playerId] || this.playerColors['neutral'];
     }
-    // MODIFIED: getHumanPlayers now just reads from the initialized players list.
     getHumanPlayers() {
         return this.players.filter(player => !player.isAI);
     }
