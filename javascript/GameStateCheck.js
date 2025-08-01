@@ -36,7 +36,8 @@ export default class GameState {
     checkPlayerEliminations() {
         for (const playerId of this.activePlayers) {
             if (playerId === 'neutral') continue;
-            const hasResources = this.game.playersController.hasPlayerPlanets(playerId) || this.game.playersController.hasPlayerTroopsInMovement(playerId);
+            const playerStat = this.game.playersController.getPlayerStats().find(p => p.id === playerId);
+            const hasResources = playerStat ? playerStat.isActive : false;
             if (!hasResources && !this.eliminationTimes[playerId]) {
                 this.eliminationTimes[playerId] = this.elapsedGameTime;
                 this.activePlayers.delete(playerId);
@@ -95,7 +96,10 @@ export default class GameState {
             hasHumanPlayer: this.game.humanPlayerIds.length > 0
         };
         if (window.menuManager) {
-            window.menuManager.showGameOver(stats, this.game);
+            const playAgainCallback = () => {
+                window.menuManager.switchToScreen('menu');
+            };
+            window.menuManager.showGameOver(stats, this.game, playAgainCallback);
         } else {
             console.error("MenuManager not found.");
         }

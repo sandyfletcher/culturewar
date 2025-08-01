@@ -33,7 +33,7 @@ export default class Game {
         this.timerManager = new TimerManager(this);
         this.isActive = false;
         this.gameOver = false;
-        this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from the config
+        this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from config
         this.playersController = new PlayersController(this, this.config);
         this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this, this.footerManager, this.humanPlayerIds) : null; // InputHandler is created only if there are human players
         this.renderer = new Renderer(this);
@@ -78,8 +78,8 @@ export default class Game {
         this.timerManager.update(speedMultiplier);
         this.gameState.update(rawDt, speedMultiplier); // pass rawDt for accurate stat calculations
         if (this.gameOver) return;
-        const gameDt = rawDt * speedMultiplier; // calculate a scaled delta time for all game logic that should be affected by speed.
-        this.updatePlanets(gameDt); // update planets and troop movements with the new 'gameDt' so they respect the game speed
+        const gameDt = rawDt * speedMultiplier; // calculate a scaled delta time for all game logic that should be affected by speed
+        this.updatePlanets(gameDt); // update planets and troop movements with new 'gameDt' so they respect game speed
         this.updateTroopMovements(gameDt);
         this.playersController.updateAIPlayers(gameDt); // doesn't use dt, but we pass for consistency
         this.troopTracker.update();

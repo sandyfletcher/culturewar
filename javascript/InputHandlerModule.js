@@ -111,19 +111,23 @@ export default class InputHandler {
         }
         this.processSelectionBox();
     }
-    processSelectionBox() {
+    processSelectionBox() { // TODO: re-examine this logic for multiplayer/more than one human in-game
         const left = Math.min(this.selectionStart.x, this.selectionEnd.x);
         const right = Math.max(this.selectionStart.x, this.selectionEnd.x);
         const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
         const bottom = Math.max(this.selectionStart.y, this.selectionEnd.y);
         this.game.clearSelection();
-        // MODIFIED: Find all planets belonging to ANY human player within the selection box... DOUBLE CHECK THIS??
-        for (const planet of this.game.planets) {
-            if (this.humanPlayerIds.includes(planet.owner)) {
-                if (planet.x + planet.size >= left && 
-                    planet.x - planet.size <= right && 
-                    planet.y + planet.size >= top && 
-                    planet.y - planet.size <= bottom) {
+        const planetsInBox = this.game.planets.filter(planet => // find all selectable planets within box
+            this.humanPlayerIds.includes(planet.owner) &&
+            planet.x + planet.size >= left &&
+            planet.x - planet.size <= right &&
+            planet.y + planet.size >= top &&
+            planet.y - planet.size <= bottom
+        );
+        if (planetsInBox.length > 0) {
+            const ownerToSelect = planetsInBox[0].owner; // determine owner from first planet in box
+            for (const planet of planetsInBox) { // select all planets in box that belong to that same owner
+                if (planet.owner === ownerToSelect) {
                     planet.selected = true;
                     this.game.selectedPlanets.push(planet);
                 }

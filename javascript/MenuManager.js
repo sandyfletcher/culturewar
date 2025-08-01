@@ -40,13 +40,13 @@ class MenuManager {
             }
         }
     }
-    showGameOver(stats, gameInstance) {
+    showGameOver(stats, gameInstance, onPlayAgain) {
         this.game = gameInstance;
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
         this.footerManager.revertToDefault();
-        this.gameOverScreen.show(stats, gameInstance);
+        this.gameOverScreen.show(stats, gameInstance, onPlayAgain);
     }
     startGame() {
         const config = this.configManager.getConfig();

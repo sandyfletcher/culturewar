@@ -10,6 +10,7 @@ import Gemini20a from './Gemini20a.js';
 import Gemini20b from './Gemini20b.js';
 import Gemini25a from './Gemini25a.js';
 import Gemini25b from './Gemini25b.js';
+import Gemini25c from './Gemini25c.js';
 
 const botRegistry = [
     { value: 'C3.5A', name: 'Claude 3.5 A', class: Claude35a, creationDate: 'Jan 2025', description: 'An unpredictable bot that randomly decides whether to attack or reinforce. It sends fleets from random planets to the nearest available target, making it a chaotic and sometimes surprisingly effective foe.' },
@@ -20,6 +21,7 @@ const botRegistry = [
     { value: 'G2.0B', name: 'Gemini 2.0 B', class: Gemini20b, creationDate: 'Feb 2025', description: 'Extremely territorial and defensive. Its first priority is always to reinforce any planet under attack. Only when its own territory is secure will it venture out to attack the absolute weakest target on the map.' },
     { value: 'G2.5A', name: 'Gemini 2.5 A', class: Gemini25a, creationDate: 'Jul 2025', description: 'A balanced strategist that evaluates all possible moves — attacking, expanding, and reinforcing — based on a Return on Investment calculation. It fluidly pivots to whatever action provides the most value for the least cost and risk.' },
     { value: 'G2.5B', name: 'Gemini 2.5 B', class: Gemini25b, creationDate: 'Aug 2025', description: 'A sophisticated phased strategist. It begins with rapid expansion, transitions to fortifying its front lines, and finishes with its hallmark: coordinated swarm attacks designed to overwhelm high-value enemy worlds.' },
+    { value: 'G2.5C', name: 'Gemini 2.5 C', class: Gemini25c, creationDate: 'Aug 2025', description: 'An experimental adaptive AI. It dynamically changes its grand strategy—from expanding to attacking—based on game conditions. It remembers who attacks it and will prioritize revenge, making it a reactive and dangerous opponent.' },
 ];
 
 export default botRegistry;

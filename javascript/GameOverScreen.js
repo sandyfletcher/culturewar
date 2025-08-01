@@ -7,7 +7,7 @@ export default class GameOverScreen {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
         this.gameOverScreen = null;
     }
-    show(stats, gameInstance) {
+    show(stats, gameInstance, onPlayAgain) {
         this.remove();
         this.gameOverScreen = document.createElement('div');
         this.gameOverScreen.id = 'game-over-screen';
@@ -70,14 +70,14 @@ export default class GameOverScreen {
         });
         leaderboardHTML += `</tbody></table></div>`;
         const leaderboardRankings = leaderboardData.map(player => player.displayName).join(', ');
-        console.log(`Match Ranking: [${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
+        console.log(`Match Ranking: [${leaderboardRankings}], [${window.menuManager.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>
                 <div class="stats-container">
                     <div class="stat-item">
                         <span class="stat-label">Preservation:</span>
-                        <span class="stat-value">${this.formatTime(stats.time)}</span>
+                        <span class="stat-value">${window.menuManager.formatTime(stats.time)}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Persuasions:</span>
@@ -103,7 +103,9 @@ export default class GameOverScreen {
         this.parentContainer.appendChild(this.gameOverScreen);
         document.getElementById('play-again-button').addEventListener('click', () => {
             this.remove();
-            window.menuManager.switchToScreen('menu');
+            if (onPlayAgain) {
+                onPlayAgain();
+            }
         });
     }
     remove() {
@@ -116,10 +118,5 @@ export default class GameOverScreen {
                 existingScreen.remove();
             }
         }
-    }
-    formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
 }
