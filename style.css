@@ -175,15 +175,13 @@ header h1 {
     opacity: 0.8;
     font-size: 1rem;
 }
-/* NEW: Style for the primary action button */
 .game-mode-button.primary-action {
-    margin-top: 2rem; /* Creates the visual gap */
-    border-color: #ffaa00; /* Makes it stand out */
+    margin-top: 2rem;
+    border-color: #ffaa00;
 }
 .game-mode-button.primary-action:hover {
     box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
 }
-
 /* INSTRUCTIONS */
 .instructions-content {
     max-width: 800px;
@@ -210,7 +208,7 @@ header h1 {
 .instructions-section li {
     margin-bottom: 0.5rem;
 }
-/* COMBATANTS SCREEN STYLES */
+/* COMBATANTS SCREEN */
 .combatants-list {
     display: flex;
     flex-direction: column;
@@ -405,9 +403,9 @@ header h1 {
     left: 0;
     right: 0;
     display: flex;
-    justify-content: center; /* MODIFIED: Centers the single button */
+    justify-content: center;
     padding: 0 0.5rem;
-    gap: 1rem; /* MODIFIED: Reduced gap, less important now */
+    gap: 1rem;
 }
 .menu-button {
     display: block;
@@ -428,9 +426,6 @@ header h1 {
     color: #000;
     transform: scale(1.1);
 }
-
-/* REMOVED: .back-button styles are no longer needed */
-
 .start-game {
     padding: 0.5rem 1rem;
     margin: 0;

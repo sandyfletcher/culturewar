@@ -65,22 +65,19 @@ class Game {
     update() {
         if (this.gameOver) return;
         const now = Date.now();
-        // MODIFIED: Rename 'dt' to 'rawDt' for clarity. This is the unscaled time delta.
-        const rawDt = (now - this.gameState.lastUpdate) / 1000;
+        const rawDt = (now - this.gameState.lastUpdate) / 1000; // 'rawDt' is unscaled time delta
         this.gameState.lastUpdate = now;
         let speedMultiplier = 1.0;
-        if (this.footerManager && this.footerManager.mode === 'speed') { // footer slider can now exist even in "human" games if human is eliminated
+        if (this.footerManager && this.footerManager.mode === 'speed') { // footer slider can exist in "human" games if human is eliminated
             speedMultiplier = this.footerManager.getSpeedMultiplier();
         }
         this.timerManager.update(speedMultiplier);
-        this.gameState.update(rawDt, speedMultiplier); // Pass rawDt for accurate stat calculations
+        this.gameState.update(rawDt, speedMultiplier); // pass rawDt for accurate stat calculations
         if (this.gameOver) return;
-        // NEW: Calculate a scaled delta time for all game logic that should be affected by speed.
-        const gameDt = rawDt * speedMultiplier;
-        // MODIFIED: Update planets and troop movements with the new 'gameDt' so they respect the game speed.
-        this.updatePlanets(gameDt);
+        const gameDt = rawDt * speedMultiplier; // calculate a scaled delta time for all game logic that should be affected by speed.
+        this.updatePlanets(gameDt); // update planets and troop movements with the new 'gameDt' so they respect the game speed
         this.updateTroopMovements(gameDt);
-        this.playersController.updateAIPlayers(gameDt); // This doesn't use dt, but we pass for consistency.
+        this.playersController.updateAIPlayers(gameDt); // doesn't use dt, but we pass for consistency
         this.troopTracker.update();
     }
     updatePlanets(dt) {

@@ -1,9 +1,12 @@
+// ===========================================
+// assets/javascript/bots/Gemini20a.js
+// ===========================================
+
 import BaseBot from './BaseBot.js';
 
-export default class Gemini20 extends BaseBot {
+export default class Gemini20a extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        
         this.aggressionFactor = 0.7;
         this.lastDecisionTime = 0;
         this.decisionInterval = 1000; // ms

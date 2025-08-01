@@ -1,4 +1,6 @@
-// assets/javascript/bots/CodySpuckler.js
+// ===========================================
+// assets/javascript/bots/Claude35b.js
+// ===========================================
 
 import BaseBot from './BaseBot.js';
 

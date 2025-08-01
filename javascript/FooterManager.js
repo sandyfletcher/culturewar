@@ -105,7 +105,7 @@ export default class FooterManager {
         const label = document.getElementById('slider-text-label');
         const valueDisplay = document.getElementById('slider-text-value');
         if (!fill || !thumb || !label || !valueDisplay) return;
-        fill.style.width = `${percent}%`; // update styles
+        fill.style.width = `${percent}%`; // update style
         thumb.style.left = `${percent}%`;
         label.textContent = (this.mode === 'troop') ? 'TROOP %' : 'GAME PACE'; // update text content
         if (this.mode === 'troop') {

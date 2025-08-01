@@ -1,6 +1,10 @@
+// ===========================================
+// assets/javascript/bots/Claude37a.js
+// ===========================================
+
 import BaseBot from './BaseBot.js';
 
-export default class Claude37 extends BaseBot {
+export default class Claude37a extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
         this.lastActionTime = 0;

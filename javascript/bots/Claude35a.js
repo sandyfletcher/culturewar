@@ -1,5 +1,5 @@
 // ===========================================
-// assets/javascript/bots/Claude35.js - Claude 3.5's first attempt at building a bot continues to beat later iterations
+// assets/javascript/bots/Claude35a.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';
