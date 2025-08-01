@@ -3,96 +3,95 @@
 // ===========================================
 
 export const config = {
-    // --- GAME & TIMER ---
+    // --- GAME TIMER ---
     game: {
         defaultDuration: 300, // duration of game in seconds
     },
-    // --- PLAYER & AI ---
+    // --- PLAYERS ---
     player: {
         defaultAIValue: 'C3.5A', // unique value of default AI to use when one isn't specified
         colors: { // colours assigned to each player ID and neutral faction
-            'player1': '#ffff00', // Yellow
-            'player2': '#ff0000', // Red
-            'player3': '#00ffff', // Cyan
-            'player4': '#00ff00', // Green
-            'player5': '#ff00ff', // Magenta
-            'player6': '#ff8000', // Orange
-            'neutral': '#ffffff', // White
+            'player1': '#ffff00', // yellow
+            'player2': '#ff0000', // red
+            'player3': '#00ffff', // cyan
+            'player4': '#00ff00', // green
+            'player5': '#ff00ff', // magenta
+            'player6': '#ff8000', // orange
+            'neutral': '#ffffff', // white
         },
     },
-    // --- PLANET GENERATION & BEHAVIOUR ---
+    // --- PLANETS ---
     planetGeneration: {
         startingPlanetSize: 30,
         startingPlanetTroops: 30,
-        playerToNeutralDistance: 60, // Minimum distance between a player planet and a new neutral planet
-        neutralToNeutralDistance: 40, // Minimum distance between two neutral planets
-        neutralBorderBuffer: 10, // Minimum distance from the canvas edge for neutral planets
-        maxPlacementAttempts: 150, // How many times to try placing a planet before giving up
-        baseNeutralCount: 8, // Base number of neutral planets before modifiers are applied
+        playerToNeutralDistance: 60, // minimum distance between a player planet and a new neutral planet
+        neutralToNeutralDistance: 40, // minimum distance between two neutral planets
+        neutralBorderBuffer: 10, // minimum distance from the canvas edge for neutral planets
+        maxPlacementAttempts: 150, // how many times to try placing a planet before giving up
+        baseNeutralCount: 8, // base number of neutral planets before modifiers are applied
         minNeutralSize: 15,
         maxNeutralSizeVariation: 20,
-        density: { // Min, max, and default values for the galaxy density slider
-            min: 0.5,
+        density: { // min, max, and default values for galaxy density slider
+            min: 0.6,
             max: 2.0,
-            default: 1.0,
+            default: 1.3,
         },
     },
     planet: {
-        maxTroops: 999, // The maximum number of troops a single planet can hold
-        productionFactor: 20, // Production rate is calculated as: planet.size / productionFactor. Lower is faster.
+        maxTroops: 999, // maximum number of troops a single planet can hold
+        productionFactor: 20, // production rate is planet.size/productionFactor, so lower is faster
     },
     // --- TROOPS ---
     troop: {
-        movementSpeed: 150, // Speed in pixels per second. MUST be consistent for game logic and AI.
+        movementSpeed: 150, // speed in pixels per second
     },
-    // --- AI-SPECIFICS ---
+    // --- AI ---
     ai: {
-        scoring: { // Weights for calculating the strategic value of a planet
+        scoring: { // weights for calculating strategic value of a planet
             sizeWeight: 1.5,
             productionWeight: 20,
             centralityWeight: 25,
         },
-        threat: { // Parameters for calculating the threat level to an AI's planet
+        threat: { // parameters for calculating threat level to an AI's planet
             radius: 300,
             distanceDivisor: 10,
         },
-        // NEW: Global cooldown for fairness
-        globalDecisionCooldown: 0.25, // Seconds between ANY AI being allowed to make a decision
+        globalDecisionCooldown: 0.25, // seconds between ANY AI being allowed to make a decision
     },
-    // --- UI, VISUALS, & INPUT ---
+    // --- UI & INPUT ---
     ui: {
         input: {
-            doubleClickThreshold: 300, // Time in milliseconds to detect a double-click
-            clickMoveThreshold: 5, // Mouse movement under this (in pixels) is considered a click, not a drag
-            touchMoveThreshold: 10, // Touch movement under this (in pixels) is considered a tap, not a drag
-            touchDurationThreshold: 300, // Touch duration under this (in ms) is considered a tap, not a drag
+            doubleClickThreshold: 300, // time in milliseconds to double-click
+            clickMoveThreshold: 5, // mouse movement (in pixels) under this is a click
+            touchMoveThreshold: 10, // touch movement (in pixels) under this is a tap
+            touchDurationThreshold: 300, // touch duration (in ms) under this is a tap
         },
         visuals: {
-            glow: { // Settings for the glow effect on planets
+            glow: { // glow effect on planets
                 maxIntensity: 35,
                 baseIntensity: 10,
                 intensityScalar: 2,
             },
-            troopIcon: { // Settings for the musical note troop icons
-                tier1MaxTroops: 10, // Max troops for '♩'
-                tier2MaxTroops: 100, // Max troops for '♪'
+            troopIcon: { // musical note troop icons
+                tier1MaxTroops: 9, // max troops for '♩'
+                tier2MaxTroops: 99, // max troops for '♪'
                 minFontSize: 20,
                 maxFontSize: 30,
             },
-            fallbackColor: '#888', // Fallback color for troop bar segments if a player ID is not found
+            fallbackColor: '#888', // fallback for troop bar segments if a player ID isn't found
         },
         footerSlider: {
-            defaultValue: 50, // Default position of the slider (1-100)
-            speed: { // Speed multiplier range for bot battles
+            defaultValue: 50, // default position of the slider (1-100)
+            speed: { // multiplier range for bot battles
                 min: 0.01,
                 mid: 1.0,
                 max: 4.0,
             }
         },
     },
-    // --- MENU DEFAULTS ---
+    // --- MENUS ---
     menuDefaults: {
-        playerCount: 6, // Default number of players for the setup screen
-        playerCountRange: [2, 6], // The minimum and maximum number of players allowed in a game.
+        playerCount: 6, // default number of players for setup screen
+        playerCountRange: [2, 6], // minimum and maximum number of players allowed in a game
     },
 };

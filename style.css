@@ -613,7 +613,7 @@ footer {
     padding: 0.2rem;
     justify-content: center;
     align-items: center;
-    height: 2.5rem; /* slightly taller for buttons */
+    height: 2.5rem;
 }
 footer a {
     color: inherit;
