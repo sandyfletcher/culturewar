@@ -1,15 +1,13 @@
 // ===========================================
-// assets/javascript/bots/TiffanySpuckler.js
+// assets/javascript/bots/Claude35.js - Claude 3.5's first attempt at building a bot continues to beat later iterations
 // ===========================================
-
-// Tiffany is Claude 3.5's first attempt at building a bot and it continues to beat later iterations
 
 import BaseBot from './BaseBot.js';
 
-export default class TiffanySpuckler extends BaseBot {
+export default class Claude35 extends BaseBot {
     constructor(game, playerId) {
-        super(game, playerId); // Call the parent constructor
-        this.decisionCooldown = Math.random() * 2; // Random initial cooldown
+        super(game, playerId); // call the parent constructor
+        this.decisionCooldown = Math.random() * 2; // random initial cooldown
         this.config = {
             minTroopsToLeave: 3,
             decisionInterval: 2,
@@ -17,7 +15,7 @@ export default class TiffanySpuckler extends BaseBot {
         };
     }
     makeDecision() {
-        this.decisionCooldown -= 1/60; // Approximate dt
+        this.decisionCooldown -= 1/60; // approximate dt
         if (this.decisionCooldown > 0) return null;
         this.decisionCooldown = this.config.decisionInterval + Math.random();
         const myPlanets = this.api.getMyPlanets();
