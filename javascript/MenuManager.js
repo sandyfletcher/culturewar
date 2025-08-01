@@ -8,12 +8,14 @@ import MenuBuilder from './MenuBuilder.js';
 import GameOverScreen from './GameOverScreen.js';
 import FooterManager from './FooterManager.js';
 import Game from '../game.js';
+import StatsTracker from './StatsTracker.js';
 
 export default class MenuManager {
     constructor() {
         this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
         this.footerManager = new FooterManager();
+        this.statsTracker = new StatsTracker();
         this.menuBuilder = new MenuBuilder(
             document.getElementById('menu-screen'),
             this.screenManager,
@@ -66,6 +68,7 @@ export default class MenuManager {
         return this.configManager.getConfig();
     }
     formatTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
         const minutes = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
