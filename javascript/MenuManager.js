@@ -9,7 +9,7 @@ import GameOverScreen from './GameOverScreen.js';
 import FooterManager from './FooterManager.js';
 import Game from '../game.js';
 
-class MenuManager {
+export default class MenuManager {
     constructor() {
         this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
@@ -35,23 +35,17 @@ class MenuManager {
             if (this.game && this.game.troopTracker) {
                 this.game.troopTracker.hideTroopBar();
             }
-            if (this.footerManager.sliderContainer) { // when switching to menu screen, we don't know *which* menu we're showing yet — builder will handle footer, we just need to make sure slider is gone
-                 this.footerManager.revertToDefault();
+            if (this.footerManager.sliderContainer) {
+                this.footerManager.revertToDefault();
             }
         }
     }
-    showGameOver(stats, gameInstance, onPlayAgain) {
+    showGameOver(stats, gameInstance, onPlayAgain, onBackToMenu) {
         this.game = gameInstance;
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
-        const backToMenuHandler = () => {
-            this.gameOverScreen.remove();
-            if (onPlayAgain) {
-                onPlayAgain();
-            }
-        };
-        this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
+        this.footerManager.showBackButton(onBackToMenu, '< MENUS');
         this.gameOverScreen.show(stats, gameInstance, onPlayAgain);
     }
     startGame() {
@@ -75,7 +69,4 @@ class MenuManager {
     }
 }
 
-// Initialize menu when the script loads
-const menuManager = new MenuManager();
-
-export default MenuManager;
+const menuManager = new MenuManager(); // initialize menu on script load
