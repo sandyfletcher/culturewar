@@ -100,6 +100,37 @@ export default class TroopTracker {
                     const color = this.playerColors[playerId] || config.ui.visuals.fallbackColor;
                     segment.style.backgroundColor = color;
                     segment.title = `Player ${playerId}: ${Math.round(playerTroops[playerId])} troops (${percentage.toFixed(1)}%)`;
+
+                    // Add player nickname to the segment
+                    if (playerId !== 'neutral') {
+                        const playerInfo = this.game.playersController.getPlayerById(playerId);
+                        if (playerInfo) {
+                            const nickname = window.menuManager.getPlayerDisplayName(playerInfo, this.game, true);
+                            const nameSpan = document.createElement('span');
+                            nameSpan.className = 'troop-bar-name';
+                            nameSpan.textContent = nickname;
+
+                            // Constants for dynamic font sizing and visibility
+                            const minPercentage = 5;    // Hide name if segment is less than 5% of the bar
+                            const maxPercentage = 25;   // At 25% of bar width, font size is maxed out
+                            const minFontSize = 9;      // Smallest font size in pixels
+                            const maxFontSize = 13;     // Largest font size in pixels
+
+                            if (percentage < minPercentage) {
+                                nameSpan.style.display = 'none';
+                            } else {
+                                let fontSize;
+                                if (percentage >= maxPercentage) {
+                                    fontSize = maxFontSize;
+                                } else {
+                                    // Linearly scale font size between min and max percentage
+                                    fontSize = minFontSize + (percentage - minPercentage) * (maxFontSize - minFontSize) / (maxPercentage - minPercentage);
+                                }
+                                nameSpan.style.fontSize = `${fontSize.toFixed(1)}px`;
+                            }
+                            segment.appendChild(nameSpan);
+                        }
+                    }
                     this.barSegmentsContainer.appendChild(segment);
                 }
             }

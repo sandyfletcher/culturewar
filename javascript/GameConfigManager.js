@@ -52,12 +52,17 @@ export default class GameConfigManager {
     getPlayerColors() {
         return this.playerColors;
     }
-    getPlayerDisplayName(playerData, gameInstance) { // gets display name based on the `players` array from a running game instance
+    getPlayerDisplayName(playerData, gameInstance, getNickname = false) { // gets display name based on the `players` array from a running game instance
         const configPlayer = gameInstance.config.players.find(p => p.id === playerData.id); // `playerData` can be from game instance's controller
         if (configPlayer?.type === 'human') {
-            return 'Player';
+            return getNickname ? 'PLAYER' : 'Player';
         }
-        const aiOption = this.aiOptions.find(option => option.value === playerData.aiController); // find matching AI option to get display name
-        return aiOption ? aiOption.name : playerData.aiController;
+        // For bots
+        if (getNickname) {
+            return playerData.aiController || 'BOT'; // 'value'/'nickname' is aiController string itself
+        } else {
+            const aiOption = botRegistry.find(bot => bot.value === playerData.aiController); // full display name comes from bot registry
+            return aiOption ? aiOption.name : 'Unknown Bot';
+        }
     }
 }

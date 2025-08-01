@@ -40,12 +40,18 @@ export default class MenuManager {
             }
         }
     }
-    showGameOver(stats, gameInstance, onPlayAgain, onBackToMenu) {
+    showGameOver(stats, gameInstance, onPlayAgain) {
         this.game = gameInstance;
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
-        this.footerManager.showBackButton(onBackToMenu, '< MENUS');
+        const backToMenuHandler = () => {
+            this.gameOverScreen.remove();
+            if (onPlayAgain) {
+                onPlayAgain();
+            }
+        };
+        this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
         this.gameOverScreen.show(stats, gameInstance, onPlayAgain);
     }
     startGame() {
@@ -64,8 +70,8 @@ export default class MenuManager {
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
-    getPlayerDisplayName(playerData, gameInstance) {
-        return this.configManager.getPlayerDisplayName(playerData, gameInstance);
+    getPlayerDisplayName(playerData, gameInstance, getNickname = false) {
+        return this.configManager.getPlayerDisplayName(playerData, gameInstance, getNickname);
     }
 }
 
