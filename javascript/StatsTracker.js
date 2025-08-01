@@ -143,4 +143,14 @@ export default class StatsTracker {
         
         return aggregatedList;
     }
+
+    /**
+     * Clears all stats from memory and from localStorage.
+     */
+    clearStats() {
+        this.games = {};
+        this.playerRecords = [];
+        localStorage.removeItem('cultureWarStats');
+        this.originalLog('Player stats have been cleared.');
+    }
 }

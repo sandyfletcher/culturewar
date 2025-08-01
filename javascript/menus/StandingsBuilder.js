@@ -15,7 +15,8 @@ export default class StandingsBuilder extends MenuBuilderBase {
         content.className = 'instructions-content';
         const standingsData = window.menuManager.statsTracker.getAggregatedStats();
         let leaderboardHTML;
-        if (standingsData.length === 0) {
+        let hasData = standingsData.length > 0;
+        if (!hasData) {
             leaderboardHTML = `
                 <h2>STANDINGS</h2>
                 <p style="text-align: center; opacity: 0.7; margin: 2rem 0;">
@@ -61,6 +62,19 @@ export default class StandingsBuilder extends MenuBuilderBase {
         }
         content.innerHTML = leaderboardHTML;
         menuContainer.appendChild(content);
+        if (hasData) {
+            const clearButton = document.createElement('button');
+            clearButton.id = 'clear-stats-button';
+            clearButton.className = 'menu-button'; // Reuse base styling
+            clearButton.textContent = 'Clear All Stats';
+            clearButton.addEventListener('click', () => {
+                if (window.confirm('Are you sure you want to permanently delete all game stats? This cannot be undone.')) {
+                    window.menuManager.statsTracker.clearStats();
+                    this.build(); // Re-render the screen to show the "No data" message
+                }
+            });
+            menuContainer.appendChild(clearButton);
+        }
         window.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
