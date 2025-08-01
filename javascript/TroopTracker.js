@@ -86,17 +86,17 @@ export default class TroopTracker {
                     const color = this.playerColors[playerId] || config.ui.visuals.fallbackColor;
                     segment.style.backgroundColor = color;
                     segment.title = `Player ${playerId}: ${Math.round(playerTroops[playerId])} troops (${percentage.toFixed(1)}%)`;
-                    if (playerId !== 'neutral') { // add player nickname to the segment
+                    if (playerId !== 'neutral') { // add player nickname to segment
                         const playerInfo = this.game.playersController.getPlayerById(playerId);
                         if (playerInfo) {
                             const nickname = window.menuManager.getPlayerDisplayName(playerInfo, this.game, true);
                             const nameSpan = document.createElement('span');
                             nameSpan.className = 'troop-bar-name';
                             nameSpan.textContent = nickname;
-                            const minPercentage = 7; // hide name if segment is less than 5% of bar
-                            const maxPercentage = 25; // font size maxes out at 25%, 
+                            const minPercentage = 7; // hide name if segment is less than 7% of bar
+                            const maxPercentage = 30; // font size maxes out at 25%, 
                             const minFontSize = 8; // smallest font size in pixels
-                            const maxFontSize = 14; // largest size
+                            const maxFontSize = 16; // largest size
                             if (percentage < minPercentage) {
                                 nameSpan.style.display = 'none';
                             } else {
