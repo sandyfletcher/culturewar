@@ -22,7 +22,9 @@ export default class GameOverScreen {
             const survivalTime = eliminationTimes[playerData.id] || gameTime;
             return {
                 id: playerData.id,
-                displayName: window.menuManager.getPlayerDisplayName(playerData, gameInstance),
+                // Get both the long name for the screen and the short name for logging
+                displayName: window.menuManager.getPlayerDisplayName(playerData, gameInstance, false),
+                nickname: window.menuManager.getPlayerDisplayName(playerData, gameInstance, true),
                 planets: playerStat.planets,
                 troops: Math.floor(playerStat.troops || 0),
                 survivalTime,
@@ -69,8 +71,19 @@ export default class GameOverScreen {
             `;
         });
         leaderboardHTML += `</tbody></table></div>`;
-        const leaderboardRankings = leaderboardData.map(player => player.displayName).join(', ');
-        console.log(`Match Ranking: [${leaderboardRankings}], [${window.menuManager.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
+        // --- NEW: Structured, Machine-Readable Console Logging ---
+        const gameId = Date.now(); // Unique ID for this specific match
+        // Log overall game statistics in a CSV format
+        const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
+        console.log(gameStatsLog);
+        // Log each player's final stats in a CSV format, linked by gameId
+        leaderboardData.forEach((player, index) => {
+            const rank = index + 1;
+            const survivalTime = player.survivalTime.toFixed(2); // Use raw seconds for data analysis
+            const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${player.nickname},${player.planets},${player.troops},${survivalTime}`;
+            console.log(playerStatsLog);
+        });
+        
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>

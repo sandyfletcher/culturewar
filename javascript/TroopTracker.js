@@ -93,10 +93,10 @@ export default class TroopTracker {
                             const nameSpan = document.createElement('span');
                             nameSpan.className = 'troop-bar-name';
                             nameSpan.textContent = nickname;
-                            const minPercentage = 5; // hide name if segment is less than 5% of bar
+                            const minPercentage = 7; // hide name if segment is less than 5% of bar
                             const maxPercentage = 25; // font size maxes out at 25%, 
-                            const minFontSize = 9; // smallest font size in pixels
-                            const maxFontSize = 13; // largest
+                            const minFontSize = 8; // smallest font size in pixels
+                            const maxFontSize = 14; // largest size
                             if (percentage < minPercentage) {
                                 nameSpan.style.display = 'none';
                             } else {

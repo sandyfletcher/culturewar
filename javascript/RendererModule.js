@@ -53,7 +53,7 @@ export default class Renderer {
     drawUIOverlays() {
         const ctx = this.ctx;
         const padding = 10;
-        const topY = 15; // Y position for the text from the top
+        const topY = 18; // position for text from top
         // --- Save context state ---
         const originalFont = ctx.font;
         const originalFillStyle = ctx.fillStyle;
@@ -62,7 +62,7 @@ export default class Renderer {
         const originalShadowColor = ctx.shadowColor;
         const originalShadowBlur = ctx.shadowBlur;
         // --- Set styles for UI text ---
-        ctx.font = "bold 20px 'LondrinaSketch'"; // Match the previous CSS style
+        ctx.font = "bold 20px 'LondrinaSketch'";
         ctx.fillStyle = '#FFFFFF';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';

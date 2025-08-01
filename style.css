@@ -10,6 +10,7 @@
 @font-face { font-family: 'BungeeShade'; src: url('./assets/fonts/BungeeShade.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Asset'; src: url('./assets/fonts/Asset-Regular.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'LondrinaSketch'; src: url('./assets/fonts/LondrinaSketch.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block}
 /* BASE RESET */
 * {
     margin: 0;
@@ -71,7 +72,7 @@ header h1 {
     justify-content: space-between;
     overflow: hidden;
 }
-  #troop-bar-segments {
+#troop-bar-segments {
     position: absolute;
     top: 0;
     left: 0;
@@ -79,8 +80,8 @@ header h1 {
     height: 100%;
     display: flex;
     z-index: 1;
-  }
-  .troop-bar-segment {
+}
+.troop-bar-segment {
     height: 100%;
     transition: width 0.3s ease;
     position: relative;
@@ -88,7 +89,14 @@ header h1 {
     justify-content: center;
     align-items: center;
     overflow: hidden;
-  }
+}
+.troop-bar-name {
+    color: black;
+    font-family: 'Wallpoet', monospace;
+    white-space: nowrap;
+    transition: font-size 0.3s ease;
+    user-select: none;
+}
 /* MENUS */
 #inner-container {
     position: relative;
@@ -672,15 +680,6 @@ footer a:hover {
     border: 2px solid #000;
     border-radius: 3px;
     pointer-events: none;
-}
-.troop-bar-name {
-  color: black;
-  font-family: 'LondrinaSketch', monospace;
-  font-weight: bold;
-  text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-  white-space: nowrap;
-  transition: font-size 0.3s ease;
-  user-select: none;
 }
 /* MOBILE SIZING */
 @supports (height: 100dvh) {

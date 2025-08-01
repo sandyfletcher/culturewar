@@ -16,19 +16,19 @@ export default class FooterManager {
         this.handleDragMove = this.handleDragMove.bind(this);
         this.handleDragEnd = this.handleDragEnd.bind(this);
     }
-    clearFooter() { // clears any dynamic content from footer
+    clearFooter() { // clear any dynamic content from footer
         this.footerElement.innerHTML = '';
         this.sliderContainer = null;
     }
-    showDefault() { // shows default "site by sandy" link
+    showDefault() { // "site by sandy" link
         this.clearFooter();
         this.footerElement.innerHTML = this.originalFooterHTML;
     }
-    showBackButton(onClickHandler, text = '< BACK') { // shows a functional back button
+    showBackButton(onClickHandler, text = '< BACK') { // functional back button
         this.clearFooter();
         const backButton = document.createElement('button');
         backButton.id = 'footer-back-button';
-        backButton.innerHTML = text; // Use text parameter
+        backButton.innerHTML = text; // use text parameter
         backButton.addEventListener('click', onClickHandler);
         this.footerElement.appendChild(backButton);
     }
