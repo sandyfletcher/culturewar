@@ -97,6 +97,7 @@ export default class GameState {
         };
         if (window.menuManager) {
             const playAgainCallback = () => {
+                window.menuManager.menuBuilder.buildMainMenu();
                 window.menuManager.switchToScreen('menu');
             };
             window.menuManager.showGameOver(stats, this.game, playAgainCallback);

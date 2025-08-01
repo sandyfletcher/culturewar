@@ -24,11 +24,11 @@ export default class FooterManager {
         this.clearFooter();
         this.footerElement.innerHTML = this.originalFooterHTML;
     }
-    showBackButton(onClickHandler) { // shows a functional back button
+    showBackButton(onClickHandler, text = '< BACK') { // shows a functional back button
         this.clearFooter();
         const backButton = document.createElement('button');
         backButton.id = 'footer-back-button';
-        backButton.innerHTML = '< BACK'; // Use HTML entity for '<'
+        backButton.innerHTML = text; // Use text parameter
         backButton.addEventListener('click', onClickHandler);
         this.footerElement.appendChild(backButton);
     }

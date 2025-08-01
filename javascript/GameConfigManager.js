@@ -20,13 +20,16 @@ export default class GameConfigManager {
     }
     setPlayerCount(count) { // central method to set total number of players, resizing players array to preserve existing settings where possible
         const newPlayers = [];
-        const defaultAI = config.player.defaultAIValue;
+        // Get all available AI controller values from the options
+        const availableBots = this.aiOptions.map(opt => opt.value);
         for (let i = 0; i < count; i++) {
             const playerId = `player${i + 1}`;
             if (this.gameConfig.players[i]) { // if a player already exists at this index, keep their settings
                 newPlayers.push({ ...this.gameConfig.players[i], id: playerId });
-            } else { // otherwise, create a default player configuration
-                newPlayers.push({ id: playerId, type: 'bot', aiController: defaultAI });
+            } else { // otherwise, create a default player configuration with a random bot
+                const randomBotIndex = Math.floor(Math.random() * availableBots.length);
+                const randomAIController = availableBots[randomBotIndex];
+                newPlayers.push({ id: playerId, type: 'bot', aiController: randomAIController });
             }
         }
         this.gameConfig.players = newPlayers;

@@ -92,7 +92,7 @@ export const config = {
     },
     // --- MENU DEFAULTS ---
     menuDefaults: {
-        playerCount: 3, // Default number of players for the setup screen
+        playerCount: 6, // Default number of players for the setup screen
         playerCountRange: [2, 6], // The minimum and maximum number of players allowed in a game.
     },
 };

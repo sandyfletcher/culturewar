@@ -45,7 +45,13 @@ class MenuManager {
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
-        this.footerManager.revertToDefault();
+        const backToMenuHandler = () => {
+            this.gameOverScreen.remove();
+            if (onPlayAgain) {
+                onPlayAgain();
+            }
+        };
+        this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
         this.gameOverScreen.show(stats, gameInstance, onPlayAgain);
     }
     startGame() {
