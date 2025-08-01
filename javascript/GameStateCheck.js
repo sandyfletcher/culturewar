@@ -96,19 +96,18 @@ export default class GameState {
             hasHumanPlayer: this.game.humanPlayerIds.length > 0
         };
         if (window.menuManager) {
-            // Define two distinct callbacks for the two different actions.
-            const playAgainCallback = () => {
-                // This goes to the Game Setup screen. The config is already saved.
+            // Callback for the 'PLAY AGAIN' button: returns to the game setup screen.
+            const onPlayAgain = () => {
                 window.menuManager.menuBuilder.buildGameSetup();
                 window.menuManager.switchToScreen('menu');
             };
-            const backToMenuCallback = () => {
-                // This goes to the Main Menu screen.
+            // Callback for the '< MENUS' button: returns to the main menu.
+            const onBackToMenu = () => {
                 window.menuManager.menuBuilder.buildMainMenu();
                 window.menuManager.switchToScreen('menu');
             };
-            // Pass both callbacks to the manager.
-            window.menuManager.showGameOver(stats, this.game, playAgainCallback, backToMenuCallback);
+            // Pass both distinct callbacks to the manager.
+            window.menuManager.showGameOver(stats, this.game, onPlayAgain, onBackToMenu);
         } else {
             console.error("MenuManager not found.");
         }

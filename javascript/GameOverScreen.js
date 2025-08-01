@@ -7,7 +7,7 @@ export default class GameOverScreen {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
         this.gameOverScreen = null;
     }
-    show(stats, gameInstance, onPlayAgain) {
+    show(stats, gameInstance, onPlayAgainCallback) {
         this.remove();
         this.gameOverScreen = document.createElement('div');
         this.gameOverScreen.id = 'game-over-screen';
@@ -103,8 +103,8 @@ export default class GameOverScreen {
         this.parentContainer.appendChild(this.gameOverScreen);
         document.getElementById('play-again-button').addEventListener('click', () => {
             this.remove();
-            if (onPlayAgain) {
-                onPlayAgain();
+            if (onPlayAgainCallback) {
+                onPlayAgainCallback();
             }
         });
     }

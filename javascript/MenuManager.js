@@ -40,15 +40,15 @@ export default class MenuManager {
             }
         }
     }
-    showGameOver(stats, gameInstance, onPlayAgain) {
+    showGameOver(stats, gameInstance, onPlayAgain, onBackToMenu) {
         this.game = gameInstance;
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
         const backToMenuHandler = () => {
             this.gameOverScreen.remove();
-            if (onPlayAgain) {
-                onPlayAgain();
+            if (onBackToMenu) {
+                onBackToMenu();
             }
         };
         this.footerManager.showBackButton(backToMenuHandler, '< MENUS');

@@ -16,6 +16,7 @@ export default class TroopTracker {
         this.troopBarContainer.style.display = 'none';
         this.headerContainer.appendChild(this.troopBarContainer);
         this.playerColors = this.game.playersController.playerColors;
+        this.lastTotalTroops = 0;
     }
     cleanupExistingBars() {
         const existingBars = document.querySelectorAll('#troop-bar-container');
@@ -34,26 +35,13 @@ export default class TroopTracker {
     createBarLayout() {
         const barElement = document.createElement('div');
         barElement.id = 'troop-bar';
-        const leftColumn = document.createElement('div');
-        leftColumn.className = 'troop-column left-column';
-        this.troopCountElement = document.createElement('div');
-        this.troopCountElement.id = 'total-troops-count';
-        leftColumn.appendChild(this.troopCountElement);
-        const rightColumn = document.createElement('div');
-        rightColumn.className = 'troop-column right-column';
-        const timerElement = document.createElement('div');
-        timerElement.id = 'game-timer';
-        rightColumn.appendChild(timerElement);
-        barElement.appendChild(leftColumn);
-        barElement.appendChild(rightColumn);
         this.barSegmentsContainer = document.createElement('div');
         this.barSegmentsContainer.id = 'troop-bar-segments';
         barElement.appendChild(this.barSegmentsContainer);
         this.troopBarContainer.innerHTML = '';
         this.troopBarContainer.appendChild(barElement);
-        if (this.game.timerManager) {
-            this.game.timerManager.timerElement = timerElement;
-            this.game.timerManager.updateDisplay();
+        if (this.game.timerManager) { // ensure timerManager doesn't hold reference to non-existent element
+            this.game.timerManager.timerElement = null;
         }
     }
     hideTroopBar() {
@@ -83,9 +71,7 @@ export default class TroopTracker {
             playerTroops[movement.owner] += movement.amount;
             totalTroops += movement.amount;
         }
-        if (this.troopCountElement) {
-            this.troopCountElement.textContent = `${Math.round(totalTroops)}`;
-        }
+        this.lastTotalTroops = totalTroops; // store calculated total for renderer
         if (this.barSegmentsContainer) {
             this.barSegmentsContainer.innerHTML = '';
             const orderedPlayerIds = [
@@ -100,30 +86,24 @@ export default class TroopTracker {
                     const color = this.playerColors[playerId] || config.ui.visuals.fallbackColor;
                     segment.style.backgroundColor = color;
                     segment.title = `Player ${playerId}: ${Math.round(playerTroops[playerId])} troops (${percentage.toFixed(1)}%)`;
-
-                    // Add player nickname to the segment
-                    if (playerId !== 'neutral') {
+                    if (playerId !== 'neutral') { // add player nickname to the segment
                         const playerInfo = this.game.playersController.getPlayerById(playerId);
                         if (playerInfo) {
                             const nickname = window.menuManager.getPlayerDisplayName(playerInfo, this.game, true);
                             const nameSpan = document.createElement('span');
                             nameSpan.className = 'troop-bar-name';
                             nameSpan.textContent = nickname;
-
-                            // Constants for dynamic font sizing and visibility
-                            const minPercentage = 5;    // Hide name if segment is less than 5% of the bar
-                            const maxPercentage = 25;   // At 25% of bar width, font size is maxed out
-                            const minFontSize = 9;      // Smallest font size in pixels
-                            const maxFontSize = 13;     // Largest font size in pixels
-
+                            const minPercentage = 5; // hide name if segment is less than 5% of bar
+                            const maxPercentage = 25; // font size maxes out at 25%, 
+                            const minFontSize = 9; // smallest font size in pixels
+                            const maxFontSize = 13; // largest
                             if (percentage < minPercentage) {
                                 nameSpan.style.display = 'none';
                             } else {
                                 let fontSize;
                                 if (percentage >= maxPercentage) {
                                     fontSize = maxFontSize;
-                                } else {
-                                    // Linearly scale font size between min and max percentage
+                                } else { // linearly scale font size between min and maxpercentage
                                     fontSize = minFontSize + (percentage - minPercentage) * (maxFontSize - minFontSize) / (maxPercentage - minPercentage);
                                 }
                                 nameSpan.style.fontSize = `${fontSize.toFixed(1)}px`;

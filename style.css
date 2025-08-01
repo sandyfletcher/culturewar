@@ -71,33 +71,6 @@ header h1 {
     justify-content: space-between;
     overflow: hidden;
 }
-.troop-column {
-    width: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2;
-    position: relative;
-  }
-#total-troops-count {
-    font-size: 1rem;
-    font-family: 'LondrinaSketch', monospace;
-    color: black;
-    position: absolute;
-    z-index: 10;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: bold;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-}
-#game-timer {
-    font-family: 'LondrinaSketch', monospace;
-    color: black;
-    font-weight: bold;
-    font-size: 1rem;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
-  }
   #troop-bar-segments {
     position: absolute;
     top: 0;
