@@ -2,7 +2,7 @@
 // root/javascript/PlanetGeneratorModule.js
 // ===========================================================
 
-import { Planet } from './PlanetAndTroops.js';
+import Planet from './Planet.js';
 import { config } from './config.js';
 
 export default class PlanetGeneration {

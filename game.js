@@ -1,4 +1,9 @@
-import { Planet, TroopMovement } from './javascript/PlanetAndTroops.js';
+// ===========================================
+// root/game.js
+// ===========================================
+
+import Planet from './javascript/Planet.js';
+import TroopMovement from './javascript/TroopMovement.js';
 import InputHandler from './javascript/InputHandlerModule.js';
 import Renderer from './javascript/RendererModule.js';
 import GameState from './javascript/GameStateCheck.js';

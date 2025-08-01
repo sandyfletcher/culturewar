@@ -1,5 +1,5 @@
 // ===========================================
-// assets/javascript/bots/Claude35b.js
+// root/javascript/bots/Claude35b.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';

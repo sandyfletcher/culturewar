@@ -1,5 +1,5 @@
 // ===========================================
-// assets/javascript/bots/Gemini20a.js
+// root/javascript/bots/Gemini20a.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';

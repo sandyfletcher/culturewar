@@ -534,7 +534,7 @@ header h1 {
     white-space: nowrap;
 }
 .leaderboard .winner td {
-    background-color: rgba(255, 204, 0, 0.2); /* A faint gold/yellow */
+    background-color: rgba(255, 204, 0, 0.2);
     color: #ffcc00;
     font-weight: bold;
 }
@@ -607,7 +607,7 @@ footer {
     padding: 0.2rem;
     justify-content: center;
     align-items: center;
-    height: 2.5rem; /* MODIFIED: Made slightly taller for buttons */
+    height: 2.5rem; /* slightly taller for buttons */
 }
 footer a {
     color: inherit;
@@ -616,8 +616,6 @@ footer a {
 footer a:hover {
     text-decoration: none;
 }
-
-/* NEW: Style for the footer back button */
 #footer-back-button {
     background: none;
     border: none;
@@ -633,7 +631,6 @@ footer a:hover {
     color: #ffaa00;
     transform: scale(1.1);
 }
-/* FOOTER SLIDER */
 #footer-slider-container {
     position: relative;
     display: flex;
@@ -657,7 +654,7 @@ footer a:hover {
     font-family: 'LondrinaSketch', monospace;
     font-weight: bold;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-    pointer-events: none; /* Critical: allows clicks to pass through to the track */
+    pointer-events: none; /* allows clicks to pass through to the track */
 }
 .slider-text.label {
     left: 10px;
@@ -683,13 +680,13 @@ footer a:hover {
     left: 0;
     height: 100%;
     background-color: #ffff00;
-    width: 50%; /* Default */
+    width: 50%;
     border-radius: 5px 0 0 5px;
 }
 #slider-thumb {
     position: absolute;
     top: 50%;
-    left: 50%; /* Default */
+    left: 50%;
     width: 6px;
     height: 18px;
     background-color: #fff;

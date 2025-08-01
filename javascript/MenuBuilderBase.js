@@ -1,6 +1,8 @@
-// assets/javascript/MenuBuilderBase.js - shared functionality for menu builders
+// ===========================================
+// root/javascript/MenuBuilderBase.js
+// ===========================================
 
-class MenuBuilderBase {
+export default class MenuBuilderBase {
     constructor(container, screenManager, configManager) {
         this.container = container;
         this.screenManager = screenManager;
@@ -14,5 +16,3 @@ class MenuBuilderBase {
         return menuContainer;
     }
 }
-
-export default MenuBuilderBase;
