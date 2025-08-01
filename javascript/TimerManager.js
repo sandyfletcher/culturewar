@@ -38,8 +38,7 @@ export default class TimerManager {
         const now = Date.now();
         const dt = (now - this.lastUpdate) / 1000;
         this.lastUpdate = now;
-        // Only update time if the game is active
-        if (this.game.isActive) {
+        if (this.game.isActive) { // TODO: only update time if the game is active?
             this.timeRemaining = Math.max(0, this.timeRemaining - (dt * speedMultiplier));
         }
         this.updateDisplay();

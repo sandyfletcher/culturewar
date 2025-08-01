@@ -31,7 +31,7 @@ export default class TroopMovement {
             y: this.startY + this.dy * easedProgress
         };
     }
-    draw(ctx) { // draw the troop movement
+    draw(ctx) { // draw troop movement
         const pos = this.getCurrentPosition();
         ctx.beginPath(); // draw movement trail
         ctx.moveTo(this.startX, this.startY);

@@ -2,53 +2,32 @@
 // root/javascript/StatsTracker.js
 // ===========================================
 
-/**
- * A singleton class to intercept game stat logs, parse them,
- * and persist them in localStorage for aggregation.
- */
-export default class StatsTracker {
+export default class StatsTracker { // singleton class to intercept game stat logs, parse them, and persist them in localStorage for aggregation
     constructor() {
-        // Ensure only one instance of StatsTracker exists
-        if (StatsTracker.instance) {
+        if (StatsTracker.instance) { // ensure only one instance of StatsTracker exists
             return StatsTracker.instance;
         }
-
         this.games = {};
         this.playerRecords = [];
         this.loadFromLocalStorage();
-
-        // Monkey-patch console.log to intercept our structured logs
-        this.originalLog = console.log.bind(console);
+        this.originalLog = console.log.bind(console); // monkey-patch console.log to intercept structured logs
         this.overrideConsoleLog();
-
         StatsTracker.instance = this;
     }
-
-    /**
-     * Replaces the global console.log with a function that checks for
-     * our specific stat formats before passing the log to the original function.
-     */
-    overrideConsoleLog() {
+    overrideConsoleLog() { // replaces global console.log with a function that checks for our specific stat formats before passing log to original function
         console.log = (...args) => {
             if (typeof args[0] === 'string') {
                 if (args[0].startsWith('[GAME_STATS]') || args[0].startsWith('[PLAYER_STATS]')) {
                     this.parseAndStore(args[0]);
                 }
             }
-            // Call the original console.log so we don't lose any debug info
-            this.originalLog(...args);
+            this.originalLog(...args); // call original console.log so we don't lose any debug info
         };
     }
-
-    /**
-     * Parses a structured log string and stores the data.
-     * @param {string} logLine - The CSV-formatted log line.
-     */
-    parseAndStore(logLine) {
+    parseAndStore(logLine) { // parses a structured log string and stores the data
         const parts = logLine.split(',');
         const type = parts[0];
         const gameId = parts[1];
-
         if (type === '[GAME_STATS]') {
             this.games[gameId] = {
                 id: gameId,
@@ -69,11 +48,7 @@ export default class StatsTracker {
         }
         this.saveToLocalStorage();
     }
-
-    /**
-     * Loads all historical stats data from localStorage.
-     */
-    loadFromLocalStorage() {
+    loadFromLocalStorage() { // loads all historical stats data from localStorage
         try {
             const storedData = localStorage.getItem('cultureWarStats');
             if (storedData) {
@@ -87,11 +62,7 @@ export default class StatsTracker {
             this.playerRecords = [];
         }
     }
-
-    /**
-     * Saves the current stats data to localStorage.
-     */
-    saveToLocalStorage() {
+    saveToLocalStorage() { // saves current stats data to localStorage
         try {
             const dataToStore = JSON.stringify({
                 games: this.games,
@@ -102,17 +73,9 @@ export default class StatsTracker {
             this.originalLog('Error saving stats to localStorage:', error);
         }
     }
-
-    /**
-     * Processes all stored player records to calculate aggregate stats
-     * like win rate and average survival time for each combatant.
-     * @returns {Array} An array of objects, each containing the aggregated stats for a player.
-     */
-    getAggregatedStats() {
+    getAggregatedStats() { // processes all stored player records to calculate aggregate stats like winrate and average survival time
         const statsByPlayer = {};
-
-        // Aggregate data from all recorded games
-        for (const record of this.playerRecords) {
+        for (const record of this.playerRecords) { // aggregate data from all recorded games
             if (!statsByPlayer[record.nickname]) {
                 statsByPlayer[record.nickname] = {
                     nickname: record.nickname,
@@ -128,26 +91,17 @@ export default class StatsTracker {
                 playerStat.wins++;
             }
         }
-
-        // Calculate final percentages and averages
-        const aggregatedList = Object.values(statsByPlayer).map(player => {
+        const aggregatedList = Object.values(statsByPlayer).map(player => { // calculate final percentages and averages
             return {
                 ...player,
                 winRate: (player.wins / player.gamesPlayed) * 100,
                 avgSurvival: player.totalSurvivalTime / player.gamesPlayed,
             };
         });
-
-        // Sort by win rate (descending) as the primary ranking metric
-        aggregatedList.sort((a, b) => b.winRate - a.winRate);
-        
+        aggregatedList.sort((a, b) => b.winRate - a.winRate); // sort by win rate (descending) as primary ranking metric
         return aggregatedList;
     }
-
-    /**
-     * Clears all stats from memory and from localStorage.
-     */
-    clearStats() {
+    clearStats() { // clears all stats from memory and from localStorage
         this.games = {};
         this.playerRecords = [];
         localStorage.removeItem('cultureWarStats');

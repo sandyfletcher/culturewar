@@ -20,7 +20,8 @@ export default class StandingsBuilder extends MenuBuilderBase {
             leaderboardHTML = `
                 <h2>STANDINGS</h2>
                 <p style="text-align: center; opacity: 0.7; margin: 2rem 0;">
-                    No game data found. Play a few matches to see statistics here!
+                    No game data found.<br>
+                    Play a few matches to populate the table!
                 </p>
             `;
         } else {
@@ -40,9 +41,6 @@ export default class StandingsBuilder extends MenuBuilderBase {
             });
             leaderboardHTML = `
                 <h2>STANDINGS</h2>
-                <p style="text-align: center; opacity: 0.7; margin-bottom: 1rem;">
-                    Live statistics from all recorded games.
-                </p>
                 <div class="leaderboard">
                     <table>
                         <thead>
@@ -65,12 +63,12 @@ export default class StandingsBuilder extends MenuBuilderBase {
         if (hasData) {
             const clearButton = document.createElement('button');
             clearButton.id = 'clear-stats-button';
-            clearButton.className = 'menu-button'; // Reuse base styling
+            clearButton.className = 'menu-button'; // reuse base styling
             clearButton.textContent = 'Clear All Stats';
             clearButton.addEventListener('click', () => {
-                if (window.confirm('Are you sure you want to permanently delete all game stats? This cannot be undone.')) {
+                if (window.confirm('Are you sure you want to permanently delete all game stats?')) {
                     window.menuManager.statsTracker.clearStats();
-                    this.build(); // Re-render the screen to show the "No data" message
+                    this.build(); // re-render screen to show "no data" message
                 }
             });
             menuContainer.appendChild(clearButton);

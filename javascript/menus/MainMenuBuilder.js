@@ -24,19 +24,19 @@ export default class MainMenuBuilder extends MenuBuilderBase {
             { 
                 id: 'combatants', 
                 name: 'COMBATANTS', 
-                description: 'view the available AI bots',
+                description: 'view the available bots',
                 handler: () => this.parentBuilder.buildCombatantsScreen()
             },
             { 
                 id: 'standings', 
                 name: 'STANDINGS', 
-                description: 'view bot rankings (coming soon)',
+                description: 'track bot rankings',
                 handler: () => this.parentBuilder.buildStandingsScreen()
             },
             { 
                 id: 'creategame',
                 name: 'CREATE GAME',
-                description: 'configure and start a new game',
+                description: 'configure and start game',
                 handler: () => this.parentBuilder.buildGameSetup(),
                 primary: true 
             },

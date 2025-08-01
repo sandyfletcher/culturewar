@@ -73,8 +73,8 @@ export const config = {
                 intensityScalar: 2,
             },
             troopIcon: { // musical note troop icons
-                tier1MaxTroops: 9, // max troops for '♩'
-                tier2MaxTroops: 99, // max troops for '♪'
+                tier1MaxTroops: 10, // max troops for '♩'
+                tier2MaxTroops: 100, // max troops for '♪'
                 minFontSize: 20,
                 maxFontSize: 30,
             },
