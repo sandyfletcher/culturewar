@@ -28,7 +28,6 @@ export default class InstructionsBuilder extends MenuBuilderBase {
                 <ul>
                     <li><strong>Box:</strong> Click and drag to create a box - any planets you control touching the box will be selected</li>
                     <li><strong>Double-Click:</strong> Double-click a planet you control to select all planets you control</li>
-                    <li><strong>Right-Click:</strong> Cancel current troop selection (can also left-click any blank space)</li>
                 </ul>
                 <h3>GAMEPLAY</h3>
                 <p>Neutral planets have a set number of troops, but player-controlled planets generate new troops continuously relative to their size.</p>

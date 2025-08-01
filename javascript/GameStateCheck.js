@@ -13,6 +13,7 @@ export default class GameState {
         this.troopsSent = 0;
         this.troopsLost = 0;
         this.planetsConquered = 0;
+        this.elapsedGameTime = 0;
         this.eliminationTimes = {};
         this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
@@ -25,18 +26,19 @@ export default class GameState {
     }
     update(dt, speedMultiplier = 1.0) {
         if (this.gameOver) return;
+        const scaledDt = dt * speedMultiplier; // You already have this in game.js, but good to have here too
+        this.elapsedGameTime += scaledDt; // Increment by scaled time
         const timeRemaining = this.game.timerManager.getTimeRemaining();
-        this.checkPlayerEliminations(dt * speedMultiplier); // pass scaled delta time to elimination check for accurate timing
+        this.checkPlayerEliminations(); // No longer needs dt
         this.checkWinConditions(timeRemaining);
         this.checkHumanPlayerStatus(); // check if human players are all out to switch footer mode
     }
-    checkPlayerEliminations(scaledDt) { // pass scaled delta time for accurate time tracking
-        const currentTime = (Date.now() - this.startTime) / 1000; // use a static start time and add scaled delta time
+    checkPlayerEliminations() {
         for (const playerId of this.activePlayers) {
             if (playerId === 'neutral') continue;
             const hasResources = this.game.playersController.hasPlayerPlanets(playerId) || this.game.playersController.hasPlayerTroopsInMovement(playerId);
             if (!hasResources && !this.eliminationTimes[playerId]) {
-                this.eliminationTimes[playerId] = currentTime;
+                this.eliminationTimes[playerId] = this.elapsedGameTime;
                 this.activePlayers.delete(playerId);
             }
         }

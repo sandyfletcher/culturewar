@@ -7,7 +7,7 @@ import PlanetGeneration from './javascript/PlanetGeneratorModule.js';
 import TroopTracker from './javascript/TroopTracker.js';
 import TimerManager from './javascript/TimerManager.js';
 
-class Game {
+export default class Game {
     constructor(gameConfig, footerManager = null) {
         console.log(`Game Launched: Players: ${gameConfig.players.length}`);
         this.canvas = document.getElementById('game-canvas');
@@ -103,18 +103,24 @@ class Game {
     processTroopArrival(movement) {
         const targetPlanet = movement.to;
         if (targetPlanet.owner === movement.owner) {
-            targetPlanet.troops += movement.amount;
-        } else {
-            const previousTroops = targetPlanet.troops;
-            targetPlanet.troops -= movement.amount;
-            const defenderLosses = Math.min(previousTroops, movement.amount);
-            const attackerLosses = targetPlanet.troops < 0 ? 0 : movement.amount;
-            this.gameState.incrementTroopsLost(defenderLosses);
-            this.gameState.incrementTroopsLost(attackerLosses);
-            if (targetPlanet.troops < 0) {
+            targetPlanet.troops += movement.amount; // reinforcement, add troops
+        } else { // attack, time for battle!
+            const defenderTroops = targetPlanet.troops;
+            const attackerTroops = movement.amount;
+            targetPlanet.troops -= attackerTroops;
+            if (targetPlanet.troops < 0) { // attacker wins
+                const attackerLosses = defenderTroops; // attackers lose as many as defenders had
+                const defenderLosses = defenderTroops; // all defenders are lost
+                this.gameState.incrementTroopsLost(attackerLosses);
+                this.gameState.incrementTroopsLost(defenderLosses);
                 targetPlanet.owner = movement.owner;
-                targetPlanet.troops = Math.abs(targetPlanet.troops);
+                targetPlanet.troops = Math.abs(targetPlanet.troops); // remaining attacker troops
                 this.gameState.incrementPlanetsConquered();
+            } else { // defender wins (or it's a draw and defender holds)
+                const attackerLosses = attackerTroops; // all attackers are lost
+                const defenderLosses = attackerTroops; // defenders lose as many as attackers sent
+                this.gameState.incrementTroopsLost(attackerLosses);
+                this.gameState.incrementTroopsLost(defenderLosses);
             }
         }
     }
@@ -138,5 +144,3 @@ class Game {
         }
     }
 }
-
-export default Game;

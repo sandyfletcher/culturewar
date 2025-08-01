@@ -56,7 +56,7 @@ export default class GameOverScreen {
         `;
         leaderboardData.forEach((player, index) => {
             const rank = index + 1;
-            const formattedTime = this.formatTime(player.survivalTime);
+            const formattedTime = window.menuManager.formatTime(player.survivalTime);
             const rowClass = player.isWinner ? 'winner' : '';
             leaderboardHTML += `
                 <tr class="${rowClass}">
