@@ -7,7 +7,6 @@ import BaseBot from './BaseBot.js';
 export default class Gemini25b extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.name = 'Gemini 2.5 B';
         this.config = {
             // --- Phase Timings (in game seconds) ---
             openingPhaseEnd: 60, // The first minute is the 'Opening'
