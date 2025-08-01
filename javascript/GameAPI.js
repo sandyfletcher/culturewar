@@ -1,17 +1,15 @@
-// assets/javascript/GameAPI.js
-import { config } from './config.js'; // <-- IMPORT THE NEW CONFIG
+// ===========================================
+// root/javascript/GameAPI.js
+// ===========================================
 
-/**
- * Provides a unified, read-only API for AI agents to interact with the game state.
- * An instance of this class is provided to each AI, scoped to its specific player ID.
- */
-export default class GameAPI {
+import { config } from './config.js';
+
+export default class GameAPI { // provides a unified, read-only API for bots to interact with the game state
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
         this.canvas = game.canvas;
-        // Get troop speed from the central config to ensure it's always in sync
-        this.troopMovementSpeed = config.troop.movementSpeed;
+        this.troopMovementSpeed = config.troop.movementSpeed; // get troop speed from central config to ensure it's always in sync
     }
 
     // --- My Player Data ---
@@ -169,7 +167,6 @@ export default class GameAPI {
      */
     calculateThreat(myPlanet) {
         if (myPlanet.owner !== this.playerId) return 0;
-        
         let threat = 0;
         // Threat from nearby enemy planets
         for (const enemy of this.getEnemyPlanets()) {
@@ -178,11 +175,9 @@ export default class GameAPI {
                 threat += enemy.troops / (distance + config.ai.threat.distanceDivisor);
             }
         }
-
         // Threat from incoming attacks
         const incomingAttacks = this.getIncomingAttacks(myPlanet);
         threat += incomingAttacks.reduce((sum, attack) => sum + attack.amount, 0);
-
         return threat;
     }
 

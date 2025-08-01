@@ -1,16 +1,16 @@
-// menus/StandingsBuilder.js
+// ===========================================
+// root/javascript/menus/StandingsBuilder.js
+// ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
-class StandingsBuilder extends MenuBuilderBase {
+export default class StandingsBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager) {
         super(container, screenManager, configManager);
         this.parentBuilder = parentBuilder;
     }
-
     build() {
         const menuContainer = this.createMenuContainer();
-        
         const content = document.createElement('div');
         content.className = 'instructions-content';
         content.innerHTML = `
@@ -19,7 +19,6 @@ class StandingsBuilder extends MenuBuilderBase {
                 Note: Live stats are a future feature. The data below is for demonstration only.
             </p>
         `;
-
         const leaderboardHTML = `
             <div class="leaderboard">
                 <table>
@@ -43,17 +42,11 @@ class StandingsBuilder extends MenuBuilderBase {
                 </table>
             </div>
         `;
-        
         content.innerHTML += leaderboardHTML;
         menuContainer.appendChild(content);
-
-        // NEW: Set the footer to be a back button.
         window.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
-        
         return menuContainer;
     }
 }
-
-export default StandingsBuilder;

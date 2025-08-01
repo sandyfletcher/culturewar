@@ -1,12 +1,15 @@
+// ===========================================
+// root/javascript/InputHandlerModule.js
+// ===========================================
+
 import { config } from './config.js';
 
 export default class InputHandler {
-    // MODIFIED: Constructor now accepts an array of human player IDs.
     constructor(game, footerManager, humanPlayerIds) {
         this.game = game;
         this.canvas = game.canvas;
         this.footerManager = footerManager;
-        this.humanPlayerIds = humanPlayerIds; // NEW: Store the list of human players.
+        this.humanPlayerIds = humanPlayerIds;
         this.mousePos = { x: 0, y: 0 };
         this.isSelecting = false;
         this.selectionStart = { x: 0, y: 0 };
@@ -15,7 +18,6 @@ export default class InputHandler {
         this.lastClickedPlanet = null;
         this.lastClickTime = 0;
         this.doubleClickTimeThreshold = config.ui.input.doubleClickThreshold;
-        
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
@@ -59,10 +61,8 @@ export default class InputHandler {
             this.handleClick(e);
             return;
         }
-        
         this.processSelectionBox();
     }
-
     handleTouchStart(e) {
         if (this.game.gameOver) return;
         e.preventDefault();
@@ -117,8 +117,7 @@ export default class InputHandler {
         const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
         const bottom = Math.max(this.selectionStart.y, this.selectionEnd.y);
         this.game.clearSelection();
-
-        // MODIFIED: Find all planets belonging to ANY human player within the selection box.
+        // MODIFIED: Find all planets belonging to ANY human player within the selection box... DOUBLE CHECK THIS??
         for (const planet of this.game.planets) {
             if (this.humanPlayerIds.includes(planet.owner)) {
                 if (planet.x + planet.size >= left && 
@@ -137,15 +136,12 @@ export default class InputHandler {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         const clickedPlanet = this.game.planets.find(planet => planet.containsPoint(x, y));
-        
         if (!clickedPlanet) {
             this.game.clearSelection();
             return;
         }
-        
         // MODIFIED: Check if the clicked planet is owned by a human.
         const isHumanPlanet = this.humanPlayerIds.includes(clickedPlanet.owner);
-
         // Check for double-click on a human's planet
         const now = Date.now();
         if (isHumanPlanet && 
@@ -157,10 +153,8 @@ export default class InputHandler {
             this.lastClickTime = 0;
             return;
         }
-        
         this.lastClickedPlanet = clickedPlanet;
         this.lastClickTime = now;
-        
         if (this.game.selectedPlanets.length > 0 && !this.game.selectedPlanets.includes(clickedPlanet)) {
             // MODIFIED: Ensure all selected planets belong to a human player.
             if (this.game.selectedPlanets.every(p => this.humanPlayerIds.includes(p.owner))) {
@@ -181,7 +175,6 @@ export default class InputHandler {
             this.game.selectedPlanets = [clickedPlanet];
         }
     }
-    
     selectAllPlayerPlanets(playerId) {
         this.game.clearSelection();
         for (const planet of this.game.planets) {
@@ -191,7 +184,6 @@ export default class InputHandler {
             }
         }
     }
-
     getSelectionBox() {
         if (!this.isSelecting) return null;
         return {

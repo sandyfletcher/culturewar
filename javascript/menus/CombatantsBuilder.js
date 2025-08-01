@@ -1,4 +1,6 @@
-// menus/CombatantsBuilder.js
+// ===========================================
+// root/javascript/menus/CombatantsBuilder.js
+// ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
 import botRegistry from '../bots/index.js';

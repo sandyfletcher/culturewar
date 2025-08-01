@@ -1,20 +1,19 @@
-// menus/MainMenuBuilder.js
+// ===========================================
+// root/javascript/menus/MainMenuBuilder.js
+// ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
-class MainMenuBuilder extends MenuBuilderBase {
+export default class MainMenuBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager) {
         super(container, screenManager, configManager);
         this.parentBuilder = parentBuilder;
     }
     build() {
-        // NEW: When the main menu is built, ensure the footer is set to default.
-        window.menuManager.footerManager.showDefault();
-
+        window.menuManager.footerManager.showDefault(); // when main menu is built, ensure footer is set to default
         const menuContainer = this.createMenuContainer();
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';
-        
         const options = [
             { 
                 id: 'instructions', 
@@ -42,16 +41,13 @@ class MainMenuBuilder extends MenuBuilderBase {
                 primary: true 
             },
         ];
-        
         options.forEach(option => {
             const modeButton = document.createElement('div');
             modeButton.className = 'game-mode-button';
             modeButton.dataset.mode = option.id;
-            
             if (option.primary) {
                 modeButton.classList.add('primary-action');
             }
-
             modeButton.innerHTML = `
                 <h3>${option.name}</h3>
                 <p>${option.description}</p>
@@ -63,5 +59,3 @@ class MainMenuBuilder extends MenuBuilderBase {
         return menuContainer;
     }
 }
-
-export default MainMenuBuilder;

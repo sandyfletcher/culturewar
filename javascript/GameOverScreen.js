@@ -1,30 +1,27 @@
-class GameOverScreen {
+// ===========================================
+// root/javascript/GameOverScreen.js
+// ===========================================
+
+export default class GameOverScreen {
     constructor(parentContainer) {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
         this.gameOverScreen = null;
     }
-    
     show(stats, gameInstance) {
         this.remove();
-        
         this.gameOverScreen = document.createElement('div');
         this.gameOverScreen.id = 'game-over-screen';
-        
         const playerStats = gameInstance.playersController.getPlayerStats()
             .filter(player => player.id !== 'neutral');
-        
         const allPlayersData = gameInstance.playersController.players;
         const eliminationTimes = gameInstance.gameState.eliminationTimes || {};
         const gameTime = stats.time;
-        
         const leaderboardData = allPlayersData.map(playerData => {
             const playerStat = playerStats.find(p => p.id === playerData.id) || { planets: 0, troops: 0 };
             const isWinner = playerData.id === stats.winner;
             const survivalTime = eliminationTimes[playerData.id] || gameTime;
-            
             return {
                 id: playerData.id,
-                // MODIFIED: Call the helper on MenuManager with the game instance.
                 displayName: window.menuManager.getPlayerDisplayName(playerData, gameInstance),
                 planets: playerStat.planets,
                 troops: Math.floor(playerStat.troops || 0),
@@ -32,21 +29,17 @@ class GameOverScreen {
                 isWinner
             };
         });
-        
         leaderboardData.sort((a, b) => {
             if (a.planets !== b.planets) return b.planets - a.planets;
             if (a.troops !== b.troops) return b.troops - a.troops;
             return b.survivalTime - a.survivalTime;
         });
-        
-        // MODIFIED: Header text logic is now simpler.
         let headerText;
         if (stats.hasHumanPlayer) {
             headerText = `<h1>${stats.playerWon ? 'VICTORY!' : 'DEFEAT'}</h1><h2>Successful Subjugation</h2>`;
         } else {
             headerText = `<h1>BATTLE COMPLETE</h1><h2>Successful Subjugation:<br>${leaderboardData[0].displayName}</h2>`;
         }
-        
         let leaderboardHTML = `
             <div class="leaderboard">
                 <table>
@@ -61,12 +54,10 @@ class GameOverScreen {
                     </thead>
                     <tbody>
         `;
-        
         leaderboardData.forEach((player, index) => {
             const rank = index + 1;
             const formattedTime = this.formatTime(player.survivalTime);
             const rowClass = player.isWinner ? 'winner' : '';
-            
             leaderboardHTML += `
                 <tr class="${rowClass}">
                     <td>${rank}</td>
@@ -77,12 +68,9 @@ class GameOverScreen {
                 </tr>
             `;
         });
-        
         leaderboardHTML += `</tbody></table></div>`;
-        
         const leaderboardRankings = leaderboardData.map(player => player.displayName).join(', ');
         console.log(`Ranking: [${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
-
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>
@@ -106,22 +94,18 @@ class GameOverScreen {
                 </div>
             </div>
         `;
-        
         this.gameOverScreen.innerHTML = `
             ${headerText}
             ${leaderboardHTML}
             ${overallStats}
             <button id="play-again-button" class="menu-button">PLAY AGAIN</button>
         `;
-        
         this.parentContainer.appendChild(this.gameOverScreen);
-        
         document.getElementById('play-again-button').addEventListener('click', () => {
             this.remove();
             window.menuManager.switchToScreen('menu');
         });
     }
-    
     remove() {
         if (this.gameOverScreen) {
             this.gameOverScreen.remove();
@@ -133,14 +117,9 @@ class GameOverScreen {
             }
         }
     }
-    
     formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
-
-    // MODIFIED: This helper is no longer needed here as it's delegated to MenuManager.
 }
-
-export default GameOverScreen;

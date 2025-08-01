@@ -1,16 +1,17 @@
-// menus/InstructionsBuilder.js
+// ===========================================
+// root/javascript/menus/InstructionsBuilder.js
+// ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
-class InstructionsBuilder extends MenuBuilderBase {
+export default class InstructionsBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager) {
         super(container, screenManager, configManager);
         this.parentBuilder = parentBuilder;
     }
     build() {
         const menuContainer = this.createMenuContainer();
-        // Instructions content
-        const content = document.createElement('div');
+        const content = document.createElement('div'); // instructions content
         content.className = 'instructions-content';
         content.innerHTML = `
             <h2>INSTRUCTIONS</h2>
@@ -36,14 +37,10 @@ class InstructionsBuilder extends MenuBuilderBase {
             </div>
         `;
         menuContainer.appendChild(content);
-
-        // NEW: Set the footer to be a back button.
-        window.menuManager.footerManager.showBackButton(() => {
+        window.menuManager.footerManager.showBackButton(() => { // set footer to back button
             this.parentBuilder.buildMainMenu();
         });
 
         return menuContainer;
     }
 }
-
-export default InstructionsBuilder;

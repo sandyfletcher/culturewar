@@ -1,5 +1,5 @@
 // ===========================================
-// assets/javascript/config.js
+// root/javascript/config.js
 // ===========================================
 
 export const config = {
@@ -9,7 +9,7 @@ export const config = {
     },
     // --- PLAYER & AI ---
     player: {
-        defaultAIValue: 'Claude 3.5 A', // unique value of default AI to use when one isn't specified
+        defaultAIValue: 'C3.5A', // unique value of default AI to use when one isn't specified
         colors: { // colours assigned to each player ID and neutral faction
             'player1': '#ffff00', // Yellow
             'player2': '#ff0000', // Red

@@ -1,3 +1,7 @@
+// ===========================================
+// root/javascript/GameStateCheck.js
+// ===========================================
+
 export default class GameState {
     constructor(game) {
         this.game = game;
@@ -14,102 +18,70 @@ export default class GameState {
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
     }
-
     handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
             this.lastUpdate = Date.now();
         }
     }
-
-    // MODIFIED: update now receives speedMultiplier
     update(dt, speedMultiplier = 1.0) {
         if (this.gameOver) return;
-        
         const timeRemaining = this.game.timerManager.getTimeRemaining();
-        
-        // MODIFIED: Pass scaled delta time to elimination check for accurate timing.
-        this.checkPlayerEliminations(dt * speedMultiplier); 
-        
+        this.checkPlayerEliminations(dt * speedMultiplier); // pass scaled delta time to elimination check for accurate timing
         this.checkWinConditions(timeRemaining);
-
-        // NEW: Check if human players are all out, and if so, switch footer mode.
-        this.checkHumanPlayerStatus();
+        this.checkHumanPlayerStatus(); // check if human players are all out to switch footer mode
     }
-    
-    // MODIFIED: Pass scaled delta time for accurate time tracking.
-    checkPlayerEliminations(scaledDt) {
-        // Use a static start time and add scaled delta time.
-        const currentTime = (Date.now() - this.startTime) / 1000;
-
+    checkPlayerEliminations(scaledDt) { // pass scaled delta time for accurate time tracking
+        const currentTime = (Date.now() - this.startTime) / 1000; // use a static start time and add scaled delta time
         for (const playerId of this.activePlayers) {
             if (playerId === 'neutral') continue;
-            
-            const hasResources = this.game.playersController.hasPlayerPlanets(playerId) || 
-                               this.game.playersController.hasPlayerTroopsInMovement(playerId);
-            
+            const hasResources = this.game.playersController.hasPlayerPlanets(playerId) || this.game.playersController.hasPlayerTroopsInMovement(playerId);
             if (!hasResources && !this.eliminationTimes[playerId]) {
                 this.eliminationTimes[playerId] = currentTime;
                 this.activePlayers.delete(playerId);
             }
         }
     }
-    
-    // NEW: Logic to handle the dynamic footer slider.
-    checkHumanPlayerStatus() {
-        // If there's no footer manager or no human players from the start, do nothing.
+    checkHumanPlayerStatus() { // logic to handle dynamic footer slider
         if (!this.game.footerManager || this.game.humanPlayerIds.length === 0) {
-            return;
+            return; // if there's no footer manager or no human players from the start, do nothing
         }
-
-        // Only need to do this check if the slider is still in troop mode.
-        if (this.game.footerManager.mode === 'troop') {
+        if (this.game.footerManager.mode === 'troop') { // only need to do this check if the slider is still in troop mode
             const activeHumanPlayers = this.game.humanPlayerIds.filter(id => 
                 this.game.playersController.hasPlayerPlanets(id) || 
                 this.game.playersController.hasPlayerTroopsInMovement(id)
             );
-
             if (activeHumanPlayers.length === 0) {
                 this.game.footerManager.switchToSpeedMode();
             }
         }
     }
-
     incrementTroopsSent(amount) { this.troopsSent += amount; }
     incrementTroopsLost(amount) { this.troopsLost += amount; }
     incrementPlanetsConquered() { this.planetsConquered++; }
-    
     checkWinConditions(timeRemaining) {
         if (this.gameOver) return false;
-    
         if (timeRemaining <= 0) {
             const winner = this.game.playersController.getWinningPlayer();
             this.endGame(winner, 'time');
             return true;
         }
-    
         const playerStats = this.game.playersController.getPlayerStats().filter(stats => stats.id !== 'neutral');
         const activePlayers = playerStats.filter(stats => 
             this.game.playersController.hasPlayerPlanets(stats.id) || 
             this.game.playersController.hasPlayerTroopsInMovement(stats.id)
         );
-        
         if (activePlayers.length === 1) {
             this.endGame(activePlayers[0].id, 'domination');
             return true;
         }
-        
         return false;
     }
-    
     endGame(winnerId, victoryType) {
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-        
-        // MODIFIED: Determine if human won based on the dynamic list.
-        const humanWon = this.game.humanPlayerIds.includes(this.winner);
-
+        const humanWon = this.game.humanPlayerIds.includes(this.winner); // determine if human won based on the dynamic list
         const stats = {
             winner: this.winner,
             time: (Date.now() - this.startTime) / 1000,
@@ -117,17 +89,14 @@ export default class GameState {
             troopsSent: this.troopsSent,
             troopsLost: this.troopsLost,
             eliminationTimes: this.eliminationTimes,
-            // NEW: Simplified win property for GameOverScreen
             playerWon: humanWon,
             hasHumanPlayer: this.game.humanPlayerIds.length > 0
         };
-        
         if (window.menuManager) {
             window.menuManager.showGameOver(stats, this.game);
         } else {
             console.error("MenuManager not found.");
         }
-        
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 }
