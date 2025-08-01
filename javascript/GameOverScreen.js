@@ -70,7 +70,7 @@ export default class GameOverScreen {
         });
         leaderboardHTML += `</tbody></table></div>`;
         const leaderboardRankings = leaderboardData.map(player => player.displayName).join(', ');
-        console.log(`Ranking: [${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
+        console.log(`Match Ranking: [${leaderboardRankings}], [${this.formatTime(stats.time)}], [${Math.round(stats.troopsSent || 0)}]`);
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>

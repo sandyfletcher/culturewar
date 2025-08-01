@@ -9,7 +9,6 @@ import TimerManager from './javascript/TimerManager.js';
 
 export default class Game {
     constructor(gameConfig, footerManager = null) {
-        console.log(`Game Launched: Players: ${gameConfig.players.length}`);
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d'); 
         this.resize();
