@@ -7,14 +7,8 @@ import BaseBot from './BaseBot.js';
 export default class Claude35b extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.decisionCooldown = 0;
-        this.minDecisionTime = 1.5;
-        this.maxDecisionTime = 3.0;
     }
-    makeDecision() {
-        this.decisionCooldown -= 1/60;
-        if (this.decisionCooldown > 0) return null;
-        this.decisionCooldown = this.minDecisionTime + Math.random() * (this.maxDecisionTime - this.minDecisionTime);
+    makeDecision(dt) {
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
         const sourcePlanet = this.findSourcePlanet(myPlanets);

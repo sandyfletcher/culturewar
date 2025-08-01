@@ -7,30 +7,23 @@ import BaseBot from './BaseBot.js';
 export default class Claude37a extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.lastActionTime = 0;
-        this.actionCooldown = 2000; // 2 seconds
         this.minTroopsToSend = 5;
         this.capturePadding = 3;
         this.threatThreshold = 1.5;
         this.defenseReserveFactor = 0.3;
     }
-    makeDecision() {
-        const currentTime = Date.now();
-        if (currentTime - this.lastActionTime < this.actionCooldown) return null;
+    makeDecision(dt) {
         if (this.api.getMyPlanets().length === 0) return null;
         const defenseTarget = this.assessDefensiveNeeds();
         if (defenseTarget) {
-            this.lastActionTime = currentTime;
             return defenseTarget;
         }
         const expansionTarget = this.findBestExpansionTarget();
         if (expansionTarget) {
-            this.lastActionTime = currentTime;
             return expansionTarget;
         }
         const attackTarget = this.findBestAttackTarget();
         if (attackTarget) {
-            this.lastActionTime = currentTime;
             return attackTarget;
         }
         return null;

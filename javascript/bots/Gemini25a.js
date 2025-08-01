@@ -7,21 +7,14 @@ import BaseBot from './BaseBot.js';
 export default class Gemini25a extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.lastDecisionTime = 0;
         this.config = {
-            decisionInterval: 750,
             minTroopsForAction: 10,
             captureBuffer: 3,
             riskAversion: 1.5,
             reinforcementUrgency: 2.0,
         };
     }
-    makeDecision() {
-        const now = Date.now();
-        if (now - this.lastDecisionTime < this.config.decisionInterval) {
-            return null;
-        }
-        this.lastDecisionTime = now;
+    makeDecision(dt) {
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) {
             return null;

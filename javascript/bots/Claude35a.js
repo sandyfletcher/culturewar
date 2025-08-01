@@ -1,5 +1,6 @@
 // ===========================================
 // assets/javascript/bots/Claude35a.js
+// (Corrected and Simplified Version)
 // ===========================================
 
 import BaseBot from './BaseBot.js';
@@ -7,17 +8,12 @@ import BaseBot from './BaseBot.js';
 export default class Claude35 extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId); // call the parent constructor
-        this.decisionCooldown = Math.random() * 2; // random initial cooldown
         this.config = {
             minTroopsToLeave: 3,
-            decisionInterval: 2,
             attackChance: 0.7,
         };
     }
-    makeDecision() {
-        this.decisionCooldown -= 1/60; // approximate dt
-        if (this.decisionCooldown > 0) return null;
-        this.decisionCooldown = this.config.decisionInterval + Math.random();
+    makeDecision(dt) { 
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
         if (Math.random() < this.config.attackChance) {

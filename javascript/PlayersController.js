@@ -17,6 +17,12 @@ export default class PlayersController {
         this.availableAITypes = new Map(
             botRegistry.map(bot => [bot.value, bot.class])
         );
+
+        // --- NEW: Round-robin AI scheduler state ---
+        this.aiDecisionCooldown = 0;
+        this.nextAiToActIndex = 0;
+        // --- End of new state ---
+
         this.initializePlayers();
         this.initializeAIControllers();
     }
@@ -49,12 +55,31 @@ export default class PlayersController {
         }
     }
     updateAIPlayers(dt) {
-        for (const playerId in this.aiControllers) {
-            if (!this.hasPlayerPlanets(playerId) && !this.hasPlayerTroopsInMovement(playerId)) {
-                continue;
-            }
-            const aiController = this.aiControllers[playerId];
-            const aiDecision = aiController.makeDecision();
+        this.aiDecisionCooldown -= dt;
+        if (this.aiDecisionCooldown > 0) {
+            return; // Still on global cooldown, do nothing.
+        }
+
+        const activeAiIds = this.getAIPlayers()
+            .map(p => p.id)
+            .filter(id => this.game.gameState.activePlayers.has(id));
+
+        if (activeAiIds.length === 0) {
+            return; // No active AIs to make a decision.
+        }
+
+        // Reset the global cooldown.
+        this.aiDecisionCooldown = config.ai.globalDecisionCooldown;
+
+        // Ensure the index is valid for the current number of active AIs.
+        this.nextAiToActIndex = this.nextAiToActIndex % activeAiIds.length;
+
+        // Get the ID of the bot whose turn it is.
+        const botIdToAct = activeAiIds[this.nextAiToActIndex];
+        const aiController = this.aiControllers[botIdToAct];
+
+        if (aiController) {
+            const aiDecision = aiController.makeDecision(dt);
             if (aiDecision) {
                 this.game.sendTroops(
                     aiDecision.from,
@@ -63,6 +88,9 @@ export default class PlayersController {
                 );
             }
         }
+        
+        // Move to the next AI for the next turn.
+        this.nextAiToActIndex++;
     }
     getPlayerById(playerId) {
         return this.players.find(player => player.id === playerId);

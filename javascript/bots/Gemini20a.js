@@ -7,16 +7,9 @@ import BaseBot from './BaseBot.js';
 export default class Gemini20a extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.aggressionFactor = 0.7;
-        this.lastDecisionTime = 0;
-        this.decisionInterval = 1000; // ms
+        this.aggressionFactor = 0.7; // Personality trait
     }
-    makeDecision() {
-        const now = Date.now();
-        if (now - this.lastDecisionTime < this.decisionInterval) {
-            return null;
-        }
-        this.lastDecisionTime = now;
+    makeDecision(dt) {
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
         const defenseMove = this.getDefenseMove(myPlanets);

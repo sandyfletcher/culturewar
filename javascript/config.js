@@ -56,6 +56,8 @@ export const config = {
             radius: 300,
             distanceDivisor: 10,
         },
+        // NEW: Global cooldown for fairness
+        globalDecisionCooldown: 0.25, // Seconds between ANY AI being allowed to make a decision
     },
     // --- UI, VISUALS, & INPUT ---
     ui: {

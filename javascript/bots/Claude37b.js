@@ -7,21 +7,15 @@ import BaseBot from './BaseBot.js';
 export default class Claude37b extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.decisionCooldown = 0;
-        this.minDecisionTime = 0.5;
-        this.maxDecisionTime = 1.2;
         this.targetedPlanets = new Map();
         this.threatAssessmentCooldown = 0;
     }
-    makeDecision() {
-        this.decisionCooldown -= 1/60;
-        this.threatAssessmentCooldown -= 1/60;
+    makeDecision(dt) {
+        this.threatAssessmentCooldown -= dt;
         if (this.threatAssessmentCooldown <= 0) {
             this.assessThreats();
-            this.threatAssessmentCooldown = 5;
+            this.threatAssessmentCooldown = 5; // Re-assess threats every 5 game seconds
         }
-        if (this.decisionCooldown > 0) return null;
-        this.decisionCooldown = this.minDecisionTime + Math.random() * (this.maxDecisionTime - this.minDecisionTime);
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
         const gameStrategy = this.analyzeGameState(myPlanets);
