@@ -105,6 +105,6 @@ export default class StatsTracker { // singleton class to intercept game stat lo
         this.games = {};
         this.playerRecords = [];
         localStorage.removeItem('cultureWarStats');
-        this.originalLog('Player stats have been cleared.');
+        // this.originalLog('Player stats have been cleared.');
     }
 }

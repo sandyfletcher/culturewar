@@ -1,10 +1,10 @@
 // ===========================================
-// root/javascript/bots/Gemini20a.js
+// root/javascript/bots/Gemini20.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';
 
-export default class Gemini20a extends BaseBot {
+export default class Gemini20 extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
         this.aggressionFactor = 0.7; // Personality trait

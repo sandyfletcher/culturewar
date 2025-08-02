@@ -63,6 +63,7 @@ export default class MenuManager {
         const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
         this.footerManager.showSlider(initialSliderMode);
         this.game = new Game(config, this.footerManager);
+        this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
     }
     getGameConfig() {
         return this.configManager.getConfig();

@@ -53,8 +53,9 @@ export default class GameState {
                 this.game.playersController.hasPlayerPlanets(id) || 
                 this.game.playersController.hasPlayerTroopsInMovement(id)
             );
-            if (activeHumanPlayers.length === 0) {
+            if (activeHumanPlayers.length === 0) { // last human is eliminated
                 this.game.footerManager.switchToSpeedMode();
+                this.game.timerManager.shouldPauseOnHidden = false; // tell TimerManager to no longer pause when tab is hidden
             }
         }
     }

@@ -30,15 +30,12 @@ export default class TimerManager {
             }
         });
     }
-    setGameMode(mode) {
-        this.shouldPauseOnHidden = (mode === 'singlePlayer');
-    }
     update(speedMultiplier = 1.0) {
         if (this.isPaused) return; 
         const now = Date.now();
         const dt = (now - this.lastUpdate) / 1000;
         this.lastUpdate = now;
-        if (this.game.isActive) { // TODO: only update time if the game is active?
+        if (this.game.isActive) { // only update time if game is active
             this.timeRemaining = Math.max(0, this.timeRemaining - (dt * speedMultiplier));
         }
         this.updateDisplay();
