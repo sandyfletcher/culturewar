@@ -87,7 +87,7 @@ export default class GameState {
         const humanWon = this.game.humanPlayerIds.includes(this.winner); // determine if human won based on the dynamic list
         const stats = {
             winner: this.winner,
-            time: (Date.now() - this.startTime) / 1000,
+            time: this.elapsedGameTime,
             planetsConquered: this.planetsConquered,
             troopsSent: this.troopsSent,
             troopsLost: this.troopsLost,
