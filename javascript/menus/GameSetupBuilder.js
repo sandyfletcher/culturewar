@@ -14,77 +14,131 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         const menuContainer = this.createMenuContainer();
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
-        setupForm.appendChild(this.createPlayerCountControl()); // 1. Player Count Selection
-        setupForm.appendChild(this.createPlanetDensityControl()); // 2. Planet Density Slider
-        const playerSelectorsContainer = document.createElement('div'); // 3. Dynamic Player Configuration List
+        setupForm.appendChild(this.createPlayerCountControl());
+        setupForm.appendChild(this.createPlanetDensityControl());
+        const playerSelectorsContainer = document.createElement('div');
         playerSelectorsContainer.className = 'ai-selectors-container';
         playerSelectorsContainer.id = 'player-selectors-container';
         setupForm.appendChild(playerSelectorsContainer);
 
-        // NEW: Add the advanced settings section
-        setupForm.appendChild(this.createAdvancedSettings());
+        const advancedPanel = this.createAdvancedPanel();
+        setupForm.appendChild(advancedPanel); 
 
-        setupForm.appendChild(this.createBottomButtons()); // 4. Start Button
+        const bottomButtons = this.createBottomButtons(advancedPanel);
+        setupForm.appendChild(bottomButtons);
+
         menuContainer.appendChild(setupForm);
         this.updatePlayerSelectors();
-        window.menuManager.footerManager.showBackButton(() => { // set footer to be a back button for this screen
+        window.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
         return menuContainer;
     }
 
-    // NEW: Method to create the entire advanced settings section
-    createAdvancedSettings() {
-        const container = document.createElement('div');
-        container.className = 'advanced-settings-wrapper';
-
-        const toggleButton = document.createElement('button');
-        toggleButton.className = 'advanced-settings-toggle';
-        toggleButton.innerHTML = 'ADVANCED SETTINGS <span>▼</span>';
-
+    createAdvancedPanel() {
         const panel = document.createElement('div');
         panel.className = 'advanced-settings-panel';
+        panel.id = 'advanced-settings-panel';
 
-        // Add batch game control to the panel
-        panel.appendChild(this.createBatchGameControl());
+        const title = document.createElement('h3');
+        title.className = 'section-title';
+        title.textContent = 'ADVANCED SETTINGS';
+        panel.appendChild(title);
 
-        toggleButton.addEventListener('click', () => {
-            panel.classList.toggle('active');
-            toggleButton.classList.toggle('active');
-            const arrow = toggleButton.querySelector('span');
-            arrow.textContent = panel.classList.contains('active') ? '▲' : '▼';
-        });
+        // NEW: Wrapper for the actual settings
+        const settingsContent = document.createElement('div');
+        settingsContent.className = 'advanced-settings-content';
 
-        container.appendChild(toggleButton);
-        container.appendChild(panel);
-        return container;
+        settingsContent.appendChild(this.createBatchGameControl());
+        settingsContent.appendChild(this.createGamePaceControl());
+        settingsContent.appendChild(this.createHeadlessModeControl());
+        
+        panel.appendChild(settingsContent);
+        return panel;
     }
 
-    // NEW: Method to create just the batch game input
     createBatchGameControl() {
         const batchContainer = document.createElement('div');
         batchContainer.className = 'advanced-setting-item';
-
         const label = document.createElement('label');
-        label.for = 'batch-size-input';
+        label.htmlFor = 'batch-size-input';
         label.textContent = 'Number of Games:';
-
         const input = document.createElement('input');
         input.type = 'number';
         input.id = 'batch-size-input';
         input.min = '1';
-        input.max = '100'; // Max of 100 games per run
+        input.max = '100';
         input.value = this.configManager.getConfig().batchSize;
-
         input.addEventListener('change', () => {
             this.configManager.setBatchSize(input.value);
-            // Update the value in case it was out of bounds
             input.value = this.configManager.getConfig().batchSize;
         });
-
         batchContainer.appendChild(label);
         batchContainer.appendChild(input);
         return batchContainer;
+    }
+    
+    // NEW: Placeholder UI for Game Pace
+    createGamePaceControl() {
+        const container = document.createElement('div');
+        container.className = 'advanced-setting-item';
+        const label = document.createElement('label');
+        label.htmlFor = 'game-pace-input';
+        label.textContent = 'Initial Game Pace:';
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = 'game-pace-input';
+        input.min = '0.1';
+        input.max = '4.0';
+        input.step = '0.1';
+        input.value = this.configManager.getConfig().initialGamePace;
+        input.addEventListener('change', (e) => {
+            this.configManager.setInitialGamePace(e.target.value);
+            input.value = this.configManager.getConfig().initialGamePace;
+        });
+        container.appendChild(label);
+        container.appendChild(input);
+        return container;
+    }
+
+    // NEW: Placeholder UI for Headless Mode
+    createHeadlessModeControl() {
+        const container = document.createElement('div');
+        container.className = 'advanced-setting-item';
+        const label = document.createElement('label');
+        label.htmlFor = 'headless-mode-toggle';
+        label.textContent = 'Run Headless (Fast):';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.id = 'headless-mode-toggle';
+        input.checked = this.configManager.getConfig().isHeadless;
+        input.addEventListener('change', (e) => {
+            this.configManager.setHeadlessMode(e.target.checked);
+        });
+        container.appendChild(label);
+        container.appendChild(input);
+        return container;
+    }
+
+    createBottomButtons(advancedPanel) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'setup-buttons';
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'menu-button advanced-toggle';
+        toggleButton.innerHTML = 'ADVANCED <span>▲</span>';
+        toggleButton.addEventListener('click', () => {
+            advancedPanel.classList.toggle('active');
+            toggleButton.classList.toggle('active');
+        });
+        const startButton = document.createElement('button');
+        startButton.className = 'menu-button start-game';
+        startButton.textContent = 'BATTLE >';
+        startButton.addEventListener('click', () => {
+            window.menuManager.startGame();
+        });
+        buttonContainer.appendChild(toggleButton);
+        buttonContainer.appendChild(startButton);
+        return buttonContainer;
     }
 
     createPlayerCountControl() {
@@ -194,17 +248,5 @@ aiOptions.forEach(opt => {
         sliderContainer.appendChild(rightLabel);
         planetDensityContainer.appendChild(sliderContainer);
         return planetDensityContainer;
-    }
-    createBottomButtons() { // creates start button and its container
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'setup-buttons';
-        const startButton = document.createElement('button');
-        startButton.className = 'menu-button start-game';
-        startButton.textContent = 'BATTLE >';
-        startButton.addEventListener('click', () => {
-            window.menuManager.startGame();
-        });
-        buttonContainer.appendChild(startButton);
-        return buttonContainer;
     }
 }

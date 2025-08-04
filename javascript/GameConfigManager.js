@@ -8,36 +8,48 @@ import { config } from './config.js';
 export default class GameConfigManager {
     constructor() {
         this.gameConfig = {
-            players: [], // will be populated by setPlayerCount()
+            players: [],
             planetDensity: config.planetGeneration.density.default,
-            batchSize: 1 // NEW: Add batchSize with a default of 1 game
+            batchSize: 1,
+            initialGamePace: 1.0, // NEW
+            isHeadless: false      // NEW
         };
-        this.aiOptions = botRegistry.map(bot => ({ // only need 'name' and 'value' for UI dropdowns
+        this.aiOptions = botRegistry.map(bot => ({
             value: bot.value,
             name: bot.name
         }));
         this.playerColors = config.player.colors;
-        this.setPlayerCount(config.menuDefaults.playerCount); // initialize default game setup
+        this.setPlayerCount(config.menuDefaults.playerCount);
     }
 
-    // NEW: Add a method to set the batch size
     setBatchSize(size) {
         const batchSize = parseInt(size, 10);
-        // Ensure the size is a valid number between 1 and 100
         if (!isNaN(batchSize) && batchSize >= 1 && batchSize <= 100) {
             this.gameConfig.batchSize = batchSize;
         }
     }
+    
+    // NEW setter for game pace
+    setInitialGamePace(pace) {
+        const gamePace = parseFloat(pace);
+        if (!isNaN(gamePace) && gamePace >= 0.1 && gamePace <= 4.0) {
+            this.gameConfig.initialGamePace = gamePace;
+        }
+    }
 
-    setPlayerCount(count) { // central method to set total number of players, resizing players array to preserve existing settings where possible
+    // NEW setter for headless mode
+    setHeadlessMode(isHeadless) {
+        this.gameConfig.isHeadless = !!isHeadless; // Coerce to boolean
+    }
+
+    setPlayerCount(count) {
         const newPlayers = [];
-        // Get all available AI controller values from the options
         const availableBots = this.aiOptions.map(opt => opt.value);
         for (let i = 0; i < count; i++) {
             const playerId = `player${i + 1}`;
-            if (this.gameConfig.players[i]) { // if a player already exists at this index, keep their settings
+            if (this.gameConfig.players[i]) {
                 newPlayers.push({ ...this.gameConfig.players[i], id: playerId });
-            } else { // otherwise, create a default player configuration with a random bot
+            } else {
                 const randomBotIndex = Math.floor(Math.random() * availableBots.length);
                 const randomAIController = availableBots[randomBotIndex];
                 newPlayers.push({ id: playerId, type: 'bot', aiController: randomAIController });
@@ -45,9 +57,9 @@ export default class GameConfigManager {
         }
         this.gameConfig.players = newPlayers;
     }
-    updatePlayerConfig(index, settings) { // updates a specific player's configuration
+    updatePlayerConfig(index, settings) {
         if (this.gameConfig.players[index]) {
-            const current = this.gameConfig.players[index]; // merge new settings. For example, if type changes to 'human', aiController will be removed implicitly if not in `settings`.
+            const current = this.gameConfig.players[index];
             this.gameConfig.players[index] = { ...current, ...settings };
         }
     }
@@ -63,16 +75,15 @@ export default class GameConfigManager {
     getPlayerColors() {
         return this.playerColors;
     }
-    getPlayerDisplayName(playerData, gameInstance, getNickname = false) { // gets display name based on the `players` array from a running game instance
-        const configPlayer = gameInstance.config.players.find(p => p.id === playerData.id); // `playerData` can be from game instance's controller
+    getPlayerDisplayName(playerData, gameInstance, getNickname = false) {
+        const configPlayer = gameInstance.config.players.find(p => p.id === playerData.id);
         if (configPlayer?.type === 'human') {
             return getNickname ? 'PLAYER' : 'Player';
         }
-        // For bots
         if (getNickname) {
-            return playerData.aiController || 'BOT'; // 'value'/'nickname' is aiController string itself
+            return playerData.aiController || 'BOT';
         } else {
-            const aiOption = botRegistry.find(bot => bot.value === playerData.aiController); // full display name comes from bot registry
+            const aiOption = botRegistry.find(bot => bot.value === playerData.aiController);
             return aiOption ? aiOption.name : 'Unknown Bot';
         }
     }
