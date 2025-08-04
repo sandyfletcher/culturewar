@@ -1,15 +1,15 @@
 // ===========================================
-// root/javascript/GameAPI.js
+// root/javascript/GameAPI.js — provides a unified, read-only API for bots to interact with the game state
 // ===========================================
 
 import { config } from './config.js';
 
-export default class GameAPI { // provides a unified, read-only API for bots to interact with the game state
+export default class GameAPI { 
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
         this.canvas = game.canvas;
-        this.troopMovementSpeed = config.troop.movementSpeed; // get troop speed from central config to ensure it's always in sync
+        this.troopMovementSpeed = config.troop.movementSpeed;
     }
 
     // --- My Player Data ---
@@ -73,7 +73,15 @@ export default class GameAPI { // provides a unified, read-only API for bots to 
     }
 
     /**
-     * Gets an array of all player IDs currently in the game, excluding the current AI.
+     * Gets an array of all player IDs currently in the game, including the current AI.
+     * @returns {string[]}
+     */
+    getAllPlayerIds() {
+        return this.game.playersController.players.map(p => p.id);
+    }
+
+    /**
+     * Gets an array of all opponent player IDs currently in the game.
      * @returns {string[]}
      */
     getOpponentIds() {
@@ -81,8 +89,33 @@ export default class GameAPI { // provides a unified, read-only API for bots to 
             .map(p => p.id)
             .filter(id => id !== this.playerId);
     }
+    
+    /**
+     * Gets the elapsed time in seconds since the game started.
+     * @returns {number}
+     */
+    getElapsedTime() {
+        return this.game.gameState.elapsedGameTime;
+    }
+
+    /**
+     * Gets the total configured duration of the game in seconds.
+     * @returns {number}
+     */
+    getGameDuration() {
+        return this.game.config.game.defaultDuration || config.game.defaultDuration;
+    }
 
     // --- Player-Specific Queries ---
+    
+    /**
+     * Checks if a player is still active in the game (has planets or troops).
+     * @param {string} playerId
+     * @returns {boolean}
+     */
+    isPlayerActive(playerId) {
+        return this.game.gameState.activePlayers.has(playerId);
+    }
 
     /**
      * Gets the total troops for any specified player.
@@ -125,6 +158,16 @@ export default class GameAPI { // provides a unified, read-only API for bots to 
     }
 
     /**
+     * Calculates the travel time in seconds for a fleet between two planets.
+     * @param {Planet} planet1
+     * @param {Planet} planet2
+     * @returns {number}
+     */
+    getTravelTime(planet1, planet2) {
+        return this.getDistance(planet1, planet2) / this.troopMovementSpeed;
+    }
+
+    /**
      * Finds the nearest planet from a given list of planets to a source planet.
      * @param {Planet} sourcePlanet - The planet to measure from.
      * @param {Planet[]} targetPlanets - An array of planets to search through.
@@ -137,6 +180,7 @@ export default class GameAPI { // provides a unified, read-only API for bots to 
         let nearest = null;
         let minDistance = Infinity;
         for (const target of targetPlanets) {
+            if (sourcePlanet === target) continue; // Don't target self
             const distance = this.getDistance(sourcePlanet, target);
             if (distance < minDistance) {
                 minDistance = distance;
@@ -188,10 +232,21 @@ export default class GameAPI { // provides a unified, read-only API for bots to 
      */
     getIncomingAttacks(targetPlanet) {
         return this.game.troopMovements.filter(m => 
-            m.to === targetPlanet && m.owner !== this.playerId
+            m.to === targetPlanet && m.owner !== targetPlanet.owner && m.owner !== 'neutral'
         );
     }
     
+    /**
+     * Gets all incoming friendly troop movements (reinforcements) targeting a specific planet.
+     * @param {Planet} targetPlanet
+     * @returns {TroopMovement[]}
+     */
+    getIncomingReinforcements(targetPlanet) {
+        return this.game.troopMovements.filter(m => 
+            m.to === targetPlanet && m.owner === targetPlanet.owner
+        );
+    }
+
     /**
      * Estimates the number of troops a planet will have upon arrival of a fleet from a source planet.
      * @param {Planet} sourcePlanet
@@ -199,7 +254,7 @@ export default class GameAPI { // provides a unified, read-only API for bots to 
      * @returns {number} Estimated troop count.
      */
     estimateTroopsAtArrival(sourcePlanet, targetPlanet) {
-        const travelTime = this.getDistance(sourcePlanet, targetPlanet) / this.troopMovementSpeed;
+        const travelTime = this.getTravelTime(sourcePlanet, targetPlanet);
         const productionGains = targetPlanet.owner !== 'neutral' ? targetPlanet.productionRate * travelTime : 0;
         return targetPlanet.troops + productionGains;
     }

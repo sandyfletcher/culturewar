@@ -56,9 +56,14 @@ export default class Game {
         }
     }
     resize() {
-        const container = this.canvas.parentElement;
-        this.canvas.width = container.clientWidth;
-        this.canvas.height = container.clientHeight;
+        // In headless mode, the canvas's direct parent ('#game-screen') is not displayed,
+        // causing its clientWidth and clientHeight to be 0. This prevents planets from
+        // being generated correctly as the game world has no area.
+        // To fix this, we size the canvas based on '#inner-container', which is the
+        // main content area and always has the correct dimensions.
+        const gameArea = document.getElementById('inner-container');
+        this.canvas.width = gameArea.clientWidth;
+        this.canvas.height = gameArea.clientHeight;
     }
     initializeGame() {
         this.planets = this.planetGenerator.generatePlanets();
