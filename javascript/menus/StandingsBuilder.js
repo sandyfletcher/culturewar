@@ -29,7 +29,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
             standingsData.forEach((player, index) => {
                 const rank = index + 1;
                 const winRate = player.winRate.toFixed(1);
-                const scoreText = player.totalCultureScore > 0 ? `+${player.totalCultureScore}` : player.totalCultureScore;
+                const scoreText = player.totalCultureScore > 0 ? `+${player.totalCultureScore.toFixed(1)}` : player.totalCultureScore.toFixed(1);
                 const avgRank = player.avgRank.toFixed(2);
                 tableBody += `
                     <tr>

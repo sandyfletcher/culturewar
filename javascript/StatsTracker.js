@@ -44,7 +44,7 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                 planets: parseInt(parts[4], 10),
                 troops: parseInt(parts[5], 10),
                 survivalTime: parseFloat(parts[6]),
-                cultureScore: parts[7] ? parseInt(parts[7], 10) : 0
+                cultureScore: parts[7] ? parseFloat(parts[7]) : 0
             });
         }
         this.saveToLocalStorage();

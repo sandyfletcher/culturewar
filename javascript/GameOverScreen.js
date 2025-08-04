@@ -58,11 +58,12 @@ export default class GameOverScreen {
         `;
         const finalLeaderboardData = leaderboardData.map((player, index) => { // add player rank and score to leaderboard data
             const rank = index + 1;
-            const cultureScore = Math.ceil(playerCount / 2) - rank;
+            const cultureScore = ((playerCount + 1) / 2) - rank;
             return { ...player, rank, cultureScore };
         });
         finalLeaderboardData.forEach(player => {
-            const scoreText = player.cultureScore > 0 ? `+${player.cultureScore}` : player.cultureScore;
+            // Format score to one decimal place and show plus sign
+            const scoreText = player.cultureScore > 0 ? `+${player.cultureScore.toFixed(1)}` : player.cultureScore.toFixed(1);
             const rowClass = player.isWinner ? 'winner' : '';
             leaderboardHTML += `
                 <tr class="${rowClass}">
@@ -79,10 +80,12 @@ export default class GameOverScreen {
         const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
         console.log(gameStatsLog);
         finalLeaderboardData.forEach(player => { // log new score
+        finalLeaderboardData.forEach(player => {
             const survivalTime = player.survivalTime.toFixed(2);
             const originalPlayerData = allPlayersData.find(p => p.id === player.id);
             const aggregationKey = originalPlayerData.aiController || player.nickname;
-            const playerStatsLog = `[PLAYER_STATS],${gameId},${player.rank},${aggregationKey},${player.planets},${player.troops},${survivalTime},${player.cultureScore}`;
+            // Log score with decimal precision
+            const playerStatsLog = `[PLAYER_STATS],${gameId},${player.rank},${aggregationKey},${player.planets},${player.troops},${survivalTime},${player.cultureScore.toFixed(4)}`;
             console.log(playerStatsLog);
         });
         const overallStats = `
