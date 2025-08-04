@@ -1,16 +1,19 @@
 /* IMPORTS */
-@font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Cookie'; src: url('./assets/fonts/Cookie.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Londrina'; src: url('./assets/fonts/Londrina.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block} /* main <h1> title */
+@font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block} /* main body text and buttons */
+@font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block} /* player names inside troop bar */
+
+@font-face { font-family: 'LondrinaSketch'; src: url('./assets/fonts/LondrinaSketch.ttf') format('truetype'); font-display: block} /* timer and total troop count inserted by javascript */
+
+@font-face { font-family: 'Cookie'; src: url('./assets/fonts/Cookie.ttf') format('truetype'); font-display: block} /* currently unused */
 @font-face { font-family: 'RubikScribble'; src: url('./assets/fonts/RubikScribble.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Geostar'; src: url('./assets/fonts/Geostar.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'RubikBrokenFax'; src: url('./assets/fonts/RubikBrokenFax.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Bungee'; src: url('./assets/fonts/Bungee.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'BungeeShade'; src: url('./assets/fonts/BungeeShade.ttf') format('truetype'); font-display: block}
 @font-face { font-family: 'Asset'; src: url('./assets/fonts/Asset-Regular.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'LondrinaSketch'; src: url('./assets/fonts/LondrinaSketch.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block}
+@font-face { font-family: 'Londrina'; src: url('./assets/fonts/Londrina.ttf') format('truetype'); font-display: block}
+
 /* BASE RESET */
 * {
     margin: 0;
@@ -286,7 +289,7 @@ header h1 {
 .planet-density-container {
     margin-top: 0.5rem;
     margin-bottom: 1rem;
-    border-radius: 0.5rem;
+    border-radius: 0;
     background-color: rgba(0, 0, 0, 0.2);
 }
 .section-title {
@@ -313,14 +316,21 @@ header h1 {
     appearance: none;
     background: #444;
     outline: none;
-    border-radius: 5px;
+    border-radius: 0;
 }
 .density-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+    width: 12px;
+    height: 24px;
+    border-radius: 0;
+    background: #fff;
+    cursor: pointer;
+}
+.density-slider::-moz-range-thumb {
+    width: 12px;
+    height: 24px;
+    border-radius: 0;
     background: #fff;
     cursor: pointer;
 }
@@ -502,7 +512,7 @@ header h1 {
     width: 98%;
     max-width: 390px;
     margin-bottom: 1rem;
-    border-radius: 4px;
+    border-radius: 0;
     overflow: visible;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -549,7 +559,7 @@ header h1 {
     max-width: 390px;
     margin: 1rem 0;
     background-color: rgba(30, 30, 30, 0.8);
-    border-radius: 4px;
+    border-radius: 0;
     padding: 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -563,7 +573,7 @@ header h1 {
     flex-direction: column;
     background-color: rgba(255, 255, 255, 0.1);
     padding: 0.3rem;
-    border-radius: 2px;
+    border-radius: 0;
     text-align: center;
 }
 .stat-label {
@@ -649,7 +659,7 @@ footer a:hover {
     transform: translateY(-50%);
     color: white;
     font-size: 1.2rem;
-    font-family: 'Londrina', monospace;
+    font-family: 'Wallpoet', monospace;
     font-weight: bold;
     pointer-events: none; /* allows clicks to pass through to track */
 }
@@ -666,7 +676,7 @@ footer a:hover {
     border: 1px solid #fff;
     position: relative;
     cursor: grab;
-    border-radius: 6px;
+    border-radius: 0;
 }
 #slider-track:active {
     cursor: grabbing;
@@ -678,7 +688,7 @@ footer a:hover {
     height: 100%;
     background-color: #ffff00;
     width: 50%;
-    border-radius: 5px 0 0 5px;
+    border-radius: 0;
 }
 #slider-thumb {
     position: absolute;
@@ -689,7 +699,7 @@ footer a:hover {
     background-color: #fff;
     transform: translate(-50%, -50%);
     border: 2px solid #000;
-    border-radius: 3px;
+    border-radius: 0;
     pointer-events: none;
 }
 /* MOBILE SIZING */

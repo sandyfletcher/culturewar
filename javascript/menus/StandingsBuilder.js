@@ -9,6 +9,19 @@ export default class StandingsBuilder extends MenuBuilderBase {
         super(container, screenManager, configManager);
         this.parentBuilder = parentBuilder;
     }
+    getArchetype(player) { // determines a bot's "personality" from its stats
+        const scorePerGame = player.totalCultureScore / player.gamesPlayed;
+        const avgGameDuration = 180; // rough baseline for average game length
+        if (player.winRate > 60 && scorePerGame > 1.5) return 'Tyrant';
+        if (player.winRate > 40 && player.avgSurvival < (avgGameDuration * 0.6)) return 'Berserker';
+        if (player.winRate < 15 && player.avgSurvival > (avgGameDuration * 1.2)) return 'Survivor';
+        if (scorePerGame > 1.0 && player.winRate < 30) return 'Contender';
+        if (scorePerGame < -1.0 && player.avgRank > 4.5) return 'Underdog';
+        if (player.winRate > 45) return 'Victor';
+        if (scorePerGame > 0.5) return 'Strategist';
+        if (player.avgRank < 3.0) return 'Professional';
+        return 'Mysterious';
+    }
     build() {
         const menuContainer = this.createMenuContainer();
         const content = document.createElement('div');
@@ -30,14 +43,18 @@ export default class StandingsBuilder extends MenuBuilderBase {
                 const rank = index + 1;
                 const winRate = player.winRate.toFixed(1);
                 const scoreText = player.totalCultureScore > 0 ? `+${player.totalCultureScore.toFixed(1)}` : player.totalCultureScore.toFixed(1);
-                const avgRank = player.avgRank.toFixed(2);
+                const avgSurvival = window.menuManager.formatTime(player.avgSurvival);
+                const archetype = this.getArchetype(player); // Get the bot's title
                 tableBody += `
                     <tr>
                         <td>${rank}</td>
-                        <td>${player.nickname}</td>
+                        <td>
+                            <div>${player.nickname}</div>
+                            <div style="font-size: 0.8em; opacity: 0.7;">${archetype}</div>
+                        </td>
                         <td>${scoreText}</td>
                         <td>${winRate}%</td>
-                        <td>${avgRank}</td>
+                        <td>${avgSurvival}</td>
                     </tr>
                 `;
             });
@@ -47,11 +64,11 @@ export default class StandingsBuilder extends MenuBuilderBase {
                     <table>
                         <thead>
                             <tr>
-                                <th>Rank</th>
-                                <th>Combatant</th>
-                                <th>Score</th>
-                                <th>Win %</th>
-                                <th>Avg. Rank</th>
+                                <th title="Overall rank based on Culture Score">Rank</th>
+                                <th title="Bot's name and calculated archetype">Combatant</th>
+                                <th title="Total points earned across all games. Rewards high placement.">Score</th>
+                                <th title="Percentage of games where the bot placed first">Win %</th>
+                                <th title="Average time the bot survived in each match">Avg. Survival</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -66,12 +83,12 @@ export default class StandingsBuilder extends MenuBuilderBase {
         if (hasData) {
             const clearButton = document.createElement('button');
             clearButton.id = 'clear-stats-button';
-            clearButton.className = 'menu-button'; // reuse base styling
+            clearButton.className = 'menu-button';
             clearButton.textContent = 'Clear All Stats';
             clearButton.addEventListener('click', () => {
                 if (window.confirm('Are you sure you want to permanently delete all game stats?')) {
                     window.menuManager.statsTracker.clearStats();
-                    this.build(); // re-render screen to show "no data" message
+                    this.build();
                 }
             });
             menuContainer.appendChild(clearButton);

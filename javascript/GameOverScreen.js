@@ -80,7 +80,6 @@ export default class GameOverScreen {
         const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
         console.log(gameStatsLog);
         finalLeaderboardData.forEach(player => { // log new score
-        finalLeaderboardData.forEach(player => {
             const survivalTime = player.survivalTime.toFixed(2);
             const originalPlayerData = allPlayersData.find(p => p.id === player.id);
             const aggregationKey = originalPlayerData.aiController || player.nickname;
