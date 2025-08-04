@@ -1,10 +1,10 @@
 // =============================================
-// root/javascript/bots/CGPT4ob.js
+// root/javascript/bots/CGPT4o.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
 
-export default class CGPT4ob extends BaseBot {
+export default class CGPT4o extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
         this.memory = {

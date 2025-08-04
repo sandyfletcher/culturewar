@@ -1,10 +1,10 @@
 // ===========================================
-// root/javascript/bots/Claude37b.js
+// root/javascript/bots/Claude37.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';
 
-export default class Claude37b extends BaseBot {
+export default class Claude37 extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
         this.targetedPlanets = new Map();
@@ -14,7 +14,7 @@ export default class Claude37b extends BaseBot {
         this.threatAssessmentCooldown -= dt;
         if (this.threatAssessmentCooldown <= 0) {
             this.assessThreats();
-            this.threatAssessmentCooldown = 5; // Re-assess threats every 5 game seconds
+            this.threatAssessmentCooldown = 5; // re-assess threats every 5 game seconds
         }
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;

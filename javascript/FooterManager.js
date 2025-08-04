@@ -44,9 +44,10 @@ export default class FooterManager {
                     <div id="slider-fill"></div>
                     <div id="slider-thumb"></div>
                 </div>
-                <span class="slider-text label" id="slider-text-label"></span>
-                <span class="slider-text value" id="slider-text-value"></span>
             </div>
+            <span class="slider-text label" id="slider-text-label"></span>
+            <span class="slider-text value" id="slider-text-value"></span>
+        </div>
         `;
         this.footerElement.appendChild(this.sliderContainer);
         const track = document.getElementById('slider-track');
@@ -107,7 +108,7 @@ export default class FooterManager {
         if (!fill || !thumb || !label || !valueDisplay) return;
         fill.style.width = `${percent}%`; // update style
         thumb.style.left = `${percent}%`;
-        label.textContent = (this.mode === 'troop') ? 'TROOP %' : 'GAME PACE'; // update text content
+        label.textContent = (this.mode === 'troop') ? 'TROOP %' : 'PACE'; // update text content
         if (this.mode === 'troop') {
             valueDisplay.textContent = `${percent}%`;
         } else {
