@@ -25,34 +25,26 @@ export default class MenuManager {
         window.menuManager = this;
         this.game = null;
         this.gameOverScreen = new GameOverScreen(document.getElementById('inner-container'));
-
-        // NEW: Properties for batch mode
         this.isBatchRunning = false;
         this.gamesRemaining = 0;
         this.currentBatchConfig = null;
-
+        this.batchOverlay = null;
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
-
     initializeUserIdentity() {
         const storageKey = 'cultureWarUserId';
         let userId = localStorage.getItem(storageKey);
         if (!userId) {
-            // Generates a short, random alphanumeric string like "a1b2c"
-            userId = Math.random().toString(36).substring(2, 7);
+            userId = Math.random().toString(36).substring(2, 7); // generates a short random alphanumeric string
             try {
                 localStorage.setItem(storageKey, userId);
-            } catch (error) {
-                console.error('Could not save user ID to localStorage:', error);
-                // If localStorage is disabled (e.g., private browsing),
-                // we'll just have a session-based ID. This is a graceful fallback.
+            } catch (error) { // if localStorage is disabled, just have a session-based ID as fallback
+                console.error('Could not save user ID to localStorage:', error); 
             }
         }
-        // Make the ID globally accessible for other modules like GameOverScreen
-        window.CULTURE_WAR_USER_ID = userId;
+        window.CULTURE_WAR_USER_ID = userId; // make ID globally accessible for other modules
     }
-
     switchToScreen(screenName) {
         this.screenManager.switchToScreen(screenName);
         if (screenName === 'game') {
@@ -84,17 +76,17 @@ export default class MenuManager {
     }
     startGame() {
         const config = this.configManager.getConfig();
-        // MODIFIED: Check for batch mode
-        if (config.batchSize > 1) {
-            this.isBatchRunning = true;
-            this.gamesRemaining = config.batchSize;
-            this.currentBatchConfig = { ...config }; // Store a copy of the config for the batch
-            console.log(`Starting batch of ${this.gamesRemaining} games.`);
+        this.currentBatchConfig = { ...config }; // Store a copy of the config
+        this.gamesRemaining = this.currentBatchConfig.batchSize;
+        this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
+        if (this.isBatchRunning) {
+            console.log(`Starting batch of ${this.gamesRemaining} games. Headless: ${this.currentBatchConfig.isHeadless}`);
+            if (this.currentBatchConfig.isHeadless) {
+                this.showBatchOverlay();
+            }
             this.startNextBatchGame();
         } else {
-            // Original single-game logic
-            this.isBatchRunning = false;
-            this.switchToScreen('game');
+            this.switchToScreen('game'); // single-game logic
             const hasHumanPlayer = config.players.some(p => p.type === 'human');
             const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
             this.footerManager.showSlider(initialSliderMode);
@@ -102,26 +94,53 @@ export default class MenuManager {
             this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
         }
     }
-
-    // NEW: Method to handle starting the next game in a batch
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
             this.isBatchRunning = false;
-            console.log("Batch complete. Returning to main menu.");
-            // When the batch is done, go back to the main menu
-            this.menuBuilder.buildMainMenu();
+            console.log("Batch complete. Returning to standings screen.");
+            if (this.batchOverlay) this.hideBatchOverlay();
+            
+            this.menuBuilder.buildStandingsScreen(); // Go to standings after a batch
             this.switchToScreen('menu');
             return;
         }
-
-        console.log(`--- Starting Game ${this.currentBatchConfig.batchSize - this.gamesRemaining + 1} of ${this.currentBatchConfig.batchSize} ---`);
+    
+        const gameNumber = this.currentBatchConfig.batchSize - this.gamesRemaining + 1;
+        console.log(`--- Starting Game ${gameNumber} of ${this.currentBatchConfig.batchSize} ---`);
+        this.updateBatchOverlay(gameNumber);
         this.gamesRemaining--;
-
-        this.switchToScreen('game');
-        // A batch run should never have a human, so we can hardcode some things
+        if (!this.currentBatchConfig.isHeadless) {
+             this.switchToScreen('game');
+        }
         this.footerManager.showSlider('botbattle');
         this.game = new Game(this.currentBatchConfig, this.footerManager);
-        this.game.timerManager.shouldPauseOnHidden = false; // Never pause during a batch
+        this.game.timerManager.shouldPauseOnHidden = false;
+    }
+    showBatchOverlay() { // methods to manage headless mode UI overlay
+        if (this.batchOverlay) return;
+        this.batchOverlay = document.createElement('div');
+        this.batchOverlay.id = 'batch-overlay';
+        this.batchOverlay.innerHTML = `
+            <h2>RUNNING SIMULATION</h2>
+            <p id="batch-progress-text">Initializing...</p>
+            <div class="spinner"></div>
+        `;
+        document.getElementById('inner-container').appendChild(this.batchOverlay);
+    }
+    
+    updateBatchOverlay(gameNumber) {
+        if (!this.batchOverlay) return;
+        const progressText = this.batchOverlay.querySelector('#batch-progress-text');
+        if (progressText) {
+            progressText.textContent = `Running Game ${gameNumber} of ${this.currentBatchConfig.batchSize}`;
+        }
+    }
+    
+    hideBatchOverlay() {
+        if (this.batchOverlay) {
+            this.batchOverlay.remove();
+            this.batchOverlay = null;
+        }
     }
 
     getGameConfig() {
@@ -138,4 +157,4 @@ export default class MenuManager {
     }
 }
 
-const menuManager = new MenuManager(); // initialize menu on script load
+const menuManager = new MenuManager();

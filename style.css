@@ -585,6 +585,48 @@ header h1 {
     width: 100%;
     height: 100%;
 }
+/* HEADLESS BATCH OVERLAY */
+#batch-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+}
+#batch-overlay h2 {
+    font-family: 'Tourney', monospace;
+    font-size: 1.5rem;
+    color: #ffaa00;
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+}
+#batch-overlay p {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    color: #ccc;
+}
+.spinner {
+    margin-top: 2rem;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #444;
+    border-top-color: #ffaa00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 /* GAME OVER SCREEN */
 #game-over-screen {
     position: absolute;

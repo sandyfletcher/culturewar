@@ -129,4 +129,23 @@ export default class FooterManager {
             return mid + (this.value - midPoint) * (range / (100 - midPoint));
         }
     }
+    setSpeedFromMultiplier(multiplier) { // set slider's percentage based on a desired speed multiplier
+        if (this.mode !== 'speed') return;
+        const { min, mid, max } = config.ui.footerSlider.speed;
+        const midPoint = config.ui.footerSlider.defaultValue;
+        let percent = midPoint;
+        if (multiplier <= mid) { // solving for value in lower range
+            const range = mid - min;
+            if (range > 0) {
+                percent = 1 + (multiplier - min) * (midPoint - 1) / range;
+            }
+        } else { // solving for value in upper range
+            const range = max - mid;
+            if (range > 0) {
+                percent = midPoint + (multiplier - mid) * (100 - midPoint) / range;
+            }
+        }
+        this.value = Math.max(0, Math.min(100, Math.round(percent))); // clamp final value and update UI
+        this.updateSliderUI(this.value);
+    }
 }

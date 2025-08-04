@@ -43,10 +43,17 @@ export default class Game {
         if (this.config && this.config.planetDensity !== undefined) {
             this.planetGenerator.setPlanetDensity(this.config.planetDensity);
         }
+        if (this.footerManager && this.footerManager.mode === 'speed' && this.config.initialGamePace) { // set initial game pace if configured
+            this.footerManager.setSpeedFromMultiplier(this.config.initialGamePace);
+        }
         this.timerManager.initialize();
         this.isActive = true;
         this.initializeGame();
-        this.gameLoop();
+        if (this.config.isHeadless) { // choose game loop based on headless mode
+            this.runHeadless();
+        } else {
+            this.gameLoop();
+        }
     }
     resize() {
         const container = this.canvas.parentElement;
@@ -146,5 +153,17 @@ export default class Game {
         if (!this.gameOver) {
             requestAnimationFrame(() => this.gameLoop());
         }
+    }
+    runHeadless() { // headless game loop that runs without rendering
+        console.log("Starting game in Headless Mode.");
+        const headlessLoop = () => {
+            if (this.gameOver) {
+                console.log("Headless game finished.");
+                return;
+            }
+            this.update();
+            setTimeout(headlessLoop, 0); // use setTimeout to yield to the browser's event loop, preventing a freeze
+        };
+        headlessLoop();
     }
 }
