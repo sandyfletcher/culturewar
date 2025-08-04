@@ -71,19 +71,17 @@ export default class GameOverScreen {
             `;
         });
         leaderboardHTML += `</tbody></table></div>`;
-        // --- NEW: Structured, Machine-Readable Console Logging ---
-        const gameId = Date.now(); // Unique ID for this specific match
-        // Log overall game statistics in a CSV format
+        const gameId = Date.now(); // unique ID for this specific match
         const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
-        console.log(gameStatsLog);
-        // Log each player's final stats in a CSV format, linked by gameId
-        leaderboardData.forEach((player, index) => {
+        console.log(gameStatsLog); // log overall game statistics in CSV format
+        leaderboardData.forEach((player, index) => { // log each player's final stats in a CSV format, linked by gameId
             const rank = index + 1;
-            const survivalTime = player.survivalTime.toFixed(2); // Use raw seconds for data analysis
-            const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${player.nickname},${player.planets},${player.troops},${survivalTime}`;
+            const survivalTime = player.survivalTime.toFixed(2); // use raw seconds for data analysis
+            const originalPlayerData = allPlayersData.find(p => p.id === player.id); // find original player data from unsorted list to get correct bot type identifier (aiController)
+            const aggregationKey = originalPlayerData.aiController || player.nickname; // use bot's type ('G-2.5A', etc.) as aggregation key, fallback to nickname for humans ('PLAYER')
+            const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${player.troops},${survivalTime}`;
             console.log(playerStatsLog);
         });
-        
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>
