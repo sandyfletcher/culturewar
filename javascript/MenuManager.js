@@ -25,6 +25,12 @@ export default class MenuManager {
         window.menuManager = this;
         this.game = null;
         this.gameOverScreen = new GameOverScreen(document.getElementById('inner-container'));
+
+        // NEW: Properties for batch mode
+        this.isBatchRunning = false;
+        this.gamesRemaining = 0;
+        this.currentBatchConfig = null;
+
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
@@ -78,13 +84,46 @@ export default class MenuManager {
     }
     startGame() {
         const config = this.configManager.getConfig();
-        this.switchToScreen('game');
-        const hasHumanPlayer = config.players.some(p => p.type === 'human');
-        const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
-        this.footerManager.showSlider(initialSliderMode);
-        this.game = new Game(config, this.footerManager);
-        this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
+        // MODIFIED: Check for batch mode
+        if (config.batchSize > 1) {
+            this.isBatchRunning = true;
+            this.gamesRemaining = config.batchSize;
+            this.currentBatchConfig = { ...config }; // Store a copy of the config for the batch
+            console.log(`Starting batch of ${this.gamesRemaining} games.`);
+            this.startNextBatchGame();
+        } else {
+            // Original single-game logic
+            this.isBatchRunning = false;
+            this.switchToScreen('game');
+            const hasHumanPlayer = config.players.some(p => p.type === 'human');
+            const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
+            this.footerManager.showSlider(initialSliderMode);
+            this.game = new Game(config, this.footerManager);
+            this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
+        }
     }
+
+    // NEW: Method to handle starting the next game in a batch
+    startNextBatchGame() {
+        if (!this.isBatchRunning || this.gamesRemaining <= 0) {
+            this.isBatchRunning = false;
+            console.log("Batch complete. Returning to main menu.");
+            // When the batch is done, go back to the main menu
+            this.menuBuilder.buildMainMenu();
+            this.switchToScreen('menu');
+            return;
+        }
+
+        console.log(`--- Starting Game ${this.currentBatchConfig.batchSize - this.gamesRemaining + 1} of ${this.currentBatchConfig.batchSize} ---`);
+        this.gamesRemaining--;
+
+        this.switchToScreen('game');
+        // A batch run should never have a human, so we can hardcode some things
+        this.footerManager.showSlider('botbattle');
+        this.game = new Game(this.currentBatchConfig, this.footerManager);
+        this.game.timerManager.shouldPauseOnHidden = false; // Never pause during a batch
+    }
+
     getGameConfig() {
         return this.configManager.getConfig();
     }

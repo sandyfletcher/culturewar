@@ -20,6 +20,10 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         playerSelectorsContainer.className = 'ai-selectors-container';
         playerSelectorsContainer.id = 'player-selectors-container';
         setupForm.appendChild(playerSelectorsContainer);
+
+        // NEW: Add the advanced settings section
+        setupForm.appendChild(this.createAdvancedSettings());
+
         setupForm.appendChild(this.createBottomButtons()); // 4. Start Button
         menuContainer.appendChild(setupForm);
         this.updatePlayerSelectors();
@@ -28,6 +32,61 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         });
         return menuContainer;
     }
+
+    // NEW: Method to create the entire advanced settings section
+    createAdvancedSettings() {
+        const container = document.createElement('div');
+        container.className = 'advanced-settings-wrapper';
+
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'advanced-settings-toggle';
+        toggleButton.innerHTML = 'ADVANCED SETTINGS <span>▼</span>';
+
+        const panel = document.createElement('div');
+        panel.className = 'advanced-settings-panel';
+
+        // Add batch game control to the panel
+        panel.appendChild(this.createBatchGameControl());
+
+        toggleButton.addEventListener('click', () => {
+            panel.classList.toggle('active');
+            toggleButton.classList.toggle('active');
+            const arrow = toggleButton.querySelector('span');
+            arrow.textContent = panel.classList.contains('active') ? '▲' : '▼';
+        });
+
+        container.appendChild(toggleButton);
+        container.appendChild(panel);
+        return container;
+    }
+
+    // NEW: Method to create just the batch game input
+    createBatchGameControl() {
+        const batchContainer = document.createElement('div');
+        batchContainer.className = 'advanced-setting-item';
+
+        const label = document.createElement('label');
+        label.for = 'batch-size-input';
+        label.textContent = 'Number of Games:';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = 'batch-size-input';
+        input.min = '1';
+        input.max = '100'; // Max of 100 games per run
+        input.value = this.configManager.getConfig().batchSize;
+
+        input.addEventListener('change', () => {
+            this.configManager.setBatchSize(input.value);
+            // Update the value in case it was out of bounds
+            input.value = this.configManager.getConfig().batchSize;
+        });
+
+        batchContainer.appendChild(label);
+        batchContainer.appendChild(input);
+        return batchContainer;
+    }
+
     createPlayerCountControl() {
         const container = document.createElement('div');
         const countLabelElement = document.createElement('h2');

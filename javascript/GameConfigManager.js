@@ -9,7 +9,8 @@ export default class GameConfigManager {
     constructor() {
         this.gameConfig = {
             players: [], // will be populated by setPlayerCount()
-            planetDensity: config.planetGeneration.density.default
+            planetDensity: config.planetGeneration.density.default,
+            batchSize: 1 // NEW: Add batchSize with a default of 1 game
         };
         this.aiOptions = botRegistry.map(bot => ({ // only need 'name' and 'value' for UI dropdowns
             value: bot.value,
@@ -18,6 +19,16 @@ export default class GameConfigManager {
         this.playerColors = config.player.colors;
         this.setPlayerCount(config.menuDefaults.playerCount); // initialize default game setup
     }
+
+    // NEW: Add a method to set the batch size
+    setBatchSize(size) {
+        const batchSize = parseInt(size, 10);
+        // Ensure the size is a valid number between 1 and 100
+        if (!isNaN(batchSize) && batchSize >= 1 && batchSize <= 100) {
+            this.gameConfig.batchSize = batchSize;
+        }
+    }
+
     setPlayerCount(count) { // central method to set total number of players, resizing players array to preserve existing settings where possible
         const newPlayers = [];
         // Get all available AI controller values from the options

@@ -155,6 +155,7 @@ header h1 {
     transition: all 0.3s ease;
     position: relative;
     text-align: left;
+    border-radius: 0;
 }
 .game-mode-button:hover {
     background-color: rgba(50, 50, 50, 0.7);
@@ -212,6 +213,7 @@ header h1 {
 .combatant-entry {
     border: 1px solid #555;
     transition: all 0.3s ease;
+    border-radius: 0;
 }
 .combatant-entry.active {
     border-color: #ffaa00;
@@ -289,8 +291,8 @@ header h1 {
 .planet-density-container {
     margin-top: 0.5rem;
     margin-bottom: 1rem;
-    border-radius: 0;
     background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0;
 }
 .section-title {
     color: #fff;
@@ -385,6 +387,7 @@ header h1 {
     background-size: 16px;
     transition: all 0.3s;
     flex-grow: 1;
+    border-radius: 0;
 }
 .ai-selector select:hover {
     background-color: #444;
@@ -418,6 +421,7 @@ header h1 {
     cursor: pointer;
     transition: all 0.3s;
     text-align: center;
+    border-radius: 0;
 }
 .menu-button:hover {
     background: #fff;
@@ -444,12 +448,72 @@ header h1 {
     background-color: black;
     letter-spacing: 2px;
     transition: all 0.3s;
+    border-radius: 0;
 }
 .start-game:hover {
     background: #fff;
     color: #000;
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+/* ADVANCED SETUP MENU */
+.advanced-settings-wrapper {
+    width: 100%;
+    margin-top: 1rem;
+    border-top: 1px solid #444;
+    padding-top: 1rem;
+}
+.advanced-settings-toggle {
+    background: none;
+    border: 1px solid #888;
+    color: #ccc;
+    width: 100%;
+    padding: 0.5rem;
+    font-family: 'Tourney', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    padding-left: 1rem;
+}
+.advanced-settings-toggle:hover {
+    background-color: #333;
+    border-color: #fff;
+}
+.advanced-settings-toggle span {
+    float: right;
+    margin-right: 0.5rem;
+}
+.advanced-settings-panel {
+    background-color: rgba(20, 20, 20, 0.5);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+    padding: 0 1rem;
+}
+.advanced-settings-panel.active {
+    max-height: 200px; /* adjust if more options added  */
+    padding: 1rem;
+}
+.advanced-setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.advanced-setting-item label {
+    font-size: 1rem;
+    color: #ccc;
+}
+.advanced-setting-item input[type="number"] {
+    width: 6rem;
+    padding: 0.5rem;
+    background-color: #111;
+    border: 1px solid #fff;
+    color: #fff;
+    font-family: 'Tourney', monospace;
+    font-size: 1.1rem;
+    text-align: center;
 }
 /* GAME SCREEN */
 #game-screen {
@@ -512,9 +576,9 @@ header h1 {
     width: 98%;
     max-width: 390px;
     margin-bottom: 1rem;
-    border-radius: 0;
     overflow: visible;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0;
 }
 .leaderboard table {
     width: 100%;
@@ -559,9 +623,9 @@ header h1 {
     max-width: 390px;
     margin: 1rem 0;
     background-color: rgba(30, 30, 30, 0.8);
-    border-radius: 0;
     padding: 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0;
 }
 .stats-container {
     display: grid;
@@ -573,8 +637,8 @@ header h1 {
     flex-direction: column;
     background-color: rgba(255, 255, 255, 0.1);
     padding: 0.3rem;
-    border-radius: 0;
     text-align: center;
+    border-radius: 0;
 }
 .stat-label {
     font-size: 0.8rem;
@@ -599,6 +663,7 @@ header h1 {
     font-family: 'Courier New', monospace;
     font-weight: bold;
     transition: all 0.3s;
+    border-radius: 0;
 }
 #play-again-button:hover {
     transform: scale(1.05);

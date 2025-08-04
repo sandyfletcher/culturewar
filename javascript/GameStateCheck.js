@@ -81,10 +81,40 @@ export default class GameState {
         return false;
     }
     endGame(winnerId, victoryType) {
+        if (this.gameOver) return; // Prevent endGame from running multiple times
+
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
+
+        // MODIFIED: Intercept for batch mode
+        if (window.menuManager.isBatchRunning) {
+            // Log stats silently
+            const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
+            const gameStatsLog = `[GAME_STATS],${gameId},${this.elapsedGameTime.toFixed(2)},${Math.round(this.troopsSent || 0)},${Math.round(this.planetsConquered || 0)},${Math.round(this.troopsLost || 0)}`;
+            console.log(gameStatsLog);
+
+            // Log player stats silently
+            const playerStats = this.game.playersController.getPlayerStats().filter(p => p.id !== 'neutral');
+            const allPlayersData = this.game.playersController.players;
+            playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
+            playerStats.forEach((player, index) => {
+                const rank = index + 1;
+                const cultureScore = ((allPlayersData.length + 1) / 2) - rank;
+                const survivalTime = this.eliminationTimes[player.id] || this.elapsedGameTime;
+                const originalPlayerData = allPlayersData.find(p => p.id === player.id);
+                const aggregationKey = originalPlayerData.aiController || 'PLAYER';
+                const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${Math.floor(player.troops)},${survivalTime.toFixed(2)},${cultureScore.toFixed(4)}`;
+                console.log(playerStatsLog);
+            });
+            
+            // Trigger the next game in the batch
+            window.menuManager.startNextBatchGame();
+            return; // Exit here to prevent showing the game over screen
+        }
+
+        // --- Original single-game logic ---
         const humanWon = this.game.humanPlayerIds.includes(this.winner); // determine if human won based on the dynamic list
         const stats = {
             winner: this.winner,
@@ -97,17 +127,14 @@ export default class GameState {
             hasHumanPlayer: this.game.humanPlayerIds.length > 0
         };
         if (window.menuManager) {
-            // Callback for the 'PLAY AGAIN' button: returns to the game setup screen.
             const onPlayAgain = () => {
                 window.menuManager.menuBuilder.buildGameSetup();
                 window.menuManager.switchToScreen('menu');
             };
-            // Callback for the '< MENUS' button: returns to the main menu.
             const onBackToMenu = () => {
                 window.menuManager.menuBuilder.buildMainMenu();
                 window.menuManager.switchToScreen('menu');
             };
-            // Pass both distinct callbacks to the manager.
             window.menuManager.showGameOver(stats, this.game, onPlayAgain, onBackToMenu);
         } else {
             console.error("MenuManager not found.");

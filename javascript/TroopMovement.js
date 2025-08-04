@@ -4,6 +4,8 @@
 
 import { config } from './config.js';
 
+const TROOP_COUNT_VERTICAL_OFFSET = 2; // Vertical pixel offset for troop count text above the icon
+
 export default class TroopMovement {
     constructor(from, to, amount, owner, game) {
         this.from = from;
@@ -61,6 +63,6 @@ export default class TroopMovement {
         ctx.font = '12px Courier New';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillText(Math.floor(this.amount), pos.x, pos.y - fontSize/2 - 2);
+        ctx.fillText(Math.floor(this.amount), pos.x, pos.y - fontSize/2 - TROOP_COUNT_VERTICAL_OFFSET);
     }
 }
