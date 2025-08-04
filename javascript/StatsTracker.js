@@ -44,6 +44,7 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                 planets: parseInt(parts[4], 10),
                 troops: parseInt(parts[5], 10),
                 survivalTime: parseFloat(parts[6]),
+                cultureScore: parts[7] ? parseInt(parts[7], 10) : 0
             });
         }
         this.saveToLocalStorage();
@@ -82,11 +83,15 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                     wins: 0,
                     gamesPlayed: 0,
                     totalSurvivalTime: 0,
+                    totalCultureScore: 0,
+                    totalRank: 0,
                 };
             }
             const playerStat = statsByPlayer[record.nickname];
             playerStat.gamesPlayed++;
             playerStat.totalSurvivalTime += record.survivalTime;
+            playerStat.totalCultureScore += record.cultureScore || 0;
+            playerStat.totalRank += record.rank;
             if (record.rank === 1) {
                 playerStat.wins++;
             }
@@ -96,15 +101,15 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                 ...player,
                 winRate: (player.wins / player.gamesPlayed) * 100,
                 avgSurvival: player.totalSurvivalTime / player.gamesPlayed,
+                avgRank: player.totalRank / player.gamesPlayed,
             };
         });
-        aggregatedList.sort((a, b) => b.winRate - a.winRate); // sort by win rate (descending) as primary ranking metric
+        aggregatedList.sort((a, b) => b.totalCultureScore - a.totalCultureScore || b.winRate - a.winRate); // sort by culture score, then win rate
         return aggregatedList;
     }
-    clearStats() { // clears all stats from memory and from localStorage
+    clearStats() { // clears stats from memory and localStorage
         this.games = {};
         this.playerRecords = [];
         localStorage.removeItem('cultureWarStats');
-        // this.originalLog('Player stats have been cleared.');
     }
 }

@@ -14,6 +14,7 @@ export default class GameOverScreen {
         const playerStats = gameInstance.playersController.getPlayerStats()
             .filter(player => player.id !== 'neutral');
         const allPlayersData = gameInstance.playersController.players;
+        const playerCount = allPlayersData.length; // get total player count for scoring
         const eliminationTimes = gameInstance.gameState.eliminationTimes || {};
         const gameTime = stats.time;
         const leaderboardData = allPlayersData.map(playerData => {
@@ -22,7 +23,6 @@ export default class GameOverScreen {
             const survivalTime = eliminationTimes[playerData.id] || gameTime;
             return {
                 id: playerData.id,
-                // Get both the long name for the screen and the short name for logging
                 displayName: window.menuManager.getPlayerDisplayName(playerData, gameInstance, false),
                 nickname: window.menuManager.getPlayerDisplayName(playerData, gameInstance, true),
                 planets: playerStat.planets,
@@ -51,35 +51,38 @@ export default class GameOverScreen {
                             <th>Player</th>
                             <th>Planets</th>
                             <th>Troops</th>
-                            <th>Survived</th>
+                            <th>Score</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
-        leaderboardData.forEach((player, index) => {
+        const finalLeaderboardData = leaderboardData.map((player, index) => { // add player rank and score to leaderboard data
             const rank = index + 1;
-            const formattedTime = window.menuManager.formatTime(player.survivalTime);
+            const cultureScore = Math.ceil(playerCount / 2) - rank;
+            return { ...player, rank, cultureScore };
+        });
+        finalLeaderboardData.forEach(player => {
+            const scoreText = player.cultureScore > 0 ? `+${player.cultureScore}` : player.cultureScore;
             const rowClass = player.isWinner ? 'winner' : '';
             leaderboardHTML += `
                 <tr class="${rowClass}">
-                    <td>${rank}</td>
+                    <td>${player.rank}</td>
                     <td>${player.displayName}</td>
                     <td>${player.planets}</td>
                     <td>${player.troops}</td>
-                    <td>${formattedTime}</td>
+                    <td>${scoreText}</td>
                 </tr>
             `;
         });
         leaderboardHTML += `</tbody></table></div>`;
-        const gameId = Date.now(); // unique ID for this specific match
+        const gameId = Date.now();
         const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
-        console.log(gameStatsLog); // log overall game statistics in CSV format
-        leaderboardData.forEach((player, index) => { // log each player's final stats in a CSV format, linked by gameId
-            const rank = index + 1;
-            const survivalTime = player.survivalTime.toFixed(2); // use raw seconds for data analysis
-            const originalPlayerData = allPlayersData.find(p => p.id === player.id); // find original player data from unsorted list to get correct bot type identifier (aiController)
-            const aggregationKey = originalPlayerData.aiController || player.nickname; // use bot's type ('G-2.5A', etc.) as aggregation key, fallback to nickname for humans ('PLAYER')
-            const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${player.troops},${survivalTime}`;
+        console.log(gameStatsLog);
+        finalLeaderboardData.forEach(player => { // log new score
+            const survivalTime = player.survivalTime.toFixed(2);
+            const originalPlayerData = allPlayersData.find(p => p.id === player.id);
+            const aggregationKey = originalPlayerData.aiController || player.nickname;
+            const playerStatsLog = `[PLAYER_STATS],${gameId},${player.rank},${aggregationKey},${player.planets},${player.troops},${survivalTime},${player.cultureScore}`;
             console.log(playerStatsLog);
         });
         const overallStats = `
