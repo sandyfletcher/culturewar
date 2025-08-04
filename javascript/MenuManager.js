@@ -12,6 +12,7 @@ import StatsTracker from './StatsTracker.js';
 
 export default class MenuManager {
     constructor() {
+        this.initializeUserIdentity(); // Create or load a persistent user ID.
         this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
         this.footerManager = new FooterManager();
@@ -27,6 +28,25 @@ export default class MenuManager {
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
+
+    initializeUserIdentity() {
+        const storageKey = 'cultureWarUserId';
+        let userId = localStorage.getItem(storageKey);
+        if (!userId) {
+            // Generates a short, random alphanumeric string like "a1b2c"
+            userId = Math.random().toString(36).substring(2, 7);
+            try {
+                localStorage.setItem(storageKey, userId);
+            } catch (error) {
+                console.error('Could not save user ID to localStorage:', error);
+                // If localStorage is disabled (e.g., private browsing),
+                // we'll just have a session-based ID. This is a graceful fallback.
+            }
+        }
+        // Make the ID globally accessible for other modules like GameOverScreen
+        window.CULTURE_WAR_USER_ID = userId;
+    }
+
     switchToScreen(screenName) {
         this.screenManager.switchToScreen(screenName);
         if (screenName === 'game') {

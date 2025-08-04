@@ -62,7 +62,7 @@ export default class Renderer {
         const originalShadowColor = ctx.shadowColor;
         const originalShadowBlur = ctx.shadowBlur;
         // --- Set styles for UI text ---
-        ctx.font = "bold 20px 'LondrinaSketch'";
+        ctx.font = "20px 'Wallpoet'";
         ctx.fillStyle = '#FFFFFF';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';

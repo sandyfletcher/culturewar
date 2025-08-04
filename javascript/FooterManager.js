@@ -39,15 +39,14 @@ export default class FooterManager {
         this.sliderContainer = document.createElement('div');
         this.sliderContainer.id = 'footer-slider-container'; // build slider structure once with IDs for easy updating
         this.sliderContainer.innerHTML = ` 
+            <span class="slider-text label" id="slider-text-label"></span>
             <div id="slider-wrapper">
                 <div id="slider-track">
                     <div id="slider-fill"></div>
                     <div id="slider-thumb"></div>
                 </div>
             </div>
-            <span class="slider-text label" id="slider-text-label"></span>
             <span class="slider-text value" id="slider-text-value"></span>
-        </div>
         `;
         this.footerElement.appendChild(this.sliderContainer);
         const track = document.getElementById('slider-track');
@@ -113,7 +112,7 @@ export default class FooterManager {
             valueDisplay.textContent = `${percent}%`;
         } else {
             const speedMultiplier = this.getSpeedMultiplier();
-            valueDisplay.textContent = `${speedMultiplier.toFixed(2)}X`;
+            valueDisplay.textContent = `${speedMultiplier.toFixed(1)}X`;
         }
     }
     getTroopPercentage() {

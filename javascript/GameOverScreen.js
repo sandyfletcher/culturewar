@@ -76,7 +76,9 @@ export default class GameOverScreen {
             `;
         });
         leaderboardHTML += `</tbody></table></div>`;
-        const gameId = Date.now();
+        const userId = window.CULTURE_WAR_USER_ID || 'anon'; // dallback just in case
+        const timestamp = Date.now();
+        const gameId = `${userId}-${timestamp}`; // e.g., "f8axv-1678886400000"
         const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
         console.log(gameStatsLog);
         finalLeaderboardData.forEach(player => { // log new score
