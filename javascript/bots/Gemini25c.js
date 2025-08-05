@@ -11,11 +11,11 @@ export default class Gemini25c extends BaseBot {
         this.grudgeMap = new Map();
         this.lastStateCheck = 0;
         this.config = {
-            stateCheckInterval: 1.5, // check state more frequently
+            stateCheckInterval: 1.5,
             grudgeDecayFactor: 0.998,
-            defenseThreatRatio: 0.7, // defend if incoming troops > 70% of planet's troops
-            consolidationReserve: 0.25, // keep only 25% on core planets when reinforcing
-            attackOverwhelmFactor: 1.15, // send 115% of the troops needed
+            defenseThreatRatio: 0.7,
+            consolidationReserve: 0.25,
+            attackOverwhelmFactor: 1.15,
         };
     }
     makeDecision(dt) {
@@ -30,10 +30,10 @@ export default class Gemini25c extends BaseBot {
         }
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
-        // #1 Priority: Immediate Defense of critical threats
+        
         const defenseMove = this.executeDefensiveMove(myPlanets);
         if (defenseMove) return defenseMove;
-        // 2. Execute primary strategy for current state
+        
         switch (this.currentState) {
             case 'EXPANDING':
                 return this.executeExpandingMove(myPlanets);
@@ -45,31 +45,25 @@ export default class Gemini25c extends BaseBot {
                 return null;
         }
     }
+    // ... (other functions remain the same) ...
     updateCurrentState() {
         const myPower = this.api.getMyTotalTroops();
         const opponents = this.api.getOpponentIds();
         const strongestOpponent = opponents.reduce((max, id) => Math.max(max, this.api.getPlayerTotalTroops(id)), 0);
         const neutralPlanetsCount = this.api.getNeutralPlanets().length;
         const previousState = this.currentState;
-        // Priority 1: If we are significantly weaker, we must consolidate and defend
+        
         if (myPower < strongestOpponent * 0.8) {
             this.currentState = 'CONSOLIDATING';
-        }
-        // Priority 2: If there are still easy neutral planets to take, expand
-        else if (neutralPlanetsCount > 2) {
+        } else if (neutralPlanetsCount > 2) {
              this.currentState = 'EXPANDING';
-        }
-        // Priority 3: If we are strong and neutrals are mostly gone, attack
-        else if (myPower > strongestOpponent * 1.1) {
+        } else if (myPower > strongestOpponent * 1.1) {
             this.currentState = 'ATTACKING';
-        }
-        // Default Fallback: If none of the above, consolidate forces
-        else {
+        } else {
             this.currentState = 'CONSOLIDATING';
         }
-        if (this.currentState !== previousState) {
-        }
     }
+
     updateGrudgeMap() {
         for (const myPlanet of this.api.getMyPlanets()) {
             const incomingAttacks = this.api.getIncomingAttacks(myPlanet);
@@ -79,6 +73,7 @@ export default class Gemini25c extends BaseBot {
             }
         }
     }
+    
     executeDefensiveMove(myPlanets) {
         let mostThreatened = null;
         let highestThreatRatio = 0;
@@ -107,6 +102,7 @@ export default class Gemini25c extends BaseBot {
         }
         return null;
     }
+
     executeExpandingMove(myPlanets) {
         const neutralPlanets = this.api.getNeutralPlanets();
         if (neutralPlanets.length === 0) return this.executeConsolidatingMove(myPlanets);
@@ -124,11 +120,12 @@ export default class Gemini25c extends BaseBot {
         }
         return null;
     }
+
     executeConsolidatingMove(myPlanets) {
         if (myPlanets.length < 2) return null;
         const borderPlanets = myPlanets.filter(p => this.api.getEnemyPlanets().some(e => this.api.getDistance(p, e) < 400));
         if (borderPlanets.length === 0) return null;
-        const mostVulnerableBorder = borderPlanets.map(p => ({ // find border planet with highest threat score (threat vs troops)
+        const mostVulnerableBorder = borderPlanets.map(p => ({
             planet: p,
             threatScore: this.api.calculateThreat(p) / (p.troops + 1)
         }))
@@ -145,26 +142,41 @@ export default class Gemini25c extends BaseBot {
         }
         return null;
     }
+    
     executeAttackingMove(myPlanets) {
         const enemyPlanets = this.api.getEnemyPlanets();
         if (enemyPlanets.length === 0) return null;
-        const targets = enemyPlanets.map(p => {
-            const grudge = this.grudgeMap.get(p.owner) || 1.0;
-            return {
-                planet: p,
-                score: (this.api.calculatePlanetValue(p) * (1 + grudge / 100)) / (this.api.estimateTroopsAtArrival(myPlanets[0], p) + 10)
-            };
-        }).sort((a, b) => b.score - a.score);
-        for (const target of targets) {
-            const troopsRequired = Math.ceil(this.api.estimateTroopsAtArrival(myPlanets[0], target.planet) * this.config.attackOverwhelmFactor);
-            const potentialAttackers = myPlanets.filter(p => p.troops > troopsRequired);
-            if (potentialAttackers.length > 0) {
-                const sourcePlanet = this.api.findNearestPlanet(target.planet, potentialAttackers);
-                if (sourcePlanet) {
-                    return { from: sourcePlanet, to: target.planet, troops: troopsRequired };
+
+        // Iterate through all possible source and target combinations to find the best attack
+        let bestMove = null;
+        let bestScore = -Infinity;
+
+        const potentialAttackers = myPlanets.filter(p => p.troops > 20);
+
+        for (const source of potentialAttackers) {
+            for (const target of enemyPlanets) {
+                const travelTime = this.api.getTravelTime(source, target);
+                // *** UPDATED: Use the superior predictPlanetState function ***
+                const predictedState = this.api.predictPlanetState(target, travelTime);
+
+                // Don't attack if we predict we will own it
+                if (predictedState.owner === this.playerId) continue;
+
+                const troopsRequired = Math.ceil(predictedState.troops * this.config.attackOverwhelmFactor);
+                
+                if (source.troops > troopsRequired) {
+                    const grudge = this.grudgeMap.get(target.owner) || 1.0;
+                    const value = this.api.calculatePlanetValue(target);
+                    // A simple score: value of planet (with grudge) minus the cost of sending troops
+                    const score = (value * (1 + grudge / 100)) - troopsRequired;
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = { from: source, to: target, troops: troopsRequired };
+                    }
                 }
             }
         }
-        return null;
+        return bestMove;
     }
 }

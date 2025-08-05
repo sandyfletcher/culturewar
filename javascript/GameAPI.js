@@ -219,17 +219,6 @@ export default class GameAPI {
         return { owner: predictedOwner, troops: Math.floor(predictedTroops) };
     }
     /**
-     * Estimates the number of troops a planet will have upon arrival of a fleet from a source planet.  This function is being deprecated and should not be used when designing your bot.
-     * @param {Planet} sourcePlanet
-     * @param {Planet} targetPlanet
-     * @returns {number} Estimated troop count.
-     */
-    estimateTroopsAtArrival(sourcePlanet, targetPlanet) {
-        const travelTime = this.getTravelTime(sourcePlanet, targetPlanet);
-        const productionGains = targetPlanet.owner !== 'neutral' ? targetPlanet.productionRate * travelTime : 0;
-        return targetPlanet.troops + productionGains;
-    }
-    /**
      * Calculates the centrality of a planet (0 to 1, where 1 is the exact center of the map).
      * @param {Planet} planet
      * @returns {number}
@@ -240,6 +229,17 @@ export default class GameAPI {
         const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
         const distFromCenter = this.getDistance({x: centerX, y: centerY}, planet);
         return Math.max(0, 1 - distFromCenter / maxDist);
+    }
+    /**
+     * Gets the current phase of the game ('EARLY', 'MID', 'LATE') based on elapsed time.
+     * @returns {string} The current game phase.
+     */
+    getGamePhase() {
+        const elapsedTime = this.getElapsedTime();
+        const duration = this.getGameDuration();
+        if (elapsedTime < duration * 0.33) return 'EARLY';
+        if (elapsedTime < duration * 0.66) return 'MID';
+        return 'LATE';
     }
     // --- PLAYER DATA QUERY FUNCTIONS ---
     /**
@@ -262,6 +262,30 @@ export default class GameAPI {
      */
     getMyTotalProduction() {
         return this.getPlayerTotalProduction(this.playerId);
+    }
+    /**
+     * Calculates your overall strength (troops + production) relative to the strongest opponent.
+     * A value > 1.0 means you are likely stronger.
+     * A value < 1.0 means you are likely weaker.
+     * @returns {number} The strength ratio. Returns a large number if no opponents are left.
+     */
+    getMyStrengthRatio() {
+        const myTotalTroops = this.getMyTotalTroops();
+        const myTotalProduction = this.getMyTotalProduction() * 10; // Production is valuable
+        const myStrength = myTotalTroops + myTotalProduction;
+        let maxOpponentStrength = 0;
+        this.getOpponentIds().forEach(id => {
+            if (this.isPlayerActive(id)) {
+                const opponentTroops = this.getPlayerTotalTroops(id);
+                const opponentProduction = this.getPlayerTotalProduction(id) * 10;
+                const opponentStrength = opponentTroops + opponentProduction;
+                if (opponentStrength > maxOpponentStrength) {
+                    maxOpponentStrength = opponentStrength;
+                }
+            }
+        });
+        if (maxOpponentStrength === 0) return 999; // No opponents left
+        return myStrength / maxOpponentStrength;
     }
     /**
      * Checks if a player is still active in the game (has planets or troops).

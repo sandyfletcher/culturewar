@@ -43,9 +43,10 @@ export default class Gemini20 extends BaseBot {
             if (myPlanet.troops < 15) continue;
             const nearestNeutral = this.api.findNearestPlanet(myPlanet, neutralPlanets);
             if (nearestNeutral) {
-                const attackForce = nearestNeutral.troops + 3;
-                if (myPlanet.troops > attackForce) {
-                    return { from: myPlanet, to: nearestNeutral, troops: Math.floor(myPlanet.troops * 0.5) };
+                const troopsNeeded = nearestNeutral.troops + 3;
+                if (myPlanet.troops > troopsNeeded) {
+                    // Send just enough to capture, not a blind percentage
+                    return { from: myPlanet, to: nearestNeutral, troops: troopsNeeded };
                 }
             }
         }
@@ -54,14 +55,25 @@ export default class Gemini20 extends BaseBot {
     getAttackMove(myPlanets) {
         const enemyPlanets = this.api.getEnemyPlanets();
         if (enemyPlanets.length === 0) return null;
+
         const strongestPlanet = myPlanets.sort((a,b) => b.troops - a.troops)[0];
         if(!strongestPlanet || strongestPlanet.troops < 20) return null;
+
         const weakestEnemy = enemyPlanets.sort((a,b) => a.troops - b.troops)[0];
-        const troopsAtArrival = this.api.estimateTroopsAtArrival(strongestPlanet, weakestEnemy);
-        const attackForce = troopsAtArrival + 5;
-        if (strongestPlanet.troops > attackForce) {
-             return { from: strongestPlanet, to: weakestEnemy, troops: Math.floor(strongestPlanet.troops * this.aggressionFactor) };
+        
+        // *** UPDATED: Use the superior predictPlanetState function ***
+        const travelTime = this.api.getTravelTime(strongestPlanet, weakestEnemy);
+        const predictedState = this.api.predictPlanetState(weakestEnemy, travelTime);
+
+        // Only attack if it's not predicted to be ours
+        if (predictedState.owner !== this.playerId) {
+            const troopsNeeded = predictedState.troops + 5;
+            if (strongestPlanet.troops > troopsNeeded) {
+                // Send what is needed to win, which is more intelligent than a fixed percentage.
+                return { from: strongestPlanet, to: weakestEnemy, troops: troopsNeeded };
+            }
         }
+
         return null;
     }
 }

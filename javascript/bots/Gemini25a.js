@@ -52,20 +52,26 @@ export default class Gemini25a extends BaseBot {
     evaluateMove(source, target, isReinforcement = false) {
         let troopsToSend;
         let moveValue;
+        const travelTime = this.api.getTravelTime(source, target);
+
         if (isReinforcement) {
             const threatLevel = this.api.calculateThreat(target);
             if (threatLevel < target.troops * 0.5) return null;
             troopsToSend = Math.min(Math.floor(source.troops / 2), Math.ceil(threatLevel));
             moveValue = (threatLevel / (target.troops + 1)) * this.config.reinforcementUrgency;
         } else {
-            const troopsAtArrival = this.api.estimateTroopsAtArrival(source, target);
-            troopsToSend = Math.ceil(troopsAtArrival) + this.config.captureBuffer;
+            // *** UPDATED: Use the superior predictPlanetState function ***
+            const predictedState = this.api.predictPlanetState(target, travelTime);
+            // Don't attack planets we predict we will own.
+            if (predictedState.owner === this.playerId) return null;
+
+            troopsToSend = Math.ceil(predictedState.troops) + this.config.captureBuffer;
             if (source.troops <= troopsToSend) {
                 return null;
             }
             moveValue = this.api.calculatePlanetValue(target);
         }
-        const distanceCost = this.api.getDistance(source, target);
+        const distanceCost = travelTime * 10; // Use travel time as part of cost
         const sourceRisk = this.api.calculateThreat(source) * this.config.riskAversion;
         const troopCost = troopsToSend;
         const totalCost = distanceCost + sourceRisk + troopCost;

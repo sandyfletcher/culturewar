@@ -4,54 +4,31 @@
 
 import BaseBot from './BaseBot.js';
 
-/**
- * @description
- * An AI bot with a "long-term value investor" philosophy.
- * It operates in distinct phases, prioritizing high-value targets and strategic consolidation.
- * 
- * Core Principles:
- * 1.  **ROI-Driven Offense:** Evaluates attacks based on the strategic value of the target versus the cost in troops and time.
- * 2.  **Asset Protection:** Prioritizes the defense of its most valuable planets.
- * 3.  **Dynamic Phasing:** Adjusts its strategy as the game progresses from expansion to consolidation to aggressive elimination.
- * 4.  **Strategic Consolidation:** Redistributes troops from safe, non-productive planets to high-value, frontline assets.
- */
 export default class Gemini25e extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-
-        // --- STRATEGIC CONSTANTS ---
         this.DEFENSIVE_BUFFER = 10;
-        this.ATTACK_TROOP_PERCENTAGE = 0.80; // The percentage of a planet's troops to send when launching a major attack.
-        this.CONSOLIDATION_TROOP_PERCENTAGE = 0.60; // The percentage of troops to send when consolidating forces.
-        this.CONSOLIDATION_FULL_THRESHOLD = 0.8; // A planet is considered "full" and a candidate for consolidation if its troop count exceeds this percentage of the max.
-        this.CONSOLIDATION_SAFE_DISTANCE = 350; // A planet is considered "safe" for consolidation if it's at least this far from the nearest enemy.
+        this.ATTACK_TROOP_PERCENTAGE = 0.80;
+        this.CONSOLIDATION_TROOP_PERCENTAGE = 0.60;
+        this.CONSOLIDATION_FULL_THRESHOLD = 0.8;
+        this.CONSOLIDATION_SAFE_DISTANCE = 350;
 
-        // --- MEMORY & DYNAMIC STATE ---
         this.memory.phase = 'EARLY';
         this.memory.strongestOpponent = null;
         this.memory.lastOpponentCheck = 0;
 
-        // Calculate phase thresholds dynamically using the new API method
         const gameDuration = this.api.getGameDuration();
         this.memory.earlyGameEndTime = gameDuration * 0.33;
         this.memory.midGameEndTime = gameDuration * 0.66;
     }
 
-    /**
-     * The main decision-making function, called each turn.
-     * It follows a strict priority order: Defense -> Offense -> Consolidation.
-     */
     makeDecision(dt) {
         const myPlanets = this.api.getMyPlanets();
-        if (myPlanets.length === 0) {
-            return null; // I have been eliminated.
-        }
+        if (myPlanets.length === 0) return null;
 
-        // 1. Analyze the current game state to inform strategy.
         this.updateGamePhase();
         this.updateStrongestOpponent();
 
-        // 2. Execute the highest-priority available action.
         const defenseMove = this.handleDefense(myPlanets);
         if (defenseMove) return defenseMove;
 
@@ -61,14 +38,9 @@ export default class Gemini25e extends BaseBot {
         const consolidationMove = this.handleConsolidation(myPlanets);
         if (consolidationMove) return consolidationMove;
 
-        return null; // No optimal action found this turn.
+        return null;
     }
-
-    // --- State Analysis ---
-
-    /**
-     * Determines the current game phase (EARLY, MID, LATE) based on elapsed time.
-     */
+    // ... (other functions are fine) ...
     updateGamePhase() {
         const elapsedTime = this.api.getElapsedTime();
         if (elapsedTime < this.memory.earlyGameEndTime) this.memory.phase = 'EARLY';
@@ -76,14 +48,9 @@ export default class Gemini25e extends BaseBot {
         else this.memory.phase = 'LATE';
     }
 
-    /**
-     * Identifies the strongest opponent based on total production.
-     * This logic is cached to run only every 5 seconds for performance.
-     */
     updateStrongestOpponent() {
         const now = this.api.getElapsedTime();
         if (now - this.memory.lastOpponentCheck < 5) {
-            // Invalidate cache if the opponent is no longer active.
             if (this.memory.strongestOpponent && !this.api.isPlayerActive(this.memory.strongestOpponent)) {
                 this.memory.strongestOpponent = null;
             }
@@ -104,13 +71,6 @@ export default class Gemini25e extends BaseBot {
         this.memory.strongestOpponent = strongest;
     }
 
-    // --- Strategic Action Handlers ---
-
-    /**
-     * Defends the most valuable planet currently under threat.
-     * @param {Planet[]} myPlanets - A list of all planets owned by the bot.
-     * @returns {object|null} A decision object or null.
-     */
     handleDefense(myPlanets) {
         let bestPlanetToSave = null;
         let highestValue = -1;
@@ -134,7 +94,6 @@ export default class Gemini25e extends BaseBot {
         }
 
         if (bestPlanetToSave) {
-            // Find the best planet to send reinforcements FROM (closest, has enough troops, not under attack).
             let bestReinforcer = null;
             let minDistance = Infinity;
             for (const p of myPlanets) {
@@ -154,28 +113,19 @@ export default class Gemini25e extends BaseBot {
         }
         return null;
     }
-
-    /**
-     * Finds and executes the highest ROI (Return on Investment) attack.
-     * @param {Planet[]} myPlanets - A list of all planets owned by the bot.
-     * @returns {object|null} A decision object or null.
-     */
+    
     handleOffense(myPlanets) {
         let targets = [];
         const neutrals = this.api.getNeutralPlanets();
         const enemies = this.api.getEnemyPlanets();
 
-        if (this.memory.phase === 'EARLY') {
-            targets = neutrals;
-        } else if (this.memory.phase === 'MID') {
-            targets = neutrals.concat(enemies);
-        } else { // LATE
+        if (this.memory.phase === 'EARLY') targets = neutrals;
+        else if (this.memory.phase === 'MID') targets = neutrals.concat(enemies);
+        else {
             targets = this.memory.strongestOpponent ?
                 enemies.filter(p => p.owner === this.memory.strongestOpponent) :
                 enemies;
-            // If the primary target is wiped out, attack anyone.
             if (targets.length === 0) targets = enemies;
-            // Still consider high-value neutrals in the late game.
             targets.push(...neutrals.filter(p => this.api.calculatePlanetValue(p) > 80));
         }
 
@@ -188,18 +138,19 @@ export default class Gemini25e extends BaseBot {
             if (source.troops < this.DEFENSIVE_BUFFER * 2) continue;
 
             for (const target of targets) {
-                const troopsAtArrival = this.api.estimateTroopsAtArrival(source, target);
-                // A more accurate prediction must account for other fleets already heading to the target.
-                const netIncomingTroops = this.api.getIncomingReinforcements(target).reduce((s, m) => s + m.amount, 0)
-                                        - this.api.getIncomingAttacks(target).reduce((s, m) => s + m.amount, 0);
+                const travelTime = this.api.getTravelTime(source, target);
+                // *** UPDATED: Use the superior predictPlanetState function ***
+                const predictedState = this.api.predictPlanetState(target, travelTime);
                 
-                const troopsNeeded = Math.ceil(troopsAtArrival + netIncomingTroops) + 1;
+                // Skip if we predict we will already own it.
+                if (predictedState.owner === this.playerId) continue;
+
+                const troopsNeeded = Math.ceil(predictedState.troops) + 1;
                 const troopsToSend = Math.floor(source.troops * this.ATTACK_TROOP_PERCENTAGE);
 
                 if (troopsToSend > troopsNeeded) {
                     const value = this.api.calculatePlanetValue(target);
-                    // Cost is troops risked plus a penalty for how long they are in transit (opportunity cost).
-                    const cost = troopsNeeded + (this.api.getTravelTime(source, target) * 0.5);
+                    const cost = troopsNeeded + (travelTime * 0.5);
                     const roi = value / cost;
 
                     if (roi > bestAttack.roi) {
@@ -215,11 +166,6 @@ export default class Gemini25e extends BaseBot {
         return null;
     }
 
-    /**
-     * Consolidates forces by moving troops from safe, full "backline" planets.
-     * @param {Planet[]} myPlanets - A list of all planets owned by the bot.
-     * @returns {object|null} A decision object or null.
-     */
     handleConsolidation(myPlanets) {
         if (myPlanets.length <= 1) return null;
 
@@ -227,13 +173,10 @@ export default class Gemini25e extends BaseBot {
         let bestSource = null;
         const allEnemies = this.api.getEnemyPlanets();
 
-        // Find a safe, full planet to send troops FROM.
         const potentialSources = myPlanets.filter(p => {
-            const isFull = p.troops > maxTroops * this.CONSOLIDATION_FULL_THRESHOLD;
-            if (!isFull) return false;
+            if (p.troops <= maxTroops * this.CONSOLIDATION_FULL_THRESHOLD) return false;
             const nearestEnemy = this.api.findNearestPlanet(p, allEnemies);
-            const isSafe = !nearestEnemy || this.api.getDistance(p, nearestEnemy) > this.CONSOLIDATION_SAFE_DISTANCE;
-            return isSafe;
+            return !nearestEnemy || this.api.getDistance(p, nearestEnemy) > this.CONSOLIDATION_SAFE_DISTANCE;
         });
 
         if (potentialSources.length > 0) {
@@ -241,17 +184,14 @@ export default class Gemini25e extends BaseBot {
         }
 
         if (bestSource) {
-            // Find a valuable, non-full planet to send troops TO.
             let bestTarget = null;
             let maxScore = -1;
             for (const p of myPlanets) {
-                if (p === bestSource) continue;
-                if (p.troops < maxTroops * this.CONSOLIDATION_FULL_THRESHOLD) {
-                    const value = this.api.calculatePlanetValue(p);
-                    if (value > maxScore) {
-                        maxScore = value;
-                        bestTarget = p;
-                    }
+                if (p === bestSource || p.troops >= maxTroops * this.CONSOLIDATION_FULL_THRESHOLD) continue;
+                const value = this.api.calculatePlanetValue(p);
+                if (value > maxScore) {
+                    maxScore = value;
+                    bestTarget = p;
                 }
             }
 
