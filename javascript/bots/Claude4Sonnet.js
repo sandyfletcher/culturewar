@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/Claude4Sonnet.js — Advanced Multi-Phase AI Bot
+// root/javascript/bots/Claude4Sonnet.js
 // =============================================
 
 import BaseBot from './BaseBot.js';

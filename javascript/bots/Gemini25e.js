@@ -4,9 +4,11 @@
 
 import BaseBot from './BaseBot.js';
 
-// --- STRATEGIC CONSTANTS ---
+// --- GAME RULE CONSTANTS ---
+const MAX_PLANET_TROOPS = 999;
+const GAME_DURATION = 300;
 
-// The minimum number of troops to leave on a planet for defense.
+// --- STRATEGIC CONSTANTS ---
 const DEFENSIVE_BUFFER = 10;
 // The percentage of a planet's troops to send when launching a major attack.
 const ATTACK_TROOP_PERCENTAGE = 0.80;
@@ -17,8 +19,12 @@ const CONSOLIDATION_FULL_THRESHOLD = 0.8;
 // A planet is considered "safe" for consolidation if it's at least this far from the nearest enemy.
 const CONSOLIDATION_SAFE_DISTANCE = 350;
 
+// --- DYNAMIC PHASE THRESHOLDS ---
+const EARLY_GAME_END_TIME = GAME_DURATION * 0.33; // Approx 99 seconds
+const MID_GAME_END_TIME = GAME_DURATION * 0.66;  // Approx 198 seconds
+
+
 /**
- * @class ModelBestBot
  * @description
  * An AI bot with a "long-term value investor" philosophy.
  * It operates in distinct phases, prioritizing high-value targets and strategic consolidation.
@@ -70,9 +76,9 @@ export default class Gemini25e extends BaseBot {
      * Determines the current game phase (EARLY, MID, LATE) based on elapsed time.
      */
     updateGamePhase() {
-        const gameProgress = this.api.getElapsedTime() / this.api.getGameDuration();
-        if (gameProgress < 0.33) this.memory.phase = 'EARLY';
-        else if (gameProgress < 0.66) this.memory.phase = 'MID';
+        const elapsedTime = this.api.getElapsedTime();
+        if (elapsedTime < EARLY_GAME_END_TIME) this.memory.phase = 'EARLY';
+        else if (elapsedTime < MID_GAME_END_TIME) this.memory.phase = 'MID';
         else this.memory.phase = 'LATE';
     }
 
@@ -137,7 +143,6 @@ export default class Gemini25e extends BaseBot {
             // Find the best planet to send reinforcements FROM (closest, has enough troops, not under attack).
             let bestReinforcer = null;
             let minDistance = Infinity;
-
             for (const p of myPlanets) {
                 if (p === bestPlanetToSave) continue;
                 if (p.troops < troopsNeededForBestSave + DEFENSIVE_BUFFER) continue;
@@ -149,7 +154,6 @@ export default class Gemini25e extends BaseBot {
                     bestReinforcer = p;
                 }
             }
-
             if (bestReinforcer) {
                 return { from: bestReinforcer, to: bestPlanetToSave, troops: troopsNeededForBestSave };
             }
@@ -159,7 +163,6 @@ export default class Gemini25e extends BaseBot {
 
     /**
      * Finds and executes the highest ROI (Return on Investment) attack.
-     * Targeting strategy changes based on the game phase.
      * @param {Planet[]} myPlanets - A list of all planets owned by the bot.
      * @returns {object|null} A decision object or null.
      */
@@ -219,8 +222,7 @@ export default class Gemini25e extends BaseBot {
     }
 
     /**
-     * Consolidates forces by moving troops from safe, full "backline" planets
-     * to more valuable, strategic "frontline" planets.
+     * Consolidates forces by moving troops from safe, full "backline" planets.
      * @param {Planet[]} myPlanets - A list of all planets owned by the bot.
      * @returns {object|null} A decision object or null.
      */
@@ -232,7 +234,7 @@ export default class Gemini25e extends BaseBot {
 
         // Find a safe, full planet to send troops FROM.
         const potentialSources = myPlanets.filter(p => {
-            const isFull = p.troops > this.api.game.config.planet.maxTroops * CONSOLIDATION_FULL_THRESHOLD;
+            const isFull = p.troops > MAX_PLANET_TROOPS * CONSOLIDATION_FULL_THRESHOLD;
             if (!isFull) return false;
             const nearestEnemy = this.api.findNearestPlanet(p, allEnemies);
             const isSafe = !nearestEnemy || this.api.getDistance(p, nearestEnemy) > CONSOLIDATION_SAFE_DISTANCE;
@@ -249,7 +251,7 @@ export default class Gemini25e extends BaseBot {
             let maxScore = -1;
             for (const p of myPlanets) {
                 if (p === bestSource) continue;
-                if (p.troops < this.api.game.config.planet.maxTroops * CONSOLIDATION_FULL_THRESHOLD) {
+                if (p.troops < MAX_PLANET_TROOPS * CONSOLIDATION_FULL_THRESHOLD) {
                     const value = this.api.calculatePlanetValue(p);
                     if (value > maxScore) {
                         maxScore = value;

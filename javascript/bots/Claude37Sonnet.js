@@ -1,10 +1,10 @@
 // ===========================================
-// root/javascript/bots/Claude37.js
+// root/javascript/bots/Claude37Sonnet.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';
 
-export default class Claude37 extends BaseBot {
+export default class Claude37Sonnet extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
         this.targetedPlanets = new Map();
