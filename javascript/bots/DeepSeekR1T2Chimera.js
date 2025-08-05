@@ -45,7 +45,7 @@ export default class ChimeraDominator extends BaseBot {
 
     handleCooldown(dt) {
         const currentTime = this.api.getElapsedTime();
-        const timeSinceLastAction = currentTime - this.memory.lastActionTime;
+        const timeSinceLastAction = currentTime - (this.memory.lastActionTime || 0);
         
         // Global cooldown enforcement
         if (timeSinceLastAction < this.api.getDecisionCooldown()) {
@@ -73,7 +73,9 @@ export default class ChimeraDominator extends BaseBot {
 
     identifyCriticalPlanets() {
         this.memory.criticalPlanets.clear();
-        const productionThreshold = this.api.getMyTotalProduction() * 0.15;
+        const myTotalProduction = this.api.getMyTotalProduction();
+        if (myTotalProduction === 0) return; // Avoid division by zero
+        const productionThreshold = myTotalProduction * 0.15;
         
         // Select planets contributing >15% of total production
         this.api.getMyPlanets().forEach(planet => {
@@ -118,7 +120,7 @@ export default class ChimeraDominator extends BaseBot {
                 return {
                     from: source,
                     to: target,
-                    troops: troopsNeeded
+                    troops: Math.ceil(troopsNeeded)
                 };
             }
         }
@@ -170,38 +172,64 @@ export default class ChimeraDominator extends BaseBot {
                 production: this.api.getPlayerTotalProduction(id)
             }))
             .sort((a, b) => a.strength - b.strength);
-            
         if (opponents.length === 0) return null;
-        
         const primaryTarget = opponents[0];
         const enemyPlanets = this.api.getEnemyPlanets()
             .filter(p => p.owner === primaryTarget.id)
             .sort((a, b) => this.api.calculatePlanetValue(b) - this.api.calculatePlanetValue(a));
-            
         for (const target of enemyPlanets) {
             const requiredTroops = this.calculateRequiredTroops(target);
-            const sources = this.findMultiSourceAttack(target, requiredTroops);
+            const sources = this.findMultiSourceAttack(target, requiredTroops); // This is now defined.
             if (sources.length > 0) {
-                return this.launchMultiFrontAttack(sources, target);
+                const primaryAttacker = sources[0];
+                return this.launchAttack(primaryAttacker.source, target, primaryAttacker.troopsToSend);
             }
         }
         return null;
     }
 
     calculateRequiredTroops(target) {
-        const currentTime = this.api.getElapsedTime();
-        const travelTime = (source) => this.api.getTravelTime(source, target);
-        
         // Predict target state at average arrival time
         let avgTravelTime = 5;  // Default estimate
         const sources = this.api.getMyPlanets()
             .filter(p => p.troops > 10 && !this.api.getIncomingAttacks(p).length);
         if (sources.length > 0) {
-            avgTravelTime = sources.reduce((sum, src) => sum + travelTime(src), 0) / sources.length;
+            const totalDistance = sources.reduce((sum, src) => sum + this.api.getDistance(src, target), 0);
+            const avgDistance = totalDistance / sources.length;
+            avgTravelTime = avgDistance / this.api.troopMovementSpeed;
         }
         
         const predicted = this.api.predictPlanetState(target, avgTravelTime);
         return Math.ceil(predicted.troops * 1.2);  // Safety margin
+    }
+
+    findMultiSourceAttack(target, requiredTroops) {
+        const contributingSources = [];
+        let gatheredTroops = 0;
+    
+        // Find viable source planets, sorted by who can contribute most
+        const candidatePlanets = this.api.getMyPlanets()
+            .filter(p => p.id !== target.id)
+            .map(p => ({ planet: p, contribution: Math.floor(p.troops * 0.75) })) // Can send up to 75%
+            .filter(p => p.contribution > 5) // Must contribute a meaningful amount
+            .sort((a, b) => b.contribution - a.contribution); // Strongest contributors first
+    
+        for (const candidate of candidatePlanets) {
+            if (gatheredTroops >= requiredTroops) {
+                break; // We have enough troops
+            }
+            // Add this planet's contribution to our attack force
+            const troopsToSend = candidate.contribution;
+            contributingSources.push({ source: candidate.planet, troopsToSend: troopsToSend });
+            gatheredTroops += troopsToSend;
+        }
+    
+        // If we gathered enough troops, return the list of sources. Otherwise, the attack is not feasible.
+        if (gatheredTroops >= requiredTroops) {
+            return contributingSources;
+        } else {
+            return [];
+        }
     }
 
     findOptimalSource(target, requiredTroops) {
@@ -219,19 +247,22 @@ export default class ChimeraDominator extends BaseBot {
 
     launchAttack(source, target, troops = Math.floor(source.troops * 0.7)) {
         if (!source || !target || source.troops < 5) return null;
-        if (troops > source.troops * 0.9) troops = source.troops * 0.9;
         
+        let troopsToSend = Math.floor(troops);
+        if (troopsToSend > source.troops * 0.9) troopsToSend = Math.floor(source.troops * 0.9);
+        if (troopsToSend < 1) return null;
+
         this.memory.missions.set(`${source.id}-${target.id}`, {
             sourceId: source.id,
             targetId: target.id,
-            troopsCommitted: troops,
+            troopsCommitted: troopsToSend,
             launchTime: this.api.getElapsedTime()
         });
         
         return {
             from: source,
             to: target,
-            troops: Math.floor(troops)
+            troops: troopsToSend
         };
     }
 
@@ -261,15 +292,17 @@ export default class ChimeraDominator extends BaseBot {
             .filter(p => 
                 p.troops > 20 && 
                 p.id !== weakest.id &&
-                this.api.getDistance(p, weakest) < 30
+                this.api.getDistance(p, weakest) < 300 // increased distance for more support options
             )
             .sort((a, b) => b.troops - a.troops);
             
         if (supporters.length > 0) {
+            const troopsToSend = Math.floor(supporters[0].troops * 0.4);
+            if(troopsToSend < 1) return null;
             return {
                 from: supporters[0],
                 to: weakest,
-                troops: supporters[0].troops * 0.4
+                troops: troopsToSend
             };
         }
         return null;
