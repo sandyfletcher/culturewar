@@ -12,32 +12,6 @@ export default class GameAPI {
         this.troopMovementSpeed = config.troop.movementSpeed;
     }
 
-    // --- My Player Data ---
-
-    /**
-     * Gets all planets owned by the AI.
-     * @returns {Planet[]}
-     */
-    getMyPlanets() {
-        return this.game.planets.filter(p => p.owner === this.playerId);
-    }
-
-    /**
-     * Gets the AI's total number of troops, including those on planets and in transit.
-     * @returns {number}
-     */
-    getMyTotalTroops() {
-        return this.getPlayerTotalTroops(this.playerId);
-    }
-
-    /**
-     * Gets the AI's total production rate from all owned planets.
-     * @returns {number}
-     */
-    getMyTotalProduction() {
-        return this.getPlayerTotalProduction(this.playerId);
-    }
-
     // --- General Game State ---
 
     /**
@@ -103,7 +77,42 @@ export default class GameAPI {
      * @returns {number}
      */
     getGameDuration() {
-        return this.game.config.game.defaultDuration || config.game.defaultDuration;
+        return config.game.defaultDuration;
+    }
+
+    /**
+     * Gets the maximum number of troops a planet can hold.
+     * @returns {number}
+     */
+    getMaxPlanetTroops() {
+        // This is a fixed value from the global config, not a per-game setting.
+        return config.planet.maxTroops;
+    }
+
+    // --- My Player Data ---
+
+    /**
+     * Gets all planets you own.
+     * @returns {Planet[]}
+     */
+    getMyPlanets() {
+        return this.game.planets.filter(p => p.owner === this.playerId);
+    }
+
+    /**
+     * Gets your total number of troops, including those on planets and in transit.
+     * @returns {number}
+     */
+    getMyTotalTroops() {
+        return this.getPlayerTotalTroops(this.playerId);
+    }
+
+    /**
+     * Gets your total production rate from all owned planets.
+     * @returns {number}
+     */
+    getMyTotalProduction() {
+        return this.getPlayerTotalProduction(this.playerId);
     }
 
     // --- Player-Specific Queries ---

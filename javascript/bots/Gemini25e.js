@@ -4,26 +4,6 @@
 
 import BaseBot from './BaseBot.js';
 
-// --- GAME RULE CONSTANTS ---
-const MAX_PLANET_TROOPS = 999;
-const GAME_DURATION = 300;
-
-// --- STRATEGIC CONSTANTS ---
-const DEFENSIVE_BUFFER = 10;
-// The percentage of a planet's troops to send when launching a major attack.
-const ATTACK_TROOP_PERCENTAGE = 0.80;
-// The percentage of troops to send when consolidating forces.
-const CONSOLIDATION_TROOP_PERCENTAGE = 0.60;
-// A planet is considered "full" and a candidate for consolidation if its troop count exceeds this percentage of the max.
-const CONSOLIDATION_FULL_THRESHOLD = 0.8;
-// A planet is considered "safe" for consolidation if it's at least this far from the nearest enemy.
-const CONSOLIDATION_SAFE_DISTANCE = 350;
-
-// --- DYNAMIC PHASE THRESHOLDS ---
-const EARLY_GAME_END_TIME = GAME_DURATION * 0.33; // Approx 99 seconds
-const MID_GAME_END_TIME = GAME_DURATION * 0.66;  // Approx 198 seconds
-
-
 /**
  * @description
  * An AI bot with a "long-term value investor" philosophy.
@@ -38,9 +18,23 @@ const MID_GAME_END_TIME = GAME_DURATION * 0.66;  // Approx 198 seconds
 export default class Gemini25e extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
+
+        // --- STRATEGIC CONSTANTS ---
+        this.DEFENSIVE_BUFFER = 10;
+        this.ATTACK_TROOP_PERCENTAGE = 0.80; // The percentage of a planet's troops to send when launching a major attack.
+        this.CONSOLIDATION_TROOP_PERCENTAGE = 0.60; // The percentage of troops to send when consolidating forces.
+        this.CONSOLIDATION_FULL_THRESHOLD = 0.8; // A planet is considered "full" and a candidate for consolidation if its troop count exceeds this percentage of the max.
+        this.CONSOLIDATION_SAFE_DISTANCE = 350; // A planet is considered "safe" for consolidation if it's at least this far from the nearest enemy.
+
+        // --- MEMORY & DYNAMIC STATE ---
         this.memory.phase = 'EARLY';
         this.memory.strongestOpponent = null;
         this.memory.lastOpponentCheck = 0;
+
+        // Calculate phase thresholds dynamically using the new API method
+        const gameDuration = this.api.getGameDuration();
+        this.memory.earlyGameEndTime = gameDuration * 0.33;
+        this.memory.midGameEndTime = gameDuration * 0.66;
     }
 
     /**
@@ -77,8 +71,8 @@ export default class Gemini25e extends BaseBot {
      */
     updateGamePhase() {
         const elapsedTime = this.api.getElapsedTime();
-        if (elapsedTime < EARLY_GAME_END_TIME) this.memory.phase = 'EARLY';
-        else if (elapsedTime < MID_GAME_END_TIME) this.memory.phase = 'MID';
+        if (elapsedTime < this.memory.earlyGameEndTime) this.memory.phase = 'EARLY';
+        else if (elapsedTime < this.memory.midGameEndTime) this.memory.phase = 'MID';
         else this.memory.phase = 'LATE';
     }
 
@@ -145,7 +139,7 @@ export default class Gemini25e extends BaseBot {
             let minDistance = Infinity;
             for (const p of myPlanets) {
                 if (p === bestPlanetToSave) continue;
-                if (p.troops < troopsNeededForBestSave + DEFENSIVE_BUFFER) continue;
+                if (p.troops < troopsNeededForBestSave + this.DEFENSIVE_BUFFER) continue;
                 if (this.api.getIncomingAttacks(p).length > 0) continue;
 
                 const distance = this.api.getDistance(p, bestPlanetToSave);
@@ -191,7 +185,7 @@ export default class Gemini25e extends BaseBot {
         const potentialAttackers = [...myPlanets].sort((a, b) => b.troops - a.troops);
 
         for (const source of potentialAttackers) {
-            if (source.troops < DEFENSIVE_BUFFER * 2) continue;
+            if (source.troops < this.DEFENSIVE_BUFFER * 2) continue;
 
             for (const target of targets) {
                 const troopsAtArrival = this.api.estimateTroopsAtArrival(source, target);
@@ -200,7 +194,7 @@ export default class Gemini25e extends BaseBot {
                                         - this.api.getIncomingAttacks(target).reduce((s, m) => s + m.amount, 0);
                 
                 const troopsNeeded = Math.ceil(troopsAtArrival + netIncomingTroops) + 1;
-                const troopsToSend = Math.floor(source.troops * ATTACK_TROOP_PERCENTAGE);
+                const troopsToSend = Math.floor(source.troops * this.ATTACK_TROOP_PERCENTAGE);
 
                 if (troopsToSend > troopsNeeded) {
                     const value = this.api.calculatePlanetValue(target);
@@ -229,15 +223,16 @@ export default class Gemini25e extends BaseBot {
     handleConsolidation(myPlanets) {
         if (myPlanets.length <= 1) return null;
 
+        const maxTroops = this.api.getMaxPlanetTroops();
         let bestSource = null;
         const allEnemies = this.api.getEnemyPlanets();
 
         // Find a safe, full planet to send troops FROM.
         const potentialSources = myPlanets.filter(p => {
-            const isFull = p.troops > MAX_PLANET_TROOPS * CONSOLIDATION_FULL_THRESHOLD;
+            const isFull = p.troops > maxTroops * this.CONSOLIDATION_FULL_THRESHOLD;
             if (!isFull) return false;
             const nearestEnemy = this.api.findNearestPlanet(p, allEnemies);
-            const isSafe = !nearestEnemy || this.api.getDistance(p, nearestEnemy) > CONSOLIDATION_SAFE_DISTANCE;
+            const isSafe = !nearestEnemy || this.api.getDistance(p, nearestEnemy) > this.CONSOLIDATION_SAFE_DISTANCE;
             return isSafe;
         });
 
@@ -251,7 +246,7 @@ export default class Gemini25e extends BaseBot {
             let maxScore = -1;
             for (const p of myPlanets) {
                 if (p === bestSource) continue;
-                if (p.troops < MAX_PLANET_TROOPS * CONSOLIDATION_FULL_THRESHOLD) {
+                if (p.troops < maxTroops * this.CONSOLIDATION_FULL_THRESHOLD) {
                     const value = this.api.calculatePlanetValue(p);
                     if (value > maxScore) {
                         maxScore = value;
@@ -264,7 +259,7 @@ export default class Gemini25e extends BaseBot {
                 return {
                     from: bestSource,
                     to: bestTarget,
-                    troops: Math.floor(bestSource.troops * CONSOLIDATION_TROOP_PERCENTAGE)
+                    troops: Math.floor(bestSource.troops * this.CONSOLIDATION_TROOP_PERCENTAGE)
                 };
             }
         }

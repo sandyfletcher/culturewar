@@ -81,7 +81,7 @@ export const config = {
             fallbackColor: '#888', // fallback for troop bar segments if a player ID isn't found
         },
         footerSlider: {
-            defaultValue: 50, // default position of the slider (1-100)
+            defaultValue: 50, // default position of slider (1-100)
             speed: { // multiplier range for bot battles
                 min: 0.01,
                 mid: 1.0,
@@ -91,7 +91,7 @@ export const config = {
     },
     // --- MENUS ---
     menuDefaults: {
-        playerCount: 6, // default number of players for setup screen
-        playerCountRange: [2, 6], // minimum and maximum number of players allowed in a game
+        playerCount: 6, // default number of players
+        playerCountRange: [2, 6], // min and max number of players allowed in a game
     },
 };
