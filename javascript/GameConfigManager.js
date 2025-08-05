@@ -11,8 +11,8 @@ export default class GameConfigManager {
             players: [],
             planetDensity: config.planetGeneration.density.default,
             batchSize: 1,
-            initialGamePace: 1.0, // NEW
-            isHeadless: false      // NEW
+            initialGamePace: 1.0,
+            isHeadless: false
         };
         this.aiOptions = botRegistry.map(bot => ({
             value: bot.value,

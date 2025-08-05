@@ -26,12 +26,12 @@ export default class GameState {
     }
     update(dt, speedMultiplier = 1.0) {
         if (this.gameOver) return;
-        const scaledDt = dt * speedMultiplier; // You already have this in game.js, but good to have here too
-        this.elapsedGameTime += scaledDt; // Increment by scaled time
+        const scaledDt = dt * speedMultiplier;
+        this.elapsedGameTime += scaledDt;
         const timeRemaining = this.game.timerManager.getTimeRemaining();
-        this.checkPlayerEliminations(); // No longer needs dt
+        this.checkPlayerEliminations();
         this.checkWinConditions(timeRemaining);
-        this.checkHumanPlayerStatus(); // check if human players are all out to switch footer mode
+        this.checkHumanPlayerStatus();
     }
     checkPlayerEliminations() {
         for (const playerId of this.activePlayers) {
@@ -44,18 +44,18 @@ export default class GameState {
             }
         }
     }
-    checkHumanPlayerStatus() { // logic to handle dynamic footer slider
+    checkHumanPlayerStatus() {
         if (!this.game.footerManager || this.game.humanPlayerIds.length === 0) {
-            return; // if there's no footer manager or no human players from the start, do nothing
+            return;
         }
-        if (this.game.footerManager.mode === 'troop') { // only need to do this check if the slider is still in troop mode
-            const activeHumanPlayers = this.game.humanPlayerIds.filter(id => 
-                this.game.playersController.hasPlayerPlanets(id) || 
+        if (this.game.footerManager.mode === 'troop') {
+            const activeHumanPlayers = this.game.humanPlayerIds.filter(id =>
+                this.game.playersController.hasPlayerPlanets(id) ||
                 this.game.playersController.hasPlayerTroopsInMovement(id)
             );
-            if (activeHumanPlayers.length === 0) { // last human is eliminated
+            if (activeHumanPlayers.length === 0) {
                 this.game.footerManager.switchToSpeedMode();
-                this.game.timerManager.shouldPauseOnHidden = false; // tell TimerManager to no longer pause when tab is hidden
+                this.game.timerManager.shouldPauseOnHidden = false;
             }
         }
     }
@@ -70,8 +70,8 @@ export default class GameState {
             return true;
         }
         const playerStats = this.game.playersController.getPlayerStats().filter(stats => stats.id !== 'neutral');
-        const activePlayers = playerStats.filter(stats => 
-            this.game.playersController.hasPlayerPlanets(stats.id) || 
+        const activePlayers = playerStats.filter(stats =>
+            this.game.playersController.hasPlayerPlanets(stats.id) ||
             this.game.playersController.hasPlayerTroopsInMovement(stats.id)
         );
         if (activePlayers.length === 1) {
@@ -80,8 +80,8 @@ export default class GameState {
         }
         return false;
     }
-    endGame(winnerId, victoryType) { 
-        if (this.gameOver) return; // prevent endGame from running multiple times
+    endGame(winnerId, victoryType) {
+        if (this.gameOver) return;
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
@@ -89,7 +89,7 @@ export default class GameState {
         const allPlayersData = this.game.playersController.players; // this runs every game, single or batch
         const playerStats = this.game.playersController.getPlayerStats()
             .filter(p => p.id !== 'neutral');
-        playerStats.sort((a, b) => b.planets - a.planets || b.troops - a.troops);
+        playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
         const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
         const gameStatsLog = `[GAME_STATS],${gameId},${this.elapsedGameTime.toFixed(2)},${Math.round(this.troopsSent || 0)},${Math.round(this.planetsConquered || 0)},${Math.round(this.troopsLost || 0)}`;
         console.log(gameStatsLog);

@@ -2,6 +2,8 @@
 // root/javascript/GameOverScreen.js
 // ===========================================
 
+import { GameConfigManager } from './GameConfigManager.js';
+
 export default class GameOverScreen {
     constructor(parentContainer) {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
@@ -14,7 +16,7 @@ export default class GameOverScreen {
         const playerStats = gameInstance.playersController.getPlayerStats()
             .filter(player => player.id !== 'neutral');
         const allPlayersData = gameInstance.playersController.players;
-        const playerCount = allPlayersData.length; // get total player count for scoring
+        const playerCount = allPlayersData.length;
         const eliminationTimes = gameInstance.gameState.eliminationTimes || {};
         const gameTime = stats.time;
         const leaderboardData = allPlayersData.map(playerData => {
@@ -56,13 +58,12 @@ export default class GameOverScreen {
                     </thead>
                     <tbody>
         `;
-        const finalLeaderboardData = leaderboardData.map((player, index) => { // add player rank and score to leaderboard data
+        const finalLeaderboardData = leaderboardData.map((player, index) => {
             const rank = index + 1;
             const cultureScore = ((playerCount + 1) / 2) - rank;
             return { ...player, rank, cultureScore };
         });
         finalLeaderboardData.forEach(player => {
-            // Format score to one decimal place and show plus sign
             const scoreText = player.cultureScore > 0 ? `+${player.cultureScore.toFixed(1)}` : player.cultureScore.toFixed(1);
             const rowClass = player.isWinner ? 'winner' : '';
             leaderboardHTML += `
@@ -76,19 +77,6 @@ export default class GameOverScreen {
             `;
         });
         leaderboardHTML += `</tbody></table></div>`;
-        const userId = window.CULTURE_WAR_USER_ID || 'anon'; // dallback just in case
-        const timestamp = Date.now();
-        const gameId = `${userId}-${timestamp}`; // e.g., "f8axv-1678886400000"
-        const gameStatsLog = `[GAME_STATS],${gameId},${stats.time.toFixed(2)},${Math.round(stats.troopsSent || 0)},${Math.round(stats.planetsConquered || 0)},${Math.round(stats.troopsLost || 0)}`;
-        console.log(gameStatsLog);
-        finalLeaderboardData.forEach(player => { // log new score
-            const survivalTime = player.survivalTime.toFixed(2);
-            const originalPlayerData = allPlayersData.find(p => p.id === player.id);
-            const aggregationKey = originalPlayerData.aiController || player.nickname;
-            // Log score with decimal precision
-            const playerStatsLog = `[PLAYER_STATS],${gameId},${player.rank},${aggregationKey},${player.planets},${player.troops},${survivalTime},${player.cultureScore.toFixed(4)}`;
-            console.log(playerStatsLog);
-        });
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>
