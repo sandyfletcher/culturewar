@@ -80,42 +80,34 @@ export default class GameState {
         }
         return false;
     }
-    endGame(winnerId, victoryType) {
-        if (this.gameOver) return; // Prevent endGame from running multiple times
-
+    endGame(winnerId, victoryType) { 
+        if (this.gameOver) return; // prevent endGame from running multiple times
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-
-        // MODIFIED: Intercept for batch mode
-        if (window.menuManager.isBatchRunning) {
-            // Log stats silently
-            const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
-            const gameStatsLog = `[GAME_STATS],${gameId},${this.elapsedGameTime.toFixed(2)},${Math.round(this.troopsSent || 0)},${Math.round(this.planetsConquered || 0)},${Math.round(this.troopsLost || 0)}`;
-            console.log(gameStatsLog);
-
-            // Log player stats silently
-            const playerStats = this.game.playersController.getPlayerStats().filter(p => p.id !== 'neutral');
-            const allPlayersData = this.game.playersController.players;
-            playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
-            playerStats.forEach((player, index) => {
-                const rank = index + 1;
-                const cultureScore = ((allPlayersData.length + 1) / 2) - rank;
-                const survivalTime = this.eliminationTimes[player.id] || this.elapsedGameTime;
-                const originalPlayerData = allPlayersData.find(p => p.id === player.id);
-                const aggregationKey = originalPlayerData.aiController || 'PLAYER';
-                const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${Math.floor(player.troops)},${survivalTime.toFixed(2)},${cultureScore.toFixed(4)}`;
-                console.log(playerStatsLog);
-            });
-            
-            // Trigger the next game in the batch
+        const allPlayersData = this.game.playersController.players; // this runs every game, single or batch
+        const playerStats = this.game.playersController.getPlayerStats()
+            .filter(p => p.id !== 'neutral');
+        playerStats.sort((a, b) => b.planets - a.planets || b.troops - a.troops);
+        const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
+        const gameStatsLog = `[GAME_STATS],${gameId},${this.elapsedGameTime.toFixed(2)},${Math.round(this.troopsSent || 0)},${Math.round(this.planetsConquered || 0)},${Math.round(this.troopsLost || 0)}`;
+        console.log(gameStatsLog);
+        playerStats.forEach((player, index) => {
+            const rank = index + 1;
+            const cultureScore = ((allPlayersData.length + 1) / 2) - rank;
+            const survivalTime = this.eliminationTimes[player.id] || this.elapsedGameTime;
+            const originalPlayerData = allPlayersData.find(p => p.id === player.id);
+            const aggregationKey = originalPlayerData.aiController || 'PLAYER';
+            const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${Math.floor(player.troops)},${survivalTime.toFixed(2)},${cultureScore.toFixed(4)}`;
+            console.log(playerStatsLog);
+        });
+        if (window.menuManager.isBatchRunning) { // decide what to do next based on batch mode
             window.menuManager.startNextBatchGame();
-            return; // Exit here to prevent showing the game over screen
+            return; // exit to prevent showing game over screen
         }
-
-        // --- Original single-game logic ---
-        const humanWon = this.game.humanPlayerIds.includes(this.winner); // determine if human won based on the dynamic list
+        // single-game screen display logic
+        const humanWon = this.game.humanPlayerIds.includes(this.winner);
         const stats = {
             winner: this.winner,
             time: this.elapsedGameTime,

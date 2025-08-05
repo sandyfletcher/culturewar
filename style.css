@@ -2,18 +2,6 @@
 @font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block} /* main <h1> title */
 @font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block} /* main body text and buttons */
 @font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block} /* player names inside troop bar */
-
-@font-face { font-family: 'LondrinaSketch'; src: url('./assets/fonts/LondrinaSketch.ttf') format('truetype'); font-display: block} /* timer and total troop count inserted by javascript */
-
-@font-face { font-family: 'Cookie'; src: url('./assets/fonts/Cookie.ttf') format('truetype'); font-display: block} /* currently unused */
-@font-face { font-family: 'RubikScribble'; src: url('./assets/fonts/RubikScribble.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Geostar'; src: url('./assets/fonts/Geostar.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'RubikBrokenFax'; src: url('./assets/fonts/RubikBrokenFax.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Bungee'; src: url('./assets/fonts/Bungee.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'BungeeShade'; src: url('./assets/fonts/BungeeShade.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Asset'; src: url('./assets/fonts/Asset-Regular.ttf') format('truetype'); font-display: block}
-@font-face { font-family: 'Londrina'; src: url('./assets/fonts/Londrina.ttf') format('truetype'); font-display: block}
-
 /* BASE RESET */
 * {
     margin: 0;

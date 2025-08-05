@@ -86,7 +86,7 @@ export default class TroopTracker {
                     if (playerId !== 'neutral') { // add player nickname to segment
                         const playerInfo = this.game.playersController.getPlayerById(playerId);
                         if (playerInfo) {
-                            const nickname = window.menuManager.getPlayerDisplayName(playerInfo, this.game, true);
+                            const nickname = this.configManager.getPlayerDisplayName(playerInfo, this.game, true);
                             const nameSpan = document.createElement('span');
                             nameSpan.className = 'troop-bar-name';
                             nameSpan.textContent = nickname;

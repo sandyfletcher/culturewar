@@ -152,9 +152,6 @@ export default class MenuManager {
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
-    getPlayerDisplayName(playerData, gameInstance, getNickname = false) {
-        return this.configManager.getPlayerDisplayName(playerData, gameInstance, getNickname);
-    }
 }
 
 const menuManager = new MenuManager();
