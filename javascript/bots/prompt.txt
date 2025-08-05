@@ -1,40 +1,13 @@
-Your task is to design a high-performance AI bot for a real-time strategy game.
-The Goal:
-Your objective is to create a new, competitive AI bot that can consistently perform well against a variety of unknown opponents. The bot should be robust, adaptive, and its strategic decisions should be well-reasoned. You have complete creative freedom to determine the bot's core strategy.
-The "Required Reading" (Your SDK):
-root/javascript/GameAPI.js: The bot's "senses." This has powerful helper functions you can use to build sophisticated logic.
-root/javascript/bots/BaseBot.js: The required abstract class your bot must extend. It includes a this.memory = {} object for persistent state.
-root/javascript/config.js: The "physical laws" of the game universe, critical for accurate calculations.
-root/javascript/Planet.js & root/javascript/TroopMovement.js: The structure of the game objects returned by the API.
-Key Strategic Challenges to Consider:
-State Management: How will your bot manage its state over time? A simple bot only knows the present. An advanced bot uses this.memory to track:
-Game Phase: Does it behave differently in the early, mid, and late game?
-Target Priority: Does it remember high-value targets or planets it has previously failed to capture?
-Threat Assessment: Does it identify the most dangerous opponent and focus on them?
-Risk vs. Reward: How will you balance the value of capturing a planet against the cost in troops and the risk of leaving your own planets undefended?
-Adaptability: How does your bot's strategy change if it's winning versus losing? A truly advanced bot should not play the same way in every situation. For example, it might play more aggressively when ahead, or consolidate and look for counter-attacks when behind.
-The Final Request:
-Based on your chosen strategy and the provided SDK, please write the complete code for the new bot. The code should be fully self-contained in a single file named [YourModelName].js. Please add comments to your code explaining the high-level strategic choices you made and how you addressed the challenges above.
-
---
-
-Your mission is to design a high-performance AI bot for "Culture War," a real-time strategy game of planetary conquest. Your goal is to create a bot that can consistently outperform other AI opponents.
-The Game: The objective is to eliminate all opponents by conquering their planets. You send fleets of "troops" from your planets to attack enemies or reinforce allies. Planets you own generate new troops over time based on their size. The game ends when only one player remains, or when a timer runs out.
+Your task is to design a high-performance AI bot for a real-time strategy game mimicking Galcon that will compete against and outperform other AI opponents.
+The Game's objective is to eliminate all opponents by conquering their planets. You send fleets of "troops" from your planets to attack enemies or reinforce allies. Planets you own generate new troops over time based on their size. The game ends when only one player remains, or to the player controlling the most planets when the timer runs out.
 Your SDK (The Tools at Your Disposal):
 root/javascript/bots/BaseBot.js: Your bot must extend this class. It provides this.api for all game interactions and this.memory for persistent state.
-root/javascript/GameAPI.js: Your "senses." This is a rich API with powerful helper functions. Mastering this is the key to victory.
-root/javascript/config.js: Contains the physical laws of the game (troop speed, planet production rates, etc.).
-The Key to a Winning Bot: A Structured Decision Loop
-A successful bot doesn't act randomly. It follows a clear, prioritized logic loop on every turn. We strongly recommend this battle-tested structure:
-Analyze & Update State: First, understand the big picture. What phase is the game in? Who is the biggest threat?
-Priority 1: Defense: Are any of your planets about to be captured? Saving a valuable planet is almost always the best move.
-Priority 2: Offense: If you are safe, what is the most profitable attack you can make?
-Priority 3: Consolidation & Economy: If there are no good attacks, can you improve your position by moving troops from safe "backline" planets to the front?
-Powerful API Functions You MUST Use:
-api.getElapsedTime() & api.getGameDuration(): Use these to determine the game phase (e.g., Early, Mid, Late) and adjust your strategy accordingly.
-api.calculatePlanetValue(planet): Don't treat all planets equally. Use this to find high-value targets and defend your most important assets.
-api.predictPlanetState(planet, timeInFuture): This is your most powerful tool. Before attacking, calculate the travel time to your target. Then, use this function to predict the actual outcome of the battle, accounting for the target's production and ALL other fleets arriving before yours.
-Example Strategy: Find an enemy planet being attacked by someone else. Predict its state for when your fleet would arrive. You might be able to steal the planet with very few troops!
-api.log(message): Use this helper to log your bot's thoughts and decisions for easy debugging.
+root/javascript/GameAPI.js: Your "senses." This is a rich API with powerful helper functions you can use to build sophisticated logic.
+root/javascript/config.js: Contains the physical laws of the game (troop speed, planet production rates, etc.), critical for accurate calculations.
+root/javascript/Planet.js & root/javascript/TroopMovement.js: The structure of the game objects returned by the API.
+Key Strategic Challenges to Consider:
+Players make decisions one at a time, and are given a quarter-second to send their makeDecision.  This means you'll make moves every 1.25 seconds at the absolute most, and every 0.25 seconds if you're one of the final two contenders of a battle.
+A successful bot doesn't act randomly, it follows a prioritized logic loop on every turn. To perform well against a variety of unknown opponents, your bot should be robust, adaptive, and its strategic decisions should be well-reasoned.
+You have complete creative freedom to determine the bot's core strategy, but consider using state management to develop long-term plans to vary your behaviour in different game phases, evaluate target priority and threat assessment, weigh risk against reward, and adapt based on whether you're winning or losing.
 Your Task:
-Write the complete code for a new, competitive bot. The file must be self-contained. Your class should extend BaseBot. Explain your bot's core strategy in the comments.
+Based on your chosen strategy and the provided SDK, please write the complete code for the new bot. The code must extend BaseBot and be fully self-contained in a single file named [YourModelName].js . Please add comments to your code explaining the high-level strategic choices you've made.
