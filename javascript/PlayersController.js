@@ -16,8 +16,6 @@ export default class PlayersController {
         this.availableAITypes = new Map(
             botRegistry.map(bot => [bot.value, bot.class])
         );
-        this.aiDecisionCooldown = 0;
-        this.nextAiToActIndex = 0;
         this.initializePlayers();
         this.initializeAIControllers();
     }
@@ -45,31 +43,35 @@ export default class PlayersController {
         }
     }
     updateAIPlayers(dt) {
-        this.aiDecisionCooldown -= dt;
-        if (this.aiDecisionCooldown > 0) {
+        const activeAiPlayers = this.getAIPlayers()
+        .filter(p => this.game.gameState.activePlayers.has(p.id));
+        if (activeAiPlayers.length === 0) {
             return;
         }
-        const activeAiIds = this.getAIPlayers()
-            .map(p => p.id)
-            .filter(id => this.game.gameState.activePlayers.has(id));
-        if (activeAiIds.length === 0) {
-            return;
-        }
-        this.aiDecisionCooldown = config.ai.globalDecisionCooldown;
-        this.nextAiToActIndex = this.nextAiToActIndex % activeAiIds.length;
-        const botIdToAct = activeAiIds[this.nextAiToActIndex];
-        const aiController = this.aiControllers[botIdToAct];
-        if (aiController) {
+        // On every game update, iterate through all active bots.
+        for (const player of activeAiPlayers) {
+            const aiController = this.aiControllers[player.id];
+            if (!aiController) continue;
+            // Each bot has its own personal cooldown timer.
+            // If the bot is on cooldown, decrement the timer and skip its turn.
+            if (aiController.memory.actionCooldown > 0) {
+                aiController.memory.actionCooldown -= dt;
+                continue;
+            }
+            // If the cooldown is finished, the bot can make a decision.
             const aiDecision = aiController.makeDecision(dt);
+            // If the bot chooses to act...
             if (aiDecision) {
+                // ...execute the action...
                 this.game.sendTroops(
                     aiDecision.from,
                     aiDecision.to,
                     aiDecision.troops
                 );
+                // ...and reset ITS OWN cooldown. This doesn't affect other bots.
+                aiController.memory.actionCooldown = config.ai.globalDecisionCooldown;
             }
         }
-        this.nextAiToActIndex++;
     }
     getPlayerById(playerId) {
         return this.players.find(player => player.id === playerId);

@@ -4,7 +4,7 @@
 
 import GameAPI from '../GameAPI.js';
 
-export default class BaseBot { 
+export default class BaseBot {
     constructor(game, playerId) {
         if (this.constructor === BaseBot) {
             throw new Error("BaseBot is an abstract class and cannot be instantiated directly.");
@@ -13,24 +13,25 @@ export default class BaseBot {
         this.playerId = playerId;
         this.api = new GameAPI(game, playerId);
         this.memory = { // This object will persist between calls to makeDecision().
+            actionCooldown: 0, // A personal timer for this bot, managed by PlayersController.
             phase: 'GAME_START', // To differentiate strategies according to time remaining in-game.
             missions: new Map(), // To track ongoing missions, e.g., { targetPlanetId: 'attack', troopsCommitted: 50 }
-            threats: {},         // e.g., { planetId: { totalThreat: 100, eta: 5.2 } }
+            threats: {}, // e.g., { planetId: { totalThreat: 100, eta: 5.2 } }
             lastActionTime: 0,
         };
     }
     /**
-     * This method contains the bot's core strategic logic. It is called by the PlayersController when it is this bot's turn to act.
-     * @param {number} dt - The game's delta time, scaled by game speed.
-     * @returns {object|null} A decision object like { from, to, troops } or null if no action is taken.
-     */
-    makeDecision(dt) { 
+    * This method contains the bot's core strategic logic. It is called by the PlayersController when it is this bot's turn to act.
+    * @param {number} dt - The game's delta time, scaled by game speed.
+    * @returns {object|null} A decision object like { from, to, troops } or null if no action is taken.
+    */
+    makeDecision(dt) {
         throw new Error("The 'makeDecision' method must be implemented by the subclass.");
     }
     /**
-     * A helper for logging. Automatically prepends the bot's ID and game time.
-     * @param {string} message - The message to log.
-     */
+    * A helper for logging. Automatically prepends the bot's ID and game time.
+    * @param {string} message - The message to log.
+    */
     log(message) {
         const time = this.api.getElapsedTime().toFixed(2);
         console.log(`[${this.playerId}@${time}s]: ${message}`);

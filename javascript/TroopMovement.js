@@ -4,7 +4,7 @@
 
 import { config } from './config.js';
 
-const TROOP_COUNT_VERTICAL_OFFSET = 2; // Vertical pixel offset for troop count text above the icon
+const TROOP_COUNT_VERTICAL_OFFSET = 2; // pixel offset for troop count text above icon
 
 export default class TroopMovement {
     constructor(from, to, amount, owner, game) {

@@ -92,7 +92,7 @@ export default class Game {
         const gameDt = rawDt * speedMultiplier; // calculate a scaled delta time for all game logic that should be affected by speed
         this.updatePlanets(gameDt); // update planets and troop movements with new 'gameDt' so they respect game speed
         this.updateTroopMovements(gameDt);
-        this.playersController.updateAIPlayers(gameDt); // doesn't use dt, but we pass for consistency
+        this.playersController.updateAIPlayers(gameDt); // pass dt to manage bot cooldowns
         this.troopTracker.update();
     }
     updatePlanets(dt) {
@@ -140,15 +140,23 @@ export default class Game {
         }
     }
     sendTroops(fromPlanet, toPlanet, amount) {
+        if (!amount || amount <= 0) { // ensure amount is positive
+            return;
+        }
+        const troopsAvailable = Math.floor(fromPlanet.troops); // ensure more troops aren't sent than available
+        const sanitizedAmount = Math.min(amount, troopsAvailable);
+        if (sanitizedAmount < 1) { // ensure it's at least one whole troop
+            return;
+        }
         const movement = new TroopMovement(
             fromPlanet,
             toPlanet,
-            amount,
+            sanitizedAmount, // use sanitized amount
             fromPlanet.owner,
             this
         );
-        fromPlanet.troops -= amount;
-        this.gameState.incrementTroopsSent(amount);
+        fromPlanet.troops -= sanitizedAmount;
+        this.gameState.incrementTroopsSent(sanitizedAmount);
         this.troopMovements.push(movement);
     }
     gameLoop() {

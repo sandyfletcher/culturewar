@@ -119,14 +119,20 @@ export default class FooterManager {
     }
     getSpeedMultiplier() {
         const { min, mid, max } = config.ui.footerSlider.speed;
-        const midPoint = config.ui.footerSlider.defaultValue;
+        const midPoint = config.ui.footerSlider.defaultValue; // e.g., 50
+        let multiplier;
         if (this.value <= midPoint) {
-            const range = mid - min;
-            return min + (this.value - 1) * (range / (midPoint - 1));
+            // Linear interpolation for the lower half (e.g., 0-50)
+            const t = this.value / midPoint; // t will be 0 at value=0, 1 at value=midPoint
+            multiplier = min + t * (mid - min);
         } else {
-            const range = max - mid;
-            return mid + (this.value - midPoint) * (range / (100 - midPoint));
+            // Linear interpolation for the upper half (e.g., 50-100)
+            const t = (this.value - midPoint) / (100 - midPoint); // t will be 0 at value=midPoint, 1 at value=100
+            multiplier = mid + t * (max - mid);
         }
+        // **THE FIX:** The FooterManager is the authority on game speed.
+        // It enforces the final value is within the legal bounds defined in the config.
+        return Math.max(min, Math.min(max, multiplier));
     }
     setSpeedFromMultiplier(multiplier) { // set slider's percentage based on a desired speed multiplier
         if (this.mode !== 'speed') return;
@@ -136,12 +142,12 @@ export default class FooterManager {
         if (multiplier <= mid) { // solving for value in lower range
             const range = mid - min;
             if (range > 0) {
-                percent = 1 + (multiplier - min) * (midPoint - 1) / range;
+                percent = (multiplier - min) / range * midPoint;
             }
         } else { // solving for value in upper range
             const range = max - mid;
             if (range > 0) {
-                percent = midPoint + (multiplier - mid) * (100 - midPoint) / range;
+                percent = midPoint + (multiplier - mid) / range * (100 - midPoint);
             }
         }
         this.value = Math.max(0, Math.min(100, Math.round(percent))); // clamp final value and update UI
