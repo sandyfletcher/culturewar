@@ -1,389 +1,295 @@
 // =============================================
-// root/javascript/bots/HorizonBeta.js — High-performance adaptive RTS bot
+// root/javascript/bots/HorizonBeta.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
-import { config } from '../config.js';
 
 /**
- * HorizonBeta — An adaptive, high-performance Galcon-like AI.
- *
+ * HorizonBeta: An adaptive, value-driven RTS bot focused on safe expansion, surgical defense,
+ * and opportunistic strikes using forward predictions and phased strategy.
+ * 
  * Strategic pillars:
- * 1) Tempo and Expansion: Fast early neutral captures with minimal surplus (just enough to win on arrival),
- *    prioritizing high-production and centrally located planets with short travel times.
- * 2) Threat-aware Defense: Continuously predict threatened planets; reinforce preemptively using closest surplus sources.
- * 3) Efficient Offense: Only launch when predicted to capture with margin, factoring production, travel time,
- *    and incoming fleets. Opportunistically snipe enemy planets under attack by others.
- * 4) Flow Control: Maintain decision cooldown; avoid over-sending; cap per-source commitment; stop at useful thresholds.
- * 5) Phase Adaptation: Early (expand), Mid (balance pressure and economy), Late (finishers, deny and choke).
- *
- * Memory usage:
- * - phase: tracked via GameAPI but mirrored for stability.
- * - missions: Map of targetPlanetId -> { type, eta, troopsCommitted, fromIds, createdAt }
- * - threats: map of my planet id -> { need, eta }
- * - lastActionTime: to respect global cooldown.
+ * 1) Defense-first: Intercept lethal incoming attacks with minimal required reinforcements.
+ * 2) Value-based expansion: Prioritize high-value neutral/enemy planets using production, distance, and timing.
+ * 3) Predictive efficiency: Use future state predictions to send just-enough troops.
+ * 4) Phased play: Early = rapid safe expansion; Mid = consolidation and pressure; Late = finish strongest rival.
  */
-
 export default class HorizonBeta extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        // Tunable heuristics
-        this.params = {
-            sendFractionCap: 0.65,           // Max fraction of a planet's current troops we send in one order
-            minGarrisonPerPlanet: 5,         // Keep a small garrison to avoid instant snipes
-            defenseOversendFactor: 1.15,     // Overfill slightly for reinforcements
-            attackOversendFactor: 1.10,      // Overfill slightly for attacks
-            maxConcurrentMissions: 6,        // Avoid spamming too many fronts at once
-            perSourceMissionCap: 2,          // Limit parallel missions per source
-            snipeWindow: 2.5,                // Seconds window to arrive right after a big fight
-            attackHorizon: 8.0,              // Seconds ahead to predict for evaluating attacks
-            defenseHorizon: 6.0,             // Seconds ahead to predict for defenses
-            minAttackMargin: 2,              // Minimum expected troops after capture
-            lateGamePushRatio: 1.15,         // Strength ratio threshold to switch to aggressive finishing
-            earlyExpansionWindow: 30,        // Prioritize neutrals early
-            pressureRatio: 0.95,             // If stronger than opponents, allow pressure attacks
-            regroupThreshold: 0.75,          // If much weaker, shift to defensive consolidation
-            starveDistanceFactor: 1.25,      // Prefer closer targets; penalize long travel
+        // Tunable parameters
+        this.memory.attackCooldown = 0;           // Global cooldown to avoid over-issuing commands.
+        this.memory.minSendThreshold = 6;         // Don't send tiny fleets unless necessary.
+        this.memory.reserveFactor = 0.2;          // Keep 20% as local reserve on sender for safety.
+        this.memory.interceptHorizon = 8;         // Seconds ahead to predict for defense checks.
+        this.memory.opportunityHorizon = 6;       // Seconds ahead to estimate target state.
+        this.memory.phaseAggression = {           // Aggression multipliers by phase.
+            EARLY: 1.0,
+            MID: 1.2,
+            LATE: 1.4
+        };
+        this.memory.lastTick = 0;
+        // Lightweight logger guard
+        this.log = (msg) => {
+            // console.log(`[HorizonBeta][${this.playerId}] ${msg}`);
         };
     }
+
+    /**
+     * Core loop: prioritize defend -> expand -> attack.
+     * @param {number} dt
+     * @returns {object|null}
+     */
     makeDecision(dt) {
-        // Respect global AI cooldown
-        const now = this.api.getElapsedTime();
-        if (now - this.memory.lastActionTime < config.ai.globalDecisionCooldown) {
-            return null;
-        }
-        // Update phase
-        this.memory.phase = this.api.getGamePhase();
-        // Maintain missions (prune completed or stale)
-        this._maintainMissions(now);
-        // Build snapshots
+        // Cooldowns and early exits
+        this.memory.attackCooldown = Math.max(0, (this.memory.attackCooldown || 0) - dt);
+
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
-        // Compute surplus per planet
-        const surplusByPlanet = this._computeSurplusMap(myPlanets, now);
-        // 1) Critical defense
-        const defenseOrder = this._tryDefendThreats(myPlanets, surplusByPlanet, now);
-        if (defenseOrder) {
-            this.memory.lastActionTime = now;
-            return defenseOrder;
-        }
-        // 2) Expansion or opportunistic capture
-        const expansionOrder = this._tryExpandOrSnipe(myPlanets, surplusByPlanet, now);
-        if (expansionOrder) {
-            this.memory.lastActionTime = now;
-            return expansionOrder;
-        }
-        // 3) Strategic attack (pressure, mid/late game)
-        const attackOrder = this._tryStrategicAttack(myPlanets, surplusByPlanet, now);
-        if (attackOrder) {
-            this.memory.lastActionTime = now;
-            return attackOrder;
-        }
-        // 4) Consolidation: balance between our planets (overflow mitigation)
-        const balanceOrder = this._tryBalance(myPlanets, surplusByPlanet, now);
-        if (balanceOrder) {
-            this.memory.lastActionTime = now;
-            return balanceOrder;
-        }
-        return null;
-    }
-    // -----------------------------
-    // Internal utilities
-    // -----------------------------
-    _maintainMissions(now) {
-        if (!(this.memory.missions instanceof Map)) {
-            this.memory.missions = new Map();
-        }
-        const toDelete = [];
-        for (const [targetId, mission] of this.memory.missions.entries()) {
-            const target = this.api.getPlanetById(targetId);
-            if (!target || target.owner === this.playerId || (mission.eta && now > mission.eta + 1.0)) {
-                toDelete.push(targetId);
+
+        // Phase-based tuning
+        const phase = this.api.getGamePhase(); // 'EARLY' | 'MID' | 'LATE'
+        const aggression = this.memory.phaseAggression[phase] ?? 1.0;
+
+        // Helper functions
+        const planetSafeSendable = (planet) => {
+            // Keep a reserve proportional to troops and threat
+            const threat = this.api.calculateThreat(planet); // higher = more threatened
+            const dynamicReserve = Math.max(
+                planet.troops * this.memory.reserveFactor,
+                threat * 0.5 // add extra reserve if threatened
+            );
+            return Math.max(0, Math.floor(planet.troops - dynamicReserve));
+        };
+
+        const minimalDefenseNeeded = (planet) => {
+            // Predict near-future state factoring all incoming
+            const horizon = this.memory.interceptHorizon;
+            const future = this.api.predictPlanetState(planet, horizon);
+            if (future.owner !== this.playerId) {
+                // If we lose it by horizon, compute deficit to keep it by arrival
+                // Estimate reinforcement arrival from nearest ally
+                const allies = myPlanets.filter(p => p.id !== planet.id);
+                if (allies.length === 0) return Infinity;
+                const nearest = this.api.findNearestPlanet(planet, allies);
+                if (!nearest) return Infinity;
+                const travel = this.api.getTravelTime(nearest, planet);
+                const reinforceFuture = this.api.predictPlanetState(planet, travel);
+                // If at arrival we wouldn't own it or be low, compute required diff
+                const needed = Math.max(0, 1 - (reinforceFuture.owner === this.playerId ? reinforceFuture.troops : -reinforceFuture.troops));
+                return Math.ceil(needed);
             }
-        }
-        toDelete.forEach(id => this.memory.missions.delete(id));
-    }
-    _computeSurplusMap(myPlanets, now) {
-        const map = new Map();
-        for (const p of myPlanets) {
-            const incomingEnemy = this.api.getIncomingAttacks(p).reduce((s, m) => s + m.amount, 0);
-            const incomingFriendly = this.api.getIncomingReinforcements(p).reduce((s, m) => s + m.amount, 0);
-            const netIncoming = incomingFriendly - incomingEnemy;
-            // Keep a garrison; don't drop below
-            const raw = Math.floor(p.troops + netIncoming - this.params.minGarrisonPerPlanet);
-            const sendable = Math.max(0, Math.min(raw, Math.floor(p.troops * this.params.sendFractionCap)));
-            // Cap per ongoing missions from this planet
-            const activeFrom = this._countActiveMissionsFrom(p.id);
-            const capped = activeFrom >= this.params.perSourceMissionCap ? 0 : sendable;
-            map.set(p.id, { sendable: capped, planet: p });
-        }
-        return map;
-    }
-    _countActiveMissionsFrom(fromPlanetId) {
-        let count = 0;
-        for (const [, mission] of this.memory.missions.entries()) {
-            if (mission.fromIds && mission.fromIds.includes(fromPlanetId)) count++;
-        }
-        return count;
-    }
-    _canStartMoreMissions() {
-        return this.memory.missions.size < this.params.maxConcurrentMissions;
-    }
-    _strengthRatio() {
-        return this.api.getMyStrengthRatio(); // >1 stronger, <1 weaker
-    }
-    // -----------------------------
-    // Defense
-    // -----------------------------
-    _tryDefendThreats(myPlanets, surplusByPlanet, now) {
-        // Identify threatened planets by prediction
-        const threats = [];
-        for (const p of myPlanets) {
-            const pred = this.api.predictPlanetState(p, this.params.defenseHorizon);
-            if (pred.owner !== this.playerId) {
-                // Calculate minimal needed to keep
-                const need = Math.ceil(pred.troops * this.params.defenseOversendFactor + 1);
-                threats.push({ target: p, need, horizon: this.params.defenseHorizon });
+            // If we keep it, no immediate defense needed.
+            return 0;
+        };
+
+        const computeAttackCost = (from, to, horizon) => {
+            // Predict defender future at arrival time
+            const travel = this.api.getTravelTime(from, to);
+            const t = Math.max(0.5, Math.min(horizon, travel)); // predict at least some time or up to horizon
+            const pred = this.api.predictPlanetState(to, t);
+            // If enemy-owned at arrival, need to exceed troops by 1 to flip
+            // If neutral, need to exceed neutral garrison (no production)
+            const needed = (pred.owner === this.playerId) ? 0 : Math.max(1, Math.ceil(pred.troops + 1));
+            return { needed, travel };
+        };
+
+        // 1) DEFENSE PRIORITY: Intercept lethal threats with nearest available troops.
+        // Find planets predicted to be lost soon and reinforce just-in-time from nearest sources.
+        const endangered = myPlanets
+            .map(p => ({ p, need: minimalDefenseNeeded(p) }))
+            .filter(e => e.need > 0 && e.need !== Infinity)
+            .sort((a, b) => b.need - a.need); // biggest deficit first
+
+        if (endangered.length > 0) {
+            // Try to cover the top endangered with the closest capable ally
+            const { p: target, need } = endangered[0];
+            // Find candidate senders sorted by travel time
+            const candidates = myPlanets
+                .filter(src => src.id !== target.id)
+                .map(src => ({ src, travel: this.api.getTravelTime(src, target) }))
+                .sort((a, b) => a.travel - b.travel);
+
+            for (const { src } of candidates) {
+                const canSend = planetSafeSendable(src);
+                if (canSend >= need && canSend >= this.memory.minSendThreshold) {
+                    if (this.memory.attackCooldown <= 0) {
+                        this.memory.attackCooldown = 0.35;
+                        const troops = need;
+                        this.log(`Reinforce ${target.id} from ${src.id} with ${troops}`);
+                        return { from: src, to: target, troops };
+                    }
+                    break;
+                }
             }
-        }
-        if (threats.length === 0) return null;
-        // Try to reinforce the most urgent (lowest time-to-fall if we can infer)
-        // We approximate urgency by current incoming attack earliest ETA
-        threats.sort((a, b) => {
-            const etaA = this._earliestIncomingETA(a.target, false) ?? 999;
-            const etaB = this._earliestIncomingETA(b.target, false) ?? 999;
-            return etaA - etaB;
-        });
-        for (const th of threats) {
-            let remaining = th.need;
-            const donors = this._sortedClosestSurplus(th.target, surplusByPlanet);
-            for (const donor of donors) {
+            // If no single sender can fully cover, try partial top-up aggregation
+            let remaining = need;
+            const partials = [];
+            for (const { src } of candidates) {
                 if (remaining <= 0) break;
-                if (donor.surplus <= 0) continue;
-                const travel = this.api.getTravelTime(donor.planet, th.target);
-                if (travel > this.params.defenseHorizon + 1.0) continue; // too slow
-                const send = Math.min(donor.surplus, remaining);
-                if (send <= 0) continue;
-                // Issue order
-                this._registerMission(th.target.id, 'defend', now + travel, send, [donor.planet.id]);
-                return { from: donor.planet, to: th.target, troops: send };
-            }
-        }
-        return null;
-    }
-    _earliestIncomingETA(planet, friendly = false) {
-        const arr = friendly ? this.api.getIncomingReinforcements(planet) : this.api.getIncomingAttacks(planet);
-        if (arr.length === 0) return null;
-        return arr.reduce((min, m) => (m.to === planet && m.duration < min) ? m.duration : min, Infinity);
-    }
-    _sortedClosestSurplus(target, surplusByPlanet) {
-        const donors = [];
-        for (const [, v] of surplusByPlanet.entries()) {
-            if (v.planet.id !== target.id) {
-                donors.push({ planet: v.planet, surplus: v.sendable, dist: this.api.getDistance(v.planet, target) });
-            }
-        }
-        donors.sort((a, b) => a.dist - b.dist);
-        return donors;
-    }
-    // -----------------------------
-    // Expansion / Sniping
-    // -----------------------------
-    _tryExpandOrSnipe(myPlanets, surplusByPlanet, now) {
-        if (!this._canStartMoreMissions()) return null;
-        // Opportunistic snipe on enemy planets after battles
-        const snipeOrder = this._opportunisticSnipe(myPlanets, surplusByPlanet, now);
-        if (snipeOrder) return snipeOrder;
-        if (this.memory.phase === 'EARLY' || now < this.params.earlyExpansionWindow) {
-            const target = this._bestNeutralTarget(myPlanets, this.api.getNeutralPlanets());
-            if (!target) return null;
-            // Choose best donor with enough sendable to win on arrival
-            const candidateDonors = this._sortedClosestSurplus(target, surplusByPlanet);
-            for (const donor of candidateDonors) {
-                const travel = this.api.getTravelTime(donor.planet, target);
-                const predicted = this.api.predictPlanetState(target, travel);
-                let needed = Math.ceil((predicted.troops + 1) * this.params.attackOversendFactor);
-                if (donor.surplus >= needed && needed > 0) {
-                    this._registerMission(target.id, 'expand', now + travel, needed, [donor.planet.id]);
-                    return { from: donor.planet, to: target, troops: needed };
+                const canSend = planetSafeSendable(src);
+                const send = Math.min(canSend, remaining);
+                if (send >= this.memory.minSendThreshold / 2 && send > 0) {
+                    partials.push({ src, send });
+                    remaining -= send;
                 }
             }
-        }
-        return null;
-    }
-    _bestNeutralTarget(myPlanets, neutrals) {
-        if (!neutrals || neutrals.length === 0) return null;
-        // Score neutrals by production, size, centrality, and distance from our nearest planet
-        let best = null;
-        let bestScore = -Infinity;
-        for (const n of neutrals) {
-            const prodScore = n.productionRate * 25;
-            const sizeScore = n.size * 0.5;
-            const centScore = this.api.calculateCentrality(n) * 20;
-            // distance to nearest owned
-            let nearest = null;
-            let minDist = Infinity;
-            for (const p of myPlanets) {
-                const d = this.api.getDistance(p, n);
-                if (d < minDist) { minDist = d; nearest = p; }
+            if (partials.length > 0 && remaining <= 0 && this.memory.attackCooldown <= 0) {
+                // Send from the largest contributor this tick to avoid multiple actions per tick.
+                // Next ticks will complete remaining if needed.
+                const best = partials.sort((a, b) => b.send - a.send)[0];
+                this.memory.attackCooldown = 0.35;
+                this.log(`Partial reinforce ${target.id} from ${best.src.id} with ${best.send}`);
+                return { from: best.src, to: target, troops: best.send };
             }
-            const distPenalty = minDist / (config.troop.movementSpeed * this.params.starveDistanceFactor);
-            const value = prodScore + sizeScore + centScore - distPenalty - n.troops * 0.8;
-            if (value > bestScore) { bestScore = value; best = n; }
         }
-        return best;
-    }
-    _opportunisticSnipe(myPlanets, surplusByPlanet, now) {
-        // Look for enemy planets with heavy incoming enemy attacks or recent chaos
-        const enemies = this.api.getEnemyPlanets();
-        if (enemies.length === 0) return null;
-        for (const e of enemies) {
-            const incoming = this.api.getIncomingAttacks(e);
-            if (incoming.length === 0) continue;
-            const soonest = this._earliestIncomingETA(e, false);
-            if (soonest === null || soonest > this.params.snipeWindow) continue;
-            // Predict shortly after the fight
-            const arrivalWindow = soonest + 0.2;
-            const predicted = this.api.predictPlanetState(e, arrivalWindow);
-            if (predicted.owner === this.playerId) continue; // already will become ours
-            // Try to find a donor that can arrive around arrivalWindow and beat predicted troops
-            const donors = this._sortedClosestSurplus(e, surplusByPlanet);
-            for (const donor of donors) {
-                const travel = this.api.getTravelTime(donor.planet, e);
-                if (Math.abs(travel - arrivalWindow) > 1.5) continue; // keep timing somewhat close
-                const need = Math.max(1, Math.ceil((predicted.troops + 1) * this.params.attackOversendFactor));
-                if (donor.surplus >= need) {
-                    this._registerMission(e.id, 'snipe', now + travel, need, [donor.planet.id]);
-                    return { from: donor.planet, to: e, troops: need };
+
+        // 2) EXPANSION AND PRESSURE: Choose best target by value-density and timing.
+        const allPlanets = this.api.getAllPlanets();
+        const targets = allPlanets.filter(p => p.owner !== this.playerId);
+        if (targets.length === 0) return null;
+
+        // Rank targets by composite score: API value, inverse distance to our strong hubs, and predicted ease.
+        // Choose a hub planet as sender: prefer strong, central, and low-threat planets.
+        const hubs = myPlanets
+            .map(p => ({ p, threat: this.api.calculateThreat(p), central: this.api.calculateCentrality(p) }))
+            .sort((a, b) => {
+                // Prefer low threat, high troops, high centrality
+                const aScore = (-a.threat * 2) + (a.p.troops) + (a.central * 5);
+                const bScore = (-b.threat * 2) + (b.p.troops) + (b.central * 5);
+                return bScore - aScore;
+            })
+            .map(o => o.p);
+
+        const sender = hubs[0] || myPlanets[0];
+        const sendable = planetSafeSendable(sender);
+        if (sendable < this.memory.minSendThreshold) return null;
+
+        // Evaluate top N candidate targets near the sender
+        const candidates = targets
+            .map(t => {
+                const distance = this.api.getDistance(sender, t);
+                const value = this.api.calculatePlanetValue(t);
+                const central = this.api.calculateCentrality(t);
+                // Predict needed troops at (travel time + small buffer)
+                const { needed, travel } = computeAttackCost(sender, t, this.memory.opportunityHorizon);
+                // Score: higher planet value and centrality, lower distance and required troops
+                // Adjust by phase aggression: more aggressive -> tolerate higher needed
+                const score = (value * 1.8 + central * 1.0) - (distance / 100) - (needed / (10 * aggression));
+                return { t, distance, needed, travel, score };
+            })
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6); // focus on best few
+
+        // 3) Opportunistic strike if we can take a top-scoring target efficiently
+        for (const cand of candidates) {
+            if (cand.needed <= 0) continue;
+            // Add a small margin to account for production during our travel
+            const margin = Math.max(1, Math.ceil(cand.travel * 0.2));
+            const required = cand.needed + margin;
+
+            if (sendable >= required) {
+                if (this.memory.attackCooldown <= 0) {
+                    this.memory.attackCooldown = 0.35;
+                    const troops = required;
+                    this.log(`Attack ${cand.t.id} from ${sender.id} sending ${troops} (need ${cand.needed}+${margin})`);
+                    return { from: sender, to: cand.t, troops };
                 }
-            }
-        }
-        return null;
-    }
-    // -----------------------------
-    // Strategic attacks
-    // -----------------------------
-    _tryStrategicAttack(myPlanets, surplusByPlanet, now) {
-        if (!this._canStartMoreMissions()) return null;
-        const ratio = this._strengthRatio();
-        const enemies = this.api.getEnemyPlanets();
-        if (enemies.length === 0) return null;
-        // Skip if we're too weak unless there's a soft nearby target
-        const allowAggression = ratio >= this.params.pressureRatio || this.memory.phase !== 'EARLY';
-        // Evaluate targets by value minus difficulty
-        let best = null;
-        let bestScore = -Infinity;
-        for (const e of enemies) {
-            // Predict in attack horizon
-            const pred = this.api.predictPlanetState(e, this.params.attackHorizon);
-            // If someone else will take it (pred.owner != e.owner), consider post-capture snipe done above
-            const baseValue = this.api.calculatePlanetValue(e);
-            // Penalize high predicted troops
-            const defensePenalty = pred.troops * 2.0;
-            // Distance penalty to nearest of our planets
-            let minDist = Infinity;
-            let nearest = null;
-            for (const p of myPlanets) {
-                const d = this.api.getDistance(p, e);
-                if (d < minDist) { minDist = d; nearest = p; }
-            }
-            const distPenalty = minDist / (config.troop.movementSpeed * this.params.starveDistanceFactor);
-            // Prefer border planets near us
-            const score = baseValue - defensePenalty - distPenalty;
-            if (score > bestScore) {
-                bestScore = score;
-                best = { planet: e, nearest, predTroops: pred.troops, minDist };
-            }
-        }
-        if (!best || !allowAggression) return null;
-        // Try to assemble enough from the nearest donor first, otherwise from next
-        const target = best.planet;
-        // Determine required force based on the donor's actual travel time, not the fixed horizon
-        const donors = this._sortedClosestSurplus(target, surplusByPlanet);
-        let required = null;
-        let chosenDonor = null;
-        for (const donor of donors) {
-            if (donor.surplus <= 0) continue;
-            const travel = this.api.getTravelTime(donor.planet, target);
-            const predAtArrival = this.api.predictPlanetState(target, travel);
-            let need = Math.ceil((predAtArrival.troops + 1 + this.params.minAttackMargin) * this.params.attackOversendFactor);
-            need = Math.max(1, need);
-            if (donor.surplus >= need) {
-                required = need;
-                chosenDonor = donor;
                 break;
             }
         }
-        if (chosenDonor && required !== null) {
-            this._registerMission(target.id, 'attack', now + this.api.getTravelTime(chosenDonor.planet, target), required, [chosenDonor.planet.id]);
-            return { from: chosenDonor.planet, to: target, troops: required };
-        }
-        // If no single donor can handle, try a modest multi-hop consolidation in balance step; skip here.
-        return null;
-    }
-    // -----------------------------
-    // Balance / Consolidation
-    // -----------------------------
-    _tryBalance(myPlanets, surplusByPlanet, now) {
-        // Move excess from overfull planets to nearest frontline or higher production
-        // Identify a planet near cap or with high troops and low threat; send to closest lower-troop our planet closer to enemies
-        const enemies = this.api.getEnemyPlanets();
-        if (enemies.length === 0) return null;
-        // Frontline heuristic: planets closer to enemies than to center of our cluster
-        const enemyCenter = this._centerOfPlanets(enemies);
-        let bestSource = null;
-        let bestTarget = null;
-        let bestSend = 0;
-        let bestScore = -Infinity;
-        for (const p of myPlanets) {
-            const sEntry = surplusByPlanet.get(p.id);
-            const canSend = sEntry ? sEntry.sendable : 0;
-            if (canSend <= 0) continue;
-            // Prefer large production planets to hold some troops; still allow trickle
-            const candidateTargets = myPlanets.filter(t => t.id !== p.id);
-            for (const t of candidateTargets) {
-                // favor targets closer to enemies to stage
-                const dToEnemy = this.api.getDistance(t, enemyCenter);
-                const dSourceToEnemy = this.api.getDistance(p, enemyCenter);
-                if (dToEnemy > dSourceToEnemy) continue; // prefer moving closer to enemy lines
-                const travel = this.api.getTravelTime(p, t);
-                const score = (p.productionRate < t.productionRate ? 3 : 1) + (dSourceToEnemy - dToEnemy) / 50 - travel * 0.3;
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestSource = p;
-                    bestTarget = t;
-                    bestSend = Math.min(canSend, Math.max(5, Math.floor(p.troops * 0.25)));
+
+        // 4) If we cannot take high-value targets outright, perform pressure moves:
+        // a) Snipe weak neutrals close to our sender.
+        const neutrals = this.api.getNeutralPlanets();
+        if (neutrals.length > 0) {
+            const nearNeutrals = neutrals
+                .map(n => {
+                    const { needed, travel } = computeAttackCost(sender, n, this.memory.opportunityHorizon);
+                    const dist = this.api.getDistance(sender, n);
+                    const score = (this.api.calculatePlanetValue(n) * 1.5) - (dist / 120) - (needed / 8);
+                    return { n, needed, travel, score };
+                })
+                .filter(c => c.needed > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
+
+            for (const c of nearNeutrals) {
+                const margin = Math.max(1, Math.ceil(c.travel * 0.15));
+                const required = c.needed + margin;
+                if (sendable >= required && required >= this.memory.minSendThreshold) {
+                    if (this.memory.attackCooldown <= 0) {
+                        this.memory.attackCooldown = 0.3;
+                        const troops = required;
+                        this.log(`Expand to neutral ${c.n.id} from ${sender.id} with ${troops}`);
+                        return { from: sender, to: c.n, troops };
+                    }
+                    break;
                 }
             }
         }
-        if (bestSource && bestTarget && bestSend > 0) {
-            // No mission registration for internal balance (short-lived), but could be tracked if needed
-            return { from: bestSource, to: bestTarget, troops: bestSend };
-        }
-        return null;
-    }
-    _centerOfPlanets(planets) {
-        if (!planets || planets.length === 0) return { x: this.api.canvas.width / 2, y: this.api.canvas.height / 2 };
-        const sum = planets.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
-        return { x: sum.x / planets.length, y: sum.y / planets.length };
-    }
-    _registerMission(targetId, type, eta, troopsCommitted, fromIds) {
-        const existing = this.memory.missions.get(targetId);
-        if (existing) {
-            existing.troopsCommitted += troopsCommitted;
-            if (fromIds && fromIds.length) {
-                existing.fromIds = Array.from(new Set([...(existing.fromIds || []), ...fromIds]));
+
+        // b) Harass weakest enemy frontier planet if safe: choose an enemy close to our sender that we can chip.
+        const enemies = this.api.getEnemyPlanets();
+        if (enemies.length > 0) {
+            const chipCandidates = enemies
+                .map(e => {
+                    const dist = this.api.getDistance(sender, e);
+                    const { needed, travel } = computeAttackCost(sender, e, this.memory.opportunityHorizon);
+                    const eVal = this.api.calculatePlanetValue(e);
+                    // Harass if needed is moderate and distance is small
+                    const score = (eVal * 1.2) - (dist / 150) - (needed / 12);
+                    return { e, needed, travel, score };
+                })
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 4);
+
+            for (const c of chipCandidates) {
+                const margin = Math.max(0, Math.floor(c.travel * 0.1));
+                const required = c.needed + margin;
+                // Only send if we have comfortable surplus
+                if (sendable >= required && required >= this.memory.minSendThreshold && required <= sendable * 0.75) {
+                    if (this.memory.attackCooldown <= 0) {
+                        this.memory.attackCooldown = 0.35;
+                        const troops = required;
+                        this.log(`Pressure attack ${c.e.id} from ${sender.id} with ${troops}`);
+                        return { from: sender, to: c.e, troops };
+                    }
+                    break;
+                }
             }
-            existing.eta = eta;
-            existing.type = type;
-        } else {
-            this.memory.missions.set(targetId, {
-                type,
-                eta,
-                troopsCommitted,
-                fromIds: fromIds || [],
-                createdAt: this.api.getElapsedTime(),
-            });
         }
+
+        // 5) Redistribution: If a backline planet is overflowing, move surplus forward.
+        const maxCap = this.api.getMaxPlanetTroops();
+        const backline = myPlanets
+            .filter(p => this.api.calculateThreat(p) < 0.5 && p.troops > maxCap * 0.6)
+            .sort((a, b) => b.troops - a.troops);
+
+        if (backline.length > 0 && myPlanets.length > 1) {
+            const src = backline[0];
+            // Find a more central or threatened friendly planet to reinforce
+            const dest = myPlanets
+                .filter(p => p.id !== src.id)
+                .map(p => ({ p, central: this.api.calculateCentrality(p), threat: this.api.calculateThreat(p) }))
+                .sort((a, b) => {
+                    // prefer higher threat or higher centrality
+                    const aScore = a.threat * 2 + a.central;
+                    const bScore = b.threat * 2 + b.central;
+                    return bScore - aScore;
+                })[0]?.p;
+
+            if (dest) {
+                const canSend = Math.max(this.memory.minSendThreshold, Math.floor(src.troops * 0.25));
+                if (canSend >= this.memory.minSendThreshold && this.memory.attackCooldown <= 0) {
+                    this.memory.attackCooldown = 0.25;
+                    this.log(`Redistribute from ${src.id} to ${dest.id} with ${canSend}`);
+                    return { from: src, to: dest, troops: canSend };
+                }
+            }
+        }
+
+        // Nothing compelling this tick
+        return null;
     }
 }

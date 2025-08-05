@@ -1,81 +1,69 @@
-// =============================================
-// root/javascript/bots/KimiDev72b.js
-// =============================================
-
 import BaseBot from './BaseBot.js';
 
 export default class KimiDev72b extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId);
-        this.memory.phase = 'EARLY';
     }
-    
-    makeDecision(dt) {
-        this.log(`Making decision at phase ${this.memory.phase}`);
-        const myPlanets = this.api.getMyPlanets();
-        if (myPlanets.length === 0) return null;
-        
-        // --- Defensive Priority ---
-        // Prioritize reinforcing planets under attack.
-        const threatenedPlanets = myPlanets.filter(p => this.api.calculateThreat(p) > p.troops);
-        if (threatenedPlanets.length > 0) {
-            // Find the most threatened planet to save first.
-            const planetToSave = threatenedPlanets.sort((a,b) => this.api.calculateThreat(b) - this.api.calculateThreat(a))[0];
-            const troopsNeeded = Math.ceil(this.api.calculateThreat(planetToSave) - planetToSave.troops) + 1;
 
-            // Find a *different* planet to send reinforcements from.
-            const potentialHelpers = myPlanets.filter(p => p.id !== planetToSave.id && p.troops > troopsNeeded);
-            if (potentialHelpers.length > 0) {
-                const reinforcementSource = this.api.findNearestPlanet(planetToSave, potentialHelpers);
-                if (reinforcementSource) {
-                    const troopsToSend = Math.min(reinforcementSource.troops - 5, troopsNeeded); // Keep a small garrison
-                    this.log(`DEFENDING: Sending ${troopsToSend} troops from ${reinforcementSource.id} to threatened planet ${planetToSave.id}`);
-                    return { from: reinforcementSource, to: planetToSave, troops: troopsToSend };
-                }
-            }
+    makeDecision(dt) {
+        const myPlanets = this.api.getMyPlanets();
+        if (myPlanets.length === 0) {
+            return null;
         }
-        
-        // --- Offensive Priority ---
-        // If no defense is needed, attack weakest enemy or nearest neutral planet.
-        const enemyPlanets = this.api.getEnemyPlanets();
-        const neutralPlanets = this.api.getNeutralPlanets();
-        const allTargets = [...enemyPlanets, ...neutralPlanets];
-        
-        let bestTarget = null;
-        let minTroopsRequired = Infinity;
-        
-        for (const targetPlanet of allTargets) {
-            const nearestSource = this.api.findNearestPlanet(targetPlanet, myPlanets);
-            if (!nearestSource) continue;
-            
-            const travelTime = this.api.getTravelTime(targetPlanet, nearestSource);
-            const predictedState = this.api.predictPlanetState(targetPlanet, travelTime);
-            
-            if (predictedState.owner !== this.playerId) {
-                const requiredTroops = predictedState.troops + 1;
-                if (nearestSource.troops > requiredTroops) {
-                    // Prioritize targets that are cheapest to capture.
-                    if (requiredTroops < minTroopsRequired) {
-                        minTroopsRequired = requiredTroops;
-                        bestTarget = { from: nearestSource, to: targetPlanet, troops: requiredTroops };
+
+        // Check for planets under threat
+        for (const planet of myPlanets) {
+            const threat = this.api.calculateThreat(planet);
+            if (threat > 0) {
+                const nearestRein = this.api.findNearestPlanet(planet, myPlanets.filter(p => p.id !== planet.id));
+                if (nearestRein) {
+                    const travelTime = this.api.getTravelTime(nearestRein, planet);
+                    const requiredRein = threat + 1;
+                    const futureRein = nearestRein.troops + (nearestRein.productionRate * travelTime);
+                    const troopsToSend = Math.min(requiredRein, futureRein);
+                    if (troopsToSend > 0) {
+                        this.log(`Reinforcing ${planet.id} with ${troopsToSend} from ${nearestRein.id}`);
+                        return { from: nearestRein, to: planet, troops: troopsToSend };
                     }
                 }
             }
         }
-        
-        if (bestTarget) {
-            this.log(`ATTACKING: Sending ${bestTarget.troops} troops from ${bestTarget.from.id} to ${bestTarget.to.id}`);
-            return bestTarget;
+
+        // No threats, proceed to offense
+        const targets = [...this.api.getNeutralPlanets(), ...this.api.getEnemyPlanets()];
+        if (targets.length === 0) {
+            return null;
         }
-        
-        // Update game phase memory
-        const currentPhase = this.api.getGamePhase();
-        if (currentPhase !== this.memory.phase) {
-            this.memory.phase = currentPhase;
-            this.log(`Transitioning to phase: ${currentPhase}`);
+
+        // Sort targets by strategic value in descending order
+        targets.sort((a, b) => this.api.calculatePlanetValue(b) - this.api.calculatePlanetValue(a));
+
+        for (const target of targets) {
+            const nearestSource = this.api.findNearestPlanet(target, myPlanets);
+            if (nearestSource) {
+                const travelTime = this.api.getTravelTime(nearestSource, target);
+                const futureTarget = this.api.predictPlanetState(target, travelTime);
+                let requiredTroops = 0;
+
+                // Check if the target is neutral or enemy
+                if (futureTarget.owner === 'neutral') {
+                    requiredTroops = futureTarget.troops + 1;
+                } else if (futureTarget.owner !== this.playerId) {
+                    requiredTroops = futureTarget.troops + 1;
+                } else {
+                    // Already owned, just send some troops for reinforcement
+                    requiredTroops = 1;
+                }
+
+                const futureSourceTroops = nearestSource.troops + (nearestSource.productionRate * travelTime);
+                const troopsToSend = Math.min(requiredTroops, futureSourceTroops);
+                if (troopsToSend > 0) {
+                    this.log(`Attacking ${target.id} from ${nearestSource.id} with ${troopsToSend}`);
+                    return { from: nearestSource, to: target, troops: troopsToSend };
+                }
+            }
         }
-        
-        this.log(`No valid action found; skipping turn.`);
+
         return null;
     }
 }

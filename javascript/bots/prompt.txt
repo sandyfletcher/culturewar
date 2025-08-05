@@ -1,20 +1,221 @@
-Your task is to design a high-performance AI bot for a real-time strategy game mimicking Galcon that will compete against and outperform other AI opponents.
-The Game's objective is to eliminate all opponents by conquering their planets. You send fleets of "troops" from your planets to attack enemies or reinforce allies. Planets you own generate new troops over time based on their size. The game ends when only one player remains, or to the player controlling the most planets when the timer runs out.
-Your SDK (The Tools at Your Disposal):
-root/javascript/bots/BaseBot.js: Your bot must extend this class. It provides this.api for all game interactions and this.memory for persistent state.
-root/javascript/GameAPI.js: Your "senses." This is a rich API with powerful helper functions you can use to build sophisticated logic.
-root/javascript/config.js: Contains the physical laws of the game (troop speed, planet production rates, etc.), critical for accurate calculations.
-root/javascript/Planet.js & root/javascript/TroopMovement.js: The structure of the game objects returned by the API.
-makeDecision(dt): This method is called periodically, giving your bot a chance to act. It receives dt, which is the delta time in seconds since the last decision. Crucially, this value is already scaled by the game's speed slider, so you can treat it as real "game time" passing.
-While you could ignore dt, using it allows for far more sophisticated, time-aware strategies. Your bot's memory (this.memory) persists between calls, so you can use dt to manage your own internal timers.  
-Possible strategic uses for dt include:
-Action Cooldowns — Prevent your bot from spamming the same action.
-State Timers & Phased Strategy — Control how long your bot stays in a particular strategic mode.
-Dynamic Behavior — Change behavior based on how long it's been since a particular event.
-By using dt to manage your bot's internal state over time, you can create an AI that doesn't just react to the current board state, but executes long-term, multi-step strategies.
-Key Strategic Challenges to Consider:
-Players make decisions one at a time, and are given a quarter-second to send their makeDecision.  This means you'll make moves every 1.25 seconds at the absolute most, and every 0.25 seconds if you're one of the final two contenders of a battle.
-A successful bot doesn't act randomly, it follows a prioritized logic loop on every turn. To perform well against a variety of unknown opponents, your bot should be robust, adaptive, and its strategic decisions should be well-reasoned.
-You have complete creative freedom to determine the bot's core strategy, but consider using state management to develop long-term plans to vary your behaviour in different game phases, evaluate target priority and threat assessment, weigh risk against reward, and adapt based on whether you're winning or losing.
-Your Task:
-Based on your chosen strategy and the provided SDK, please write the complete code for the new bot. The code must extend BaseBot, must only import BaseBot, and must be fully self-contained in a single file named [YourModelName].js . Please add comments to your code explaining the high-level strategic choices you've made.
+Challenge: Design a Champion Bot
+
+Your task is to design a high-performance AI bot for a real-time strategy game inspired by Galcon. Your bot will compete against other AIs in an arena. Your objective is to create a bot that is robust, adaptive, and strategically sound, capable of outperforming a variety of opponents.
+
+1. Game Fundamentals
+The game is about galactic conquest. Here are the core rules:
+Objective: Eliminate all opponents by conquering their planets. The game ends when only one player remains, or when the 5-minute timer runs out. If the timer expires, the winner is the player controlling the most planets (with total troops as a tiebreaker).
+Planets: The map contains planets of various sizes. Planets can be owned by a player or be neutral.
+Production: Player-owned planets generate new "troops" (units of cultural influence) over time. The rate of production is directly proportional to the planet's size. Neutral planets do not produce troops.
+Troops & Fleets: You can send fleets of troops from your planets to any other planet on the map.
+Combat & Conquest:
+When a fleet arrives at a friendly planet, its troops are added to the planet's garrison (reinforcement).
+When a fleet arrives at an enemy planet, the attacking and defending troops are destroyed in a 1-for-1 battle.
+If the attacking fleet has more troops than the defending garrison, the attacker destroys all defenders, takes control of the planet, and the remaining troops form the new garrison.
+If the defending garrison is larger or equal, it repels the attack, losing troops equal to the size of the attacking fleet.
+
+2. Your Development Task
+You must write a complete, self-contained JavaScript file that defines a single bot class.
+The file should be named [YourModelName].js.
+Your class must extend the BaseBot class.
+Your file must only have one import: import BaseBot from './BaseBot.js';
+All your bot's logic must be contained within the makeDecision(dt) method.
+You should add comments to your code explaining your high-level strategic choices.
+
+3. The BaseBot Class: Your Foundation
+Your bot will extend the BaseBot class. It provides the essential structure for your AI.
+
+// root/javascript/bots/BaseBot.js
+
+import GameAPI from '../GameAPI.js';
+export default class BaseBot {
+    constructor(game, playerId) {
+        if (this.constructor === BaseBot) {
+            throw new Error("BaseBot is an abstract class and cannot be instantiated directly.");
+        }
+        this.game = game;
+        this.playerId = playerId;
+        // Your primary tool for interacting with the game state.
+        this.api = new GameAPI(game, playerId);
+        // A persistent object for storing state between decisions.
+        this.memory = { 
+            actionCooldown: 0, 
+            phase: 'GAME_START', 
+            missions: new Map(),
+            threats: {}, 
+            lastActionTime: 0,
+        };
+    }
+    /**
+    * This is the method you MUST implement in your class.
+    * @param {number} dt - The game's delta time, scaled by game speed.
+    * @returns {object|null} A decision object like { from, to, troops } or null.
+    */
+    makeDecision(dt) {
+        throw new Error("The 'makeDecision' method must be implemented by the subclass.");
+    }
+}
+
+4. The GameAPI: Your Senses and Intel
+this.api is your window into the game world. It provides a rich set of read-only functions to get data and perform complex calculations. Here is your complete API reference:
+
+class GameAPI { 
+    // --- GENERAL GAME STATE FUNCTIONS ---
+    getAllPlanets() {} // @returns {Planet[]}
+    getPlanetById(planetId) {} // @returns {Planet | null}
+    getEnemyPlanets() {} // @returns {Planet[]}
+    getNeutralPlanets() {} // @returns {Planet[]}
+    getAllTroopMovements() {} // @returns {TroopMovement[]}
+    getAllPlayerIds() {} // @returns {string[]}
+    getOpponentIds() {} // @returns {string[]}
+    getElapsedTime() {} // @returns {number} The elapsed time in seconds since the game started.
+    getGameDuration() {} // @returns {number} The total configured duration of the game in seconds.
+    getMaxPlanetTroops() {} // @returns {number} The maximum number of troops a planet can hold.
+    getDistance(planet1, planet2) {} // @returns {number} The Euclidean distance between two planets.
+    getTravelTime(planet1, planet2) {} // @returns {number} The travel time in seconds for a fleet.
+    findNearestPlanet(sourcePlanet, targetPlanets) {} // @returns {Planet | null} The closest planet from a list.
+    calculatePlanetValue(planet) {} // @returns {number} A strategic score for a planet (higher is better).
+    calculateThreat(myPlanet) {} // @returns {number} A threat score for one of your planets (higher is more threatened).
+    getIncomingAttacks(targetPlanet) {} // @returns {TroopMovement[]} Enemy fleets targeting a planet.
+    getIncomingReinforcements(targetPlanet) {} // @returns {TroopMovement[]} Friendly fleets targeting a planet.
+    calculateCentrality(planet) {} // @returns {number} A score from 0 to 1, where 1 is the map center.
+    getGamePhase() {} // @returns {string} The current game phase: 'EARLY', 'MID', or 'LATE'.
+    /**
+     * POWERFUL STRATEGIC TOOL: Predicts a planet's owner and troop count at a future time,
+     * accounting for production and all incoming fleets.
+     * @param {Planet} planet - The planet to predict.
+     * @param {number} timeInFuture - How many seconds into the future to predict.
+     * @returns {{owner: string, troops: number}} The predicted state of the planet.
+     */
+    predictPlanetState(planet, timeInFuture) {}
+    // --- PLAYER DATA QUERY FUNCTIONS ---
+    getMyPlanets() {} // @returns {Planet[]} All planets you own.
+    getMyTotalTroops() {} // @returns {number} Your total troops (on planets and in transit).
+    getMyTotalProduction() {} // @returns {number} Your total production rate per second.
+    isPlayerActive(playerId) {} // @returns {boolean} True if a player still has planets or troops.
+    getPlayerTotalTroops(playerId) {} // @returns {number} Total troops for any specified player.
+    getPlayerTotalProduction(playerId) {} // @returns {number} Total production for any specified player.
+    /**
+     * Calculates your overall strength (troops + weighted production) relative to the strongest opponent.
+     * A value > 1.0 means you are likely stronger.
+     * A value < 1.0 means you are likely weaker.
+     * @returns {number} The strength ratio. Returns 999 if no opponents are left.
+     */
+    getMyStrengthRatio() {}
+}
+
+5. Game Objects & Data Structures
+The API methods will return objects with the following structures:
+Planet Object:
+{
+  id: "p-12",          // Unique and stable identifier for the planet.
+  x: 150.7,            // X-coordinate.
+  y: 300.2,            // Y-coordinate.
+  size: 25,            // Radius of the planet. Affects production rate.
+  troops: 45.8,        // Current number of troops (can be a float).
+  owner: "player1",    // The ID of the owning player ('neutral' if unowned).
+  productionRate: 1.25 // Troops generated per second.
+}
+TroopMovement Object:
+{
+  from: Planet,        // The origin Planet object.
+  to: Planet,          // The destination Planet object.
+  amount: 30,          // The number of troops in the fleet.
+  owner: "player2",    // The ID of the player who sent the fleet.
+  duration: 4.5        // The remaining time in seconds until the fleet arrives.
+}
+
+6. The Laws of the Universe (Key Game Configuration)
+These constants define the game's physics and are crucial for accurate predictions.
+// The game runs for 300 seconds (5 minutes).
+game.defaultDuration = 300;
+// A planet's production rate is its size divided by this factor.
+planet.productionFactor = 20; // e.g., a size 30 planet produces 30/20 = 1.5 troops/sec.
+// The maximum number of troops a single planet can hold.
+planet.maxTroops = 999;
+// The speed of all fleets in pixels per second.
+troop.movementSpeed = 150; 
+// AI bots are given a chance to act one after another. This is the minimum time between
+// ANY bot making a move. Your bot's actual thinking time will vary based on player count.
+ai.globalDecisionCooldown = 0.25;
+
+7. The Heart of Your Bot: makeDecision(dt)
+This is the only method you need to implement. It is called periodically by the game engine.
+Parameter dt (Delta Time): This is the time in seconds that has passed in game time since the last call. It is already scaled by the game's speed slider. You can use it to manage timers in this.memory. For example: this.memory.actionCooldown -= dt;
+Return Value:
+To perform an action, return an object: { from: sourcePlanet, to: targetPlanet, troops: troopsToSend }.
+To do nothing, return null.
+
+8. Strategic Considerations
+A successful bot needs a clear, prioritized logic loop. On every turn, it should evaluate its options and act.
+State Management: Use this.memory to track long-term goals, ongoing missions, or threats. This allows your bot to execute multi-step plans.
+Phased Strategy: The game's nature changes over time. An aggressive expansion strategy might be best in the EARLY game, while a more defensive or targeted approach might be better in the LATE game. Use this.api.getGamePhase() to adapt.
+Threat vs. Opportunity: Should you defend a planet under attack or seize a vulnerable enemy planet? Your bot must weigh these choices. The predictPlanetState and calculateThreat API calls are essential here.
+Efficiency: Don't just attack; attack smart. Use predictPlanetState to send just enough troops to win, preserving your forces for other fronts. Target high-value planets (calculatePlanetValue) to maximize your return on investment.
+
+9. Your Starting Template
+Use this template as the starting point for your [YourModelName].js file:
+
+// =============================================
+// root/javascript/bots/[YourModelName].js
+// =============================================
+
+import BaseBot from './BaseBot.js';
+
+/**
+ * [A brief, one-sentence description of your bot's core strategy.]
+ * 
+ * [A more detailed explanation of your bot's strategic pillars,
+ *  e.g., "1. Defensive Priority, 2. Value-based Expansion, etc."]
+ */
+export default class [YourModelName] extends BaseBot {
+    constructor(game, playerId) {
+        super(game, playerId);
+        // You can add custom properties to this.memory here.
+        this.log("Bot initialized.");
+    }
+
+    /**
+     * This method is called by the game engine every turn.
+     * @param {number} dt - The time elapsed since the last decision, in game seconds.
+     * @returns {object|null} A decision object { from, to, troops } or null to do nothing.
+     */
+    makeDecision(dt) {
+        // Get the current state of the game
+        const myPlanets = this.api.getMyPlanets();
+
+        // If we have no planets, we can't do anything.
+        if (myPlanets.length === 0) {
+            return null;
+        }
+
+        // --- Your strategic logic goes here ---
+
+        // Example: Find the strongest planet we own.
+        const strongestPlanet = myPlanets.sort((a, b) => b.troops - a.troops)[0];
+
+        // Example: Find a random target that isn't ours.
+        const allPlanets = this.api.getAllPlanets();
+        const potentialTargets = allPlanets.filter(p => p.owner !== this.playerId);
+        
+        if (potentialTargets.length === 0) {
+            return null; // No one left to attack.
+        }
+
+        const targetPlanet = potentialTargets[Math.floor(Math.random() * potentialTargets.length)];
+
+        // Example: Send 50% of troops from our strongest planet if it has more than 10.
+        if (strongestPlanet.troops > 10) {
+            const troopsToSend = Math.floor(strongestPlanet.troops / 2);
+            this.log(`Sending ${troopsToSend} from ${strongestPlanet.id} to ${targetPlanet.id}`);
+            return {
+                from: strongestPlanet,
+                to: targetPlanet,
+                troops: troopsToSend
+            };
+        }
+
+        // If no action is taken, return null.
+        return null;
+    }
+}

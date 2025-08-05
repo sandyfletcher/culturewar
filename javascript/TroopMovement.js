@@ -50,11 +50,11 @@ export default class TroopMovement {
         if (this.amount < config.ui.visuals.troopIcon.tier1MaxTroops) { categoryMin = 1; categoryMax = config.ui.visuals.troopIcon.tier1MaxTroops - 1; } 
         else if (this.amount < config.ui.visuals.troopIcon.tier2MaxTroops) { categoryMin = config.ui.visuals.troopIcon.tier1MaxTroops; categoryMax = config.ui.visuals.troopIcon.tier2MaxTroops - 1; } 
         else { categoryMin = config.ui.visuals.troopIcon.tier2MaxTroops; categoryMax = config.planet.maxTroops; }
-        const categoryPosition = (this.amount - categoryMin) / (categoryMax - categoryMin); // normalized position within the category (0 to 1)
+        const categoryPosition = (this.amount - categoryMin) / (categoryMax - categoryMin); // normalized position within category (0 to 1)
         const minSize = config.ui.visuals.troopIcon.minFontSize;
         const maxSize = config.ui.visuals.troopIcon.maxFontSize;
         const fontSize = minSize + categoryPosition * (maxSize - minSize);
-        ctx.font = `bold ${fontSize}px Arial`; // draw the music note symbol
+        ctx.font = `bold ${fontSize}px Arial`; // draw music note symbol
         ctx.fillStyle = playerColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
