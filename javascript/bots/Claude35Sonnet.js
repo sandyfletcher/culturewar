@@ -1,10 +1,10 @@
 // ===========================================
-// root/javascript/bots/Claude35a.js
+// root/javascript/bots/Claude35Sonnet.js
 // ===========================================
 
 import BaseBot from './BaseBot.js';
 
-export default class Claude35 extends BaseBot {
+export default class Claude35Sonnet extends BaseBot {
     constructor(game, playerId) {
         super(game, playerId); // call the parent constructor
         this.config = {

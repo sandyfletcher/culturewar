@@ -5,9 +5,16 @@ root/javascript/bots/BaseBot.js: Your bot must extend this class. It provides th
 root/javascript/GameAPI.js: Your "senses." This is a rich API with powerful helper functions you can use to build sophisticated logic.
 root/javascript/config.js: Contains the physical laws of the game (troop speed, planet production rates, etc.), critical for accurate calculations.
 root/javascript/Planet.js & root/javascript/TroopMovement.js: The structure of the game objects returned by the API.
+makeDecision(dt): This method is called periodically, giving your bot a chance to act. It receives dt, which is the delta time in seconds since the last decision. Crucially, this value is already scaled by the game's speed slider, so you can treat it as real "game time" passing.
+While you could ignore dt, using it allows for far more sophisticated, time-aware strategies. Your bot's memory (this.memory) persists between calls, so you can use dt to manage your own internal timers.  
+Possible strategic uses for dt include:
+Action Cooldowns — Prevent your bot from spamming the same action.
+State Timers & Phased Strategy — Control how long your bot stays in a particular strategic mode.
+Dynamic Behavior — Change behavior based on how long it's been since a particular event.
+By using dt to manage your bot's internal state over time, you can create an AI that doesn't just react to the current board state, but executes long-term, multi-step strategies.
 Key Strategic Challenges to Consider:
 Players make decisions one at a time, and are given a quarter-second to send their makeDecision.  This means you'll make moves every 1.25 seconds at the absolute most, and every 0.25 seconds if you're one of the final two contenders of a battle.
 A successful bot doesn't act randomly, it follows a prioritized logic loop on every turn. To perform well against a variety of unknown opponents, your bot should be robust, adaptive, and its strategic decisions should be well-reasoned.
 You have complete creative freedom to determine the bot's core strategy, but consider using state management to develop long-term plans to vary your behaviour in different game phases, evaluate target priority and threat assessment, weigh risk against reward, and adapt based on whether you're winning or losing.
 Your Task:
-Based on your chosen strategy and the provided SDK, please write the complete code for the new bot. The code must extend BaseBot and be fully self-contained in a single file named [YourModelName].js . Please add comments to your code explaining the high-level strategic choices you've made.
+Based on your chosen strategy and the provided SDK, please write the complete code for the new bot. The code must extend BaseBot, must only import BaseBot, and must be fully self-contained in a single file named [YourModelName].js . Please add comments to your code explaining the high-level strategic choices you've made.
