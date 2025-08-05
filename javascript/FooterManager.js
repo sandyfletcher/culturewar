@@ -60,7 +60,6 @@ export default class FooterManager {
         if (this.mode === 'speed') return; 
         this.mode = 'speed';
         this.value = config.ui.footerSlider.defaultValue; // reset slider's value to default (50) to ensure speed starts at 1.0x
-        console.log("All human players eliminated. Switching footer to game speed control.");
         this.updateSliderUI(this.value); // update UI with newly reset value
     }
     revertToDefault() {

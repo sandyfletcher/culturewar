@@ -40,9 +40,6 @@ export default class TroopTracker {
         barElement.appendChild(this.barSegmentsContainer);
         this.troopBarContainer.innerHTML = '';
         this.troopBarContainer.appendChild(barElement);
-        if (this.game.timerManager) { // ensure timerManager doesn't hold reference to non-existent element
-            this.game.timerManager.timerElement = null;
-        }
     }
     hideTroopBar() {
         this.headerElement.style.display = 'block';

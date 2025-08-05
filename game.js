@@ -28,8 +28,6 @@ export default class Game {
         this.troopMovements = [];
         this.selectedPlanets = [];
         this.mousePos = { x: 0, y: 0 };
-        this.Planet = Planet;
-        this.TroopMovement = TroopMovement;
         this.timerManager = new TimerManager(this);
         this.isActive = false;
         this.gameOver = false;

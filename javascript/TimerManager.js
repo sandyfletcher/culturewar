@@ -10,15 +10,10 @@ export default class TimerManager {
         this.timeRemaining = config.game.defaultDuration;
         this.isPaused = false;
         this.lastUpdate = Date.now();
-        this.timerElement = null;
         this.shouldPauseOnHidden = true;
     }
     initialize() {
-        this.timerElement = document.getElementById('game-timer');
         this.setupVisibilityHandler();
-        if (this.timerElement) {
-            this.updateDisplay();
-        }
     }
     setupVisibilityHandler() {
         document.addEventListener('visibilitychange', () => {
@@ -38,20 +33,12 @@ export default class TimerManager {
         if (this.game.isActive) { // only update time if game is active
             this.timeRemaining = Math.max(0, this.timeRemaining - (dt * speedMultiplier));
         }
-        this.updateDisplay();
         return this.timeRemaining;
-    }
-    updateDisplay() {
-        if (!this.timerElement) return;
-        const minutes = Math.floor(this.timeRemaining / 60);
-        const seconds = Math.floor(this.timeRemaining % 60);
-        this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
     reset(time = config.game.defaultDuration) {
         this.timeRemaining = time;
         this.isPaused = false;
         this.lastUpdate = Date.now();
-        this.updateDisplay();
     }
     pause() {
         this.isPaused = true;
