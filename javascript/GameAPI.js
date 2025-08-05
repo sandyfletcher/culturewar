@@ -72,6 +72,14 @@ export default class GameAPI {
         return this.game.gameState.elapsedGameTime;
     }
     /**
+     * Gets the global minimum time in seconds between any two AI actions.
+     * A bot can use this to schedule its own internal cooldowns effectively.
+     * @returns {number}
+     */
+    getDecisionCooldown() {
+        return config.ai.globalDecisionCooldown;
+    }
+    /**
      * Gets the total configured duration of the game in seconds.
      * @returns {number}
      */

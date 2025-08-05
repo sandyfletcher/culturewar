@@ -70,6 +70,7 @@ class GameAPI {
     getOpponentIds() {} // @returns {string[]}
     getElapsedTime() {} // @returns {number} The elapsed time in seconds since the game started.
     getGameDuration() {} // @returns {number} The total configured duration of the game in seconds.
+    getDecisionCooldown() {} // @returns {number} The global minimum time in seconds between any two AI actions.
     getMaxPlanetTroops() {} // @returns {number} The maximum number of troops a planet can hold.
     getDistance(planet1, planet2) {} // @returns {number} The Euclidean distance between two planets.
     getTravelTime(planet1, planet2) {} // @returns {number} The travel time in seconds for a fleet.
