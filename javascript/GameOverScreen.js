@@ -2,12 +2,13 @@
 // root/javascript/GameOverScreen.js
 // ===========================================
 
-import { GameConfigManager } from './GameConfigManager.js';
+import GameConfigManager from './GameConfigManager.js';
 
 export default class GameOverScreen {
     constructor(parentContainer) {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
         this.gameOverScreen = null;
+        this.configManager = window.menuManager.configManager;
     }
     show(stats, gameInstance, onPlayAgainCallback) {
         this.remove();

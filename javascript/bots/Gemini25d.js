@@ -15,7 +15,7 @@ export default class Gemini25d extends BaseBot {
             consolidationReserve: 0.25,
             attackOverwhelmFactor: 1.15,
         };
-        // MODIFIED: All dynamic state now lives in the 'memory' object.
+        // All dynamic state now lives in the 'memory' object.
         this.memory = {
             currentState: 'EXPANDING',
             grudgeMap: new Map(),
@@ -25,7 +25,7 @@ export default class Gemini25d extends BaseBot {
     makeDecision(dt) {
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) return null;
-        // MODIFIED: Use the new time-based cooldown for state checks.
+        // Use the time-based cooldown for state checks.
         // This is more robust than decrementing with 'dt'.
         if (this.api.getElapsedTime() >= this.memory.nextStateCheckTime) {
             this.updateGrudgeMap();
@@ -54,11 +54,10 @@ export default class Gemini25d extends BaseBot {
     }
     updateCurrentState() {
         const myPower = this.api.getMyTotalTroops();
-        // MODIFIED: Only consider active opponents for a more accurate power assessment.
+        // Only consider active opponents for a more accurate power assessment.
         const opponents = this.api.getOpponentIds().filter(id => this.api.isPlayerActive(id));
         const strongestOpponentPower = opponents.reduce((max, id) => Math.max(max, this.api.getPlayerTotalTroops(id)), 0);
         const neutralPlanetsCount = this.api.getNeutralPlanets().length;
-        const previousState = this.memory.currentState;
         if (myPower < strongestOpponentPower * 0.8) {
             this.memory.currentState = 'CONSOLIDATING';
         } else if (neutralPlanetsCount > 2) {
@@ -67,10 +66,6 @@ export default class Gemini25d extends BaseBot {
             this.memory.currentState = 'ATTACKING';
         } else {
             this.memory.currentState = 'CONSOLIDATING';
-        }
-        if (this.memory.currentState !== previousState) {
-            // Optional: log state changes for debugging.
-            // console.log(`${this.playerId} switching from ${previousState} to ${this.memory.currentState}`);
         }
     }
     updateGrudgeMap() {
@@ -88,9 +83,9 @@ export default class Gemini25d extends BaseBot {
         for (const myPlanet of myPlanets) {
             const incomingAttackers = this.api.getIncomingAttacks(myPlanet).reduce((sum, m) => sum + m.amount, 0);
             if (incomingAttackers === 0) continue;
-            // NEW LOGIC: Use the new API to account for our own incoming reinforcements!
+            // Use the API to account for our own incoming reinforcements!
             const incomingReinforcements = this.api.getIncomingReinforcements(myPlanet).reduce((sum, m) => sum + m.amount, 0);
-            // Calculate the net threat. This is much smarter than the old logic.
+            // Calculate the net threat.
             const netThreat = incomingAttackers - (myPlanet.troops + incomingReinforcements);
             // If the net threat is positive, we need help.
             if (netThreat > 0) {
@@ -154,7 +149,7 @@ export default class Gemini25d extends BaseBot {
             const grudge = this.memory.grudgeMap.get(p.owner) || 1.0;
             return {
                 planet: p,
-                // MODIFIED: Use estimateTroopsAtArrival for a more accurate attack calculation.
+                // Use estimateTroopsAtArrival for an accurate attack calculation.
                 score: (this.api.calculatePlanetValue(p) * (1 + grudge / 100)) / (this.api.estimateTroopsAtArrival(myPlanets[0], p) + 10)
             };
         }).sort((a, b) => b.score - a.score);

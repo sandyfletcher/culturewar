@@ -17,6 +17,7 @@ export default class TroopTracker {
         this.headerContainer.appendChild(this.troopBarContainer);
         this.playerColors = this.game.playersController.playerColors;
         this.lastTotalTroops = 0;
+        this.configManager = game.configManager;
     }
     cleanupExistingBars() {
         const existingBars = document.querySelectorAll('#troop-bar-container');

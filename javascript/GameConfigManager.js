@@ -21,27 +21,23 @@ export default class GameConfigManager {
         this.playerColors = config.player.colors;
         this.setPlayerCount(config.menuDefaults.playerCount);
     }
-
     setBatchSize(size) {
         const batchSize = parseInt(size, 10);
         if (!isNaN(batchSize) && batchSize >= 1 && batchSize <= 100) {
             this.gameConfig.batchSize = batchSize;
         }
     }
-    
-    // NEW setter for game pace
+    // setter for game pace
     setInitialGamePace(pace) {
         const gamePace = parseFloat(pace);
         if (!isNaN(gamePace) && gamePace >= 0.1 && gamePace <= 4.0) {
             this.gameConfig.initialGamePace = gamePace;
         }
     }
-
-    // NEW setter for headless mode
+    // setter for headless mode
     setHeadlessMode(isHeadless) {
         this.gameConfig.isHeadless = !!isHeadless; // Coerce to boolean
     }
-
     setPlayerCount(count) {
         const newPlayers = [];
         const availableBots = this.aiOptions.map(opt => opt.value);

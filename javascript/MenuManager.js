@@ -80,7 +80,6 @@ export default class MenuManager {
         this.gamesRemaining = this.currentBatchConfig.batchSize;
         this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
         if (this.isBatchRunning) {
-            console.log(`Starting batch of ${this.gamesRemaining} games. Headless: ${this.currentBatchConfig.isHeadless}`);
             if (this.currentBatchConfig.isHeadless) {
                 this.showBatchOverlay();
             }
@@ -90,14 +89,13 @@ export default class MenuManager {
             const hasHumanPlayer = config.players.some(p => p.type === 'human');
             const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
             this.footerManager.showSlider(initialSliderMode);
-            this.game = new Game(config, this.footerManager);
+            this.game = new Game(config, this.footerManager, this.configManager);
             this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
         }
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
             this.isBatchRunning = false;
-            console.log("Batch complete. Returning to standings screen.");
             if (this.batchOverlay) this.hideBatchOverlay();
             
             this.menuBuilder.buildStandingsScreen(); // Go to standings after a batch
@@ -106,14 +104,13 @@ export default class MenuManager {
         }
     
         const gameNumber = this.currentBatchConfig.batchSize - this.gamesRemaining + 1;
-        console.log(`--- Starting Game ${gameNumber} of ${this.currentBatchConfig.batchSize} ---`);
         this.updateBatchOverlay(gameNumber);
         this.gamesRemaining--;
         if (!this.currentBatchConfig.isHeadless) {
              this.switchToScreen('game');
         }
         this.footerManager.showSlider('botbattle');
-        this.game = new Game(this.currentBatchConfig, this.footerManager);
+        this.game = new Game(this.currentBatchConfig, this.footerManager, this.configManager);
         this.game.timerManager.shouldPauseOnHidden = false;
     }
     showBatchOverlay() { // methods to manage headless mode UI overlay

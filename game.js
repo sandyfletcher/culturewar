@@ -13,7 +13,7 @@ import TroopTracker from './javascript/TroopTracker.js';
 import TimerManager from './javascript/TimerManager.js';
 
 export default class Game {
-    constructor(gameConfig, footerManager = null) {
+    constructor(gameConfig, footerManager = null, configManager = null) {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d'); 
         this.resize();
@@ -24,6 +24,7 @@ export default class Game {
         });
         this.config = gameConfig;
         this.footerManager = footerManager;
+        this.configManager = configManager;
         this.planets = [];
         this.troopMovements = [];
         this.selectedPlanets = [];
@@ -158,10 +159,8 @@ export default class Game {
         }
     }
     runHeadless() { // headless game loop that runs without rendering
-        console.log("Starting game in Headless Mode.");
         const headlessLoop = () => {
             if (this.gameOver) {
-                console.log("Headless game finished.");
                 return;
             }
             this.update();
