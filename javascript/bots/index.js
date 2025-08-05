@@ -18,8 +18,8 @@ import Gemini25e from './Gemini25e.js';
 import CGPT4o from './CGPT4o.js';
 
 const botRegistry = [
-    { value: 'C-3.5A', name: 'Claude 3.5 A', class: Claude35a, creationDate: 'Jan 2025', description: 'An unpredictable bot that randomly decides whether to attack or reinforce. It sends fleets from random planets to the nearest available target, making it a chaotic and sometimes surprisingly effective foe.' },
-    { value: 'C-3.5B', name: 'Claude 3.5 B', class: Claude35b, creationDate: 'Jan 2025', description: 'Slow and methodical. It patiently builds up its strongest planet before launching a decisive attack. It prefers to expand into neutral territory and will only attack enemies it knows it can overwhelm.' },
+    { value: 'C-3.5A', name: 'Claude 3.5 A', class: Claude35a, creationDate: 'Oct 2024', description: 'An unpredictable bot that randomly decides whether to attack or reinforce. It sends fleets from random planets to the nearest available target, making it a chaotic and sometimes surprisingly effective foe.' },
+    { value: 'C-3.5B', name: 'Claude 3.5 B', class: Claude35b, creationDate: 'Oct 2024', description: 'Slow and methodical. It patiently builds up its strongest planet before launching a decisive attack. It prefers to expand into neutral territory and will only attack enemies it knows it can overwhelm.' },
 
     { value: 'C-3.7-S', name: 'Claude 3.7 Sonnet', class: Claude37Sonnet, creationDate: 'Feb 2025', description: 'A reactive strategist. It constantly analyzes the board for threats and opportunities, switching its focus instantly. It will defend its planets, expand to safe neutrals, or attack vulnerable enemies based on a strict set of priorities.' },
     { value: 'C-4-S', name: 'Claude 4 Sonnet', class: Claude4Sonnet, creationDate: 'May 2025', description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." },

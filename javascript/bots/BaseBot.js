@@ -12,7 +12,12 @@ export default class BaseBot {
         this.game = game;
         this.playerId = playerId;
         this.api = new GameAPI(game, playerId);
-        this.memory = {}; // this object will persist between calls to makeDecision().
+        this.memory = { // This object will persist between calls to makeDecision().
+            phase: 'GAME_START', // To differentiate strategies according to time remaining in-game.
+            missions: new Map(), // To track ongoing missions, e.g., { targetPlanetId: 'attack', troopsCommitted: 50 }
+            threats: {},         // e.g., { planetId: { totalThreat: 100, eta: 5.2 } }
+            lastActionTime: 0,
+        };
     }
     /**
      * This method contains the bot's core strategic logic. It is called by the PlayersController when it is this bot's turn to act.
@@ -21,5 +26,13 @@ export default class BaseBot {
      */
     makeDecision(dt) { 
         throw new Error("The 'makeDecision' method must be implemented by the subclass.");
+    }
+    /**
+     * A helper for logging. Automatically prepends the bot's ID and game time.
+     * @param {string} message - The message to log.
+     */
+    log(message) {
+        const time = this.api.getElapsedTime().toFixed(2);
+        console.log(`[${this.playerId}@${time}s]: ${message}`);
     }
 }

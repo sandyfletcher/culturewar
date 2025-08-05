@@ -6,6 +6,7 @@ import { config } from './config.js';
 
 export default class Planet {
     constructor(x, y, size, troops = 0, owner = 'neutral', game) {
+         this.id = null;
         this.x = x;
         this.y = y;
         this.size = size;

@@ -22,13 +22,26 @@ export default class PlanetGeneration {
             PLANET_DENSITY: config.planetGeneration.density.default,
         };
     }
+    
+    /**
+     * Main planet generation function.
+     * It orchestrates the creation of player and neutral planets, then assigns
+     * a unique, stable ID to every planet in the game.
+     * @returns {Planet[]} An array of all generated planets.
+     */
     generatePlanets() {
         const planets = [];
         const allPlayers = this.game.playersController.players;
+        // Step 1: Generate all player and neutral planets without IDs first.
         const playerPlanets = this.generatePlayerPlanets(allPlayers);
         planets.push(...playerPlanets);
         const neutralPlanets = this.generateNeutralPlanets(planets);
         planets.push(...neutralPlanets);
+        // Step 2: Iterate through the final list and assign a unique ID to each planet.
+        // This ensures every planet has a stable identifier for the entire game.
+        for (let i = 0; i < planets.length; i++) {
+            planets[i].id = `p-${i}`;
+        }
         return planets;
     }
     generatePlayerPlanets(players) {
