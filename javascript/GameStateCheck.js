@@ -2,6 +2,8 @@
 // root/javascript/GameStateCheck.js
 // ===========================================
 
+import eventManager from './EventManager.js';
+
 export default class GameState {
     constructor(game) {
         this.game = game;
@@ -80,19 +82,51 @@ export default class GameState {
         }
         return false;
     }
+
     endGame(winnerId, victoryType) {
         if (this.gameOver) return;
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-        const allPlayersData = this.game.playersController.players; // this runs every game, single or batch
-        const playerStats = this.game.playersController.getPlayerStats()
-            .filter(p => p.id !== 'neutral');
-        playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
-        const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
+
+        this.logGameStats(winnerId);
+
+        const isBatchGame = this.game.config.isBatchGame || false;
+        if (!isBatchGame) {
+            const humanWon = this.game.humanPlayerIds.includes(this.winner);
+            const stats = {
+                winner: this.winner,
+                time: this.elapsedGameTime,
+                planetsConquered: this.planetsConquered,
+                troopsSent: this.troopsSent,
+                troopsLost: this.troopsLost,
+                eliminationTimes: this.eliminationTimes,
+                playerWon: humanWon,
+                hasHumanPlayer: this.game.humanPlayerIds.length > 0
+            };
+            const onPlayAgain = () => {
+                eventManager.emit('navigate-to', 'game-setup');
+            };
+            const onBackToMenu = () => {
+                eventManager.emit('navigate-to', 'main-menu');
+            };
+            eventManager.emit('show-game-over', { stats, onPlayAgain, onBackToMenu });
+        }
+
+        eventManager.emit('game-ended');
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    logGameStats(winnerId) {
+        const allPlayersData = this.game.playersController.players;
+        const playerStats = this.game.playersController.getPlayerStats().filter(p => p.id !== 'neutral');
+        playerStats.sort((a, b) => b.planets - a.planets || b.troops - a.troops);
+        const gameId = `${this.game.config.userId || 'unknown'}-${Date.now()}`;
+
         const gameStatsLog = `[GAME_STATS],${gameId},${this.elapsedGameTime.toFixed(2)},${Math.round(this.troopsSent || 0)},${Math.round(this.planetsConquered || 0)},${Math.round(this.troopsLost || 0)}`;
         console.log(gameStatsLog);
+
         playerStats.forEach((player, index) => {
             const rank = index + 1;
             const cultureScore = ((allPlayersData.length + 1) / 2) - rank;
@@ -102,35 +136,5 @@ export default class GameState {
             const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${Math.floor(player.troops)},${survivalTime.toFixed(2)},${cultureScore.toFixed(4)}`;
             console.log(playerStatsLog);
         });
-        if (window.menuManager.isBatchRunning) { // decide what to do next based on batch mode
-            window.menuManager.startNextBatchGame();
-            return; // exit to prevent showing game over screen
-        }
-        // single-game screen display logic
-        const humanWon = this.game.humanPlayerIds.includes(this.winner);
-        const stats = {
-            winner: this.winner,
-            time: this.elapsedGameTime,
-            planetsConquered: this.planetsConquered,
-            troopsSent: this.troopsSent,
-            troopsLost: this.troopsLost,
-            eliminationTimes: this.eliminationTimes,
-            playerWon: humanWon,
-            hasHumanPlayer: this.game.humanPlayerIds.length > 0
-        };
-        if (window.menuManager) {
-            const onPlayAgain = () => {
-                window.menuManager.menuBuilder.buildGameSetup();
-                window.menuManager.switchToScreen('menu');
-            };
-            const onBackToMenu = () => {
-                window.menuManager.menuBuilder.buildMainMenu();
-                window.menuManager.switchToScreen('menu');
-            };
-            window.menuManager.showGameOver(stats, this.game, onPlayAgain, onBackToMenu);
-        } else {
-            console.error("MenuManager not found.");
-        }
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 }

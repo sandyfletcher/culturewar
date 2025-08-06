@@ -6,8 +6,8 @@ import MenuBuilderBase from '../MenuBuilderBase.js';
 import botRegistry from '../bots/index.js';
 
 export default class CombatantsBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, screenManager, configManager) {
-        super(container, screenManager, configManager);
+    constructor(parentBuilder, container, configManager) {
+        super(container, configManager);
         this.parentBuilder = parentBuilder;
     }
     build() {

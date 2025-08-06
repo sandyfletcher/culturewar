@@ -3,11 +3,13 @@
 // ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
+import { formatTime } from '../utils.js';
 
 export default class StandingsBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, screenManager, configManager) {
-        super(container, screenManager, configManager);
+    constructor(parentBuilder, container, configManager, statsTracker) {
+        super(container, configManager);
         this.parentBuilder = parentBuilder;
+        this.statsTracker = statsTracker;
     }
     getArchetype(player) { // determines a bot's "personality" from its stats
         const scorePerGame = player.totalCultureScore / player.gamesPlayed;
@@ -26,7 +28,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
         const menuContainer = this.createMenuContainer();
         const content = document.createElement('div');
         content.className = 'instructions-content';
-        const standingsData = window.menuManager.statsTracker.getAggregatedStats();
+        const standingsData = this.statsTracker.getAggregatedStats();
         let leaderboardHTML;
         let hasData = standingsData.length > 0;
         if (!hasData) {
@@ -43,7 +45,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
                 const rank = index + 1;
                 const winRate = player.winRate.toFixed(1);
                 const scoreText = player.totalCultureScore > 0 ? `+${player.totalCultureScore.toFixed(1)}` : player.totalCultureScore.toFixed(1);
-                const avgSurvival = window.menuManager.formatTime(player.avgSurvival);
+                const avgSurvival = formatTime(player.avgSurvival);
                 const archetype = this.getArchetype(player); // Get the bot's title
                 tableBody += `
                     <tr>
@@ -86,10 +88,13 @@ export default class StandingsBuilder extends MenuBuilderBase {
             clearButton.className = 'menu-button';
             clearButton.textContent = 'Clear All Stats';
             clearButton.addEventListener('click', () => {
-                if (window.confirm('Are you sure you want to permanently delete all game stats?')) {
-                    window.menuManager.statsTracker.clearStats();
-                    this.build();
-                }
+                eventManager.emit('confirm-action', {
+                    message: 'Are you sure you want to permanently delete all game stats?',
+                    onConfirm: () => {
+                        this.statsTracker.clearStats();
+                        this.build();
+                    }
+                });
             });
             menuContainer.appendChild(clearButton);
         }
