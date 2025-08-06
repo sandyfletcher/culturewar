@@ -6,9 +6,10 @@ import MenuBuilderBase from '../MenuBuilderBase.js';
 import { config } from '../config.js';
 
 export default class GameSetupBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, screenManager, configManager) {
-        super(container, screenManager, configManager);
+    constructor(parentBuilder, container, configManager, startGameCallback) {
+        super(container, configManager);
         this.parentBuilder = parentBuilder;
+        this.startGameCallback = startGameCallback;
     }
     build() {
         const menuContainer = this.createMenuContainer();
@@ -134,7 +135,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         startButton.className = 'menu-button start-game';
         startButton.textContent = 'BATTLE >';
         startButton.addEventListener('click', () => {
-            window.menuManager.startGame();
+            this.startGameCallback();
         });
         buttonContainer.appendChild(toggleButton);
         buttonContainer.appendChild(startButton);

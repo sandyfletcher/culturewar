@@ -5,8 +5,8 @@
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
 export default class InstructionsBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, screenManager, configManager) {
-        super(container, screenManager, configManager);
+    constructor(parentBuilder, container, configManager) {
+        super(container, configManager);
         this.parentBuilder = parentBuilder;
     }
     build() {

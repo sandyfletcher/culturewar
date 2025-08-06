@@ -2,6 +2,7 @@
 // root/game.js
 // ===========================================
 
+import eventManager from './javascript/EventManager.js';
 import Planet from './javascript/Planet.js';
 import TroopMovement from './javascript/TroopMovement.js';
 import InputHandler from './javascript/InputHandlerModule.js';
@@ -13,9 +14,10 @@ import TroopTracker from './javascript/TroopTracker.js';
 import TimerManager from './javascript/TimerManager.js';
 
 export default class Game {
-    constructor(gameConfig, footerManager = null, configManager = null) {
-        this.canvas = document.getElementById('game-canvas');
-        this.ctx = this.canvas.getContext('2d'); 
+    constructor(gameConfig, footerManager = null, configManager = null, innerContainer, canvas) {
+        this.canvas = canvas;
+        this.ctx = this.canvas.getContext('2d');
+        this.innerContainer = innerContainer;
         this.resize();
         let resizeTimeout;
         window.addEventListener('resize', () => {
@@ -34,8 +36,8 @@ export default class Game {
         this.gameOver = false;
         this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from config
         this.playersController = new PlayersController(this, this.config);
-        this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this, this.footerManager, this.humanPlayerIds) : null; // InputHandler is created only if there are human players
-        this.renderer = new Renderer(this);
+        this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds) : null; // InputHandler is created only if there are human players
+        this.renderer = new Renderer(this.ctx, this.canvas);
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
         this.planetGenerator = new PlanetGeneration(this);
@@ -53,6 +55,105 @@ export default class Game {
         } else {
             this.gameLoop();
         }
+
+        eventManager.on('screen-changed', (screenName) => {
+            if (screenName === 'game') {
+                this.troopTracker.showTroopBar();
+            } else if (screenName === 'menu') {
+                this.troopTracker.hideTroopBar();
+            }
+        });
+
+        // Properties for double-click detection
+        this.lastClickedPlanet = null;
+        this.lastClickTime = 0;
+        this.doubleClickTimeThreshold = this.config.doubleClickTimeThreshold || 300; // ms
+
+        // Event listeners for input
+        eventManager.on('mouse-moved', (pos) => {
+            if (this.gameOver) return;
+            this.mousePos = pos;
+        });
+        eventManager.on('click', (pos) => {
+            if (this.gameOver) return;
+            this.handleClick(pos);
+        });
+        eventManager.on('selection-box', (box) => {
+            if (this.gameOver) return;
+            this.handleSelectionBox(box);
+        });
+    }
+
+    handleClick({ x, y }) {
+        const clickedPlanet = this.planets.find(planet => planet.containsPoint(x, y));
+
+        if (!clickedPlanet) {
+            this.clearSelection();
+            return;
+        }
+
+        const isHumanPlanet = this.humanPlayerIds.includes(clickedPlanet.owner);
+        const now = Date.now();
+
+        if (isHumanPlanet &&
+            clickedPlanet === this.lastClickedPlanet &&
+            now - this.lastClickTime < this.doubleClickTimeThreshold) {
+            this.selectAllPlayerPlanets(clickedPlanet.owner);
+            this.lastClickedPlanet = null;
+            this.lastClickTime = 0;
+            return;
+        }
+
+        this.lastClickedPlanet = clickedPlanet;
+        this.lastClickTime = now;
+
+        if (this.selectedPlanets.length > 0 && !this.selectedPlanets.includes(clickedPlanet)) {
+            if (this.selectedPlanets.every(p => this.humanPlayerIds.includes(p.owner))) {
+                const troopPercentage = this.footerManager.getTroopPercentage() / 100;
+                for (const sourcePlanet of this.selectedPlanets) {
+                    const troopsToSend = Math.floor(sourcePlanet.troops * troopPercentage);
+                    if (troopsToSend > 0) {
+                        this.sendTroops(sourcePlanet, clickedPlanet, troopsToSend);
+                    }
+                }
+                this.clearSelection();
+            }
+        } else if (isHumanPlanet) {
+            this.clearSelection();
+            clickedPlanet.selected = true;
+            this.selectedPlanets = [clickedPlanet];
+        }
+    }
+
+    handleSelectionBox(box) {
+        this.clearSelection();
+        const planetsInBox = this.planets.filter(planet =>
+            this.humanPlayerIds.includes(planet.owner) &&
+            planet.x + planet.size >= box.left &&
+            planet.x - planet.size <= box.right &&
+            planet.y + planet.size >= box.top &&
+            planet.y - planet.size <= box.bottom
+        );
+
+        if (planetsInBox.length > 0) {
+            const ownerToSelect = planetsInBox[0].owner;
+            for (const planet of planetsInBox) {
+                if (planet.owner === ownerToSelect) {
+                    planet.selected = true;
+                    this.selectedPlanets.push(planet);
+                }
+            }
+        }
+    }
+
+    selectAllPlayerPlanets(playerId) {
+        this.clearSelection();
+        for (const planet of this.planets) {
+            if (planet.owner === playerId) {
+                planet.selected = true;
+                this.selectedPlanets.push(planet);
+            }
+        }
     }
     resize() {
         // In headless mode, the canvas's direct parent ('#game-screen') is not displayed,
@@ -60,9 +161,8 @@ export default class Game {
         // being generated correctly as the game world has no area.
         // To fix this, we size the canvas based on '#inner-container', which is the
         // main content area and always has the correct dimensions.
-        const gameArea = document.getElementById('inner-container');
-        this.canvas.width = gameArea.clientWidth;
-        this.canvas.height = gameArea.clientHeight;
+        this.canvas.width = this.innerContainer.clientWidth;
+        this.canvas.height = this.innerContainer.clientHeight;
     }
     initializeGame() {
         this.planets = this.planetGenerator.generatePlanets();
@@ -161,7 +261,21 @@ export default class Game {
     }
     gameLoop() {
         this.update();
-        this.renderer.draw();
+
+        const selectionBox = this.inputHandler ? this.inputHandler.getSelectionBox() : null;
+        const renderables = {
+            planets: this.planets,
+            troopMovements: this.troopMovements,
+            selectedPlanets: this.selectedPlanets,
+            mousePos: this.mousePos,
+            selectionBox: selectionBox,
+            uiData: {
+                totalTroops: this.troopTracker.lastTotalTroops,
+                timeRemaining: this.timerManager.getTimeRemaining()
+            }
+        };
+        this.renderer.draw(renderables);
+
         if (!this.gameOver) {
             requestAnimationFrame(() => this.gameLoop());
         }
