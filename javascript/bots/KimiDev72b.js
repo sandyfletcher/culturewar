@@ -1,3 +1,7 @@
+// =============================================
+// root/javascript/bots/KimiDev72b.js
+// =============================================
+
 import BaseBot from './BaseBot.js';
 
 export default class KimiDev72b extends BaseBot {
