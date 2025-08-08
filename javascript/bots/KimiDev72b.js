@@ -5,8 +5,8 @@
 import BaseBot from './BaseBot.js';
 
 export default class KimiDev72b extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
     }
 
     makeDecision(dt) {

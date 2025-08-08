@@ -6,8 +6,8 @@ import MenuBuilderBase from '../MenuBuilderBase.js';
 import { config } from '../config.js';
 
 export default class GameSetupBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, configManager, startGameCallback) {
-        super(container, configManager);
+    constructor(parentBuilder, container, screenManager, configManager, menuManager, startGameCallback) {
+        super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
         this.startGameCallback = startGameCallback;
     }
@@ -30,7 +30,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
 
         menuContainer.appendChild(setupForm);
         this.updatePlayerSelectors();
-        window.menuManager.footerManager.showBackButton(() => {
+        this.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
         return menuContainer;

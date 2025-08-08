@@ -3,9 +3,11 @@
 // ===========================================
 
 export default class MenuBuilderBase {
-    constructor(container, configManager) {
+    constructor(container, screenManager, configManager, menuManager) {
         this.container = container;
+        this.screenManager = screenManager;
         this.configManager = configManager;
+        this.menuManager = menuManager;
     }
     createMenuContainer() { // helper to clear and get a fresh menu container
         this.container.innerHTML = ''; // clear existing content

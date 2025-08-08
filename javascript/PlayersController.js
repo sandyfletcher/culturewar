@@ -4,6 +4,7 @@
 
 import botRegistry from './bots/index.js';
 import { config } from './config.js';
+import GameAPI from './GameAPI.js';
 
 export default class PlayersController {
     constructor(game, gameConfig) {
@@ -36,7 +37,8 @@ export default class PlayersController {
         for (const player of aiPlayers) {
             const AIClass = this.availableAITypes.get(player.aiController) || this.availableAITypes.get(this.defaultAIName);
             if (AIClass) {
-                this.aiControllers[player.id] = new AIClass(this.game, player.id);
+                const gameApiForBot = new GameAPI(this.game, player.id);
+                this.aiControllers[player.id] = new AIClass(gameApiForBot, player.id);
             } else {
                 console.error(`AI type "${player.aiController}" not found in registry!`);
             }

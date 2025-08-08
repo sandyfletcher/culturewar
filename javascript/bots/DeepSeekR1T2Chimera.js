@@ -15,8 +15,8 @@ import BaseBot from './BaseBot.js';
  * 4. Economic Efficiency - Maintains troop production while minimizing waste
  */
 export default class ChimeraDominator extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
         this.memory.strategicTargets = new Set();  // High-value planets to capture
         this.memory.lastScanTime = 0;              // Time of last strategic scan
         this.memory.criticalPlanets = new Map();   // Planets requiring protection

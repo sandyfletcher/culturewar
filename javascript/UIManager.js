@@ -11,25 +11,20 @@ export default class UIManager {
         this.menuScreen = document.getElementById('menu-screen');
         this.gameScreen = document.getElementById('game-screen');
         this.canvas = document.getElementById('game-canvas');
-
         eventManager.on('show-batch-overlay', () => this.showBatchOverlay());
         eventManager.on('update-batch-overlay', (gameNumber, totalGames) => this.updateBatchOverlay(gameNumber, totalGames));
         eventManager.on('hide-batch-overlay', () => this.hideBatchOverlay());
         eventManager.on('screen-changed', (screenName) => this.switchToScreen(screenName));
     }
-
     getMenuScreenElement() {
         return this.menuScreen;
     }
-
     getInnerContainerElement() {
         return this.innerContainer;
     }
-
     getCanvasElement() {
         return this.canvas;
     }
-
     switchToScreen(screenName) {
         if (screenName === 'menu') {
             this.menuScreen.style.display = 'block';
@@ -39,7 +34,6 @@ export default class UIManager {
             this.gameScreen.style.display = 'block';
         }
     }
-
     showBatchOverlay() {
         if (this.batchOverlay) return;
         this.batchOverlay = document.createElement('div');
@@ -51,7 +45,6 @@ export default class UIManager {
         `;
         this.innerContainer.appendChild(this.batchOverlay);
     }
-
     updateBatchOverlay(gameNumber, totalGames) {
         if (!this.batchOverlay) return;
         const progressText = this.batchOverlay.querySelector('#batch-progress-text');
@@ -59,7 +52,6 @@ export default class UIManager {
             progressText.textContent = `Running Game ${gameNumber} of ${totalGames}`;
         }
     }
-
     hideBatchOverlay() {
         if (this.batchOverlay) {
             this.batchOverlay.remove();

@@ -5,8 +5,8 @@
 import BaseBot from './BaseBot.js';
 
 export default class Claude4Sonnet extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
         // Strategic constants
         this.EARLY_GAME_THRESHOLD = 60; // seconds
         this.MID_GAME_THRESHOLD = 180; // seconds

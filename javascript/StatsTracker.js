@@ -10,46 +10,35 @@ export default class StatsTracker { // singleton class to intercept game stat lo
         this.games = {};
         this.playerRecords = [];
         this.loadFromLocalStorage();
-        this.originalLog = console.log.bind(console); // monkey-patch console.log to intercept structured logs
-        this.overrideConsoleLog();
         StatsTracker.instance = this;
     }
-    overrideConsoleLog() { // replaces global console.log with a function that checks for our specific stat formats before passing log to original function
-        console.log = (...args) => {
-            if (typeof args[0] === 'string') {
-                if (args[0].startsWith('[GAME_STATS]') || args[0].startsWith('[PLAYER_STATS]')) {
-                    this.parseAndStore(args[0]);
-                }
-            }
-            this.originalLog(...args); // call original console.log so we don't lose any debug info
-        };
-    }
-    parseAndStore(logLine) { // parses a structured log string and stores the data
-        const parts = logLine.split(',');
-        const type = parts[0];
-        const gameId = parts[1];
-        if (type === '[GAME_STATS]') {
+    report(data) { // central reporting method for all game statistics
+        if (!data || !data.type || !data.gameId) return;
+
+        const { type, gameId } = data;
+
+        if (type === 'GAME_STATS') {
             this.games[gameId] = {
                 id: gameId,
-                duration: parseFloat(parts[2]),
-                troopsSent: parseInt(parts[3], 10),
-                planetsConquered: parseInt(parts[4], 10),
-                troopsLost: parseInt(parts[5], 10),
+                duration: data.duration,
+                troopsSent: data.troopsSent,
+                planetsConquered: data.planetsConquered,
+                troopsLost: data.troopsLost,
             };
-        } else if (type === '[PLAYER_STATS]') {
+        } else if (type === 'PLAYER_STATS') {
             this.playerRecords.push({
                 gameId: gameId,
-                rank: parseInt(parts[2], 10),
-                nickname: parts[3],
-                planets: parseInt(parts[4], 10),
-                troops: parseInt(parts[5], 10),
-                survivalTime: parseFloat(parts[6]),
-                cultureScore: parts[7] ? parseFloat(parts[7]) : 0
+                rank: data.rank,
+                nickname: data.nickname,
+                planets: data.planets,
+                troops: data.troops,
+                survivalTime: data.survivalTime,
+                cultureScore: data.cultureScore || 0
             });
         }
         this.saveToLocalStorage();
     }
-    loadFromLocalStorage() { // loads all historical stats data from localStorage
+    loadFromLocalStorage() {
         try {
             const storedData = localStorage.getItem('cultureWarStats');
             if (storedData) {
@@ -58,12 +47,12 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                 this.playerRecords = parsedData.playerRecords || [];
             }
         } catch (error) {
-            this.originalLog('Error loading stats from localStorage:', error);
+            console.error('Error loading stats from localStorage:', error);
             this.games = {};
             this.playerRecords = [];
         }
     }
-    saveToLocalStorage() { // saves current stats data to localStorage
+    saveToLocalStorage() {
         try {
             const dataToStore = JSON.stringify({
                 games: this.games,
@@ -71,12 +60,12 @@ export default class StatsTracker { // singleton class to intercept game stat lo
             });
             localStorage.setItem('cultureWarStats', dataToStore);
         } catch (error) {
-            this.originalLog('Error saving stats to localStorage:', error);
+            console.error('Error saving stats to localStorage:', error);
         }
     }
-    getAggregatedStats() { // processes all stored player records to calculate aggregate stats like winrate and average survival time
+    getAggregatedStats() {
         const statsByPlayer = {};
-        for (const record of this.playerRecords) { // aggregate data from all recorded games
+        for (const record of this.playerRecords) {
             if (!statsByPlayer[record.nickname]) {
                 statsByPlayer[record.nickname] = {
                     nickname: record.nickname,
@@ -96,7 +85,7 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                 playerStat.wins++;
             }
         }
-        const aggregatedList = Object.values(statsByPlayer).map(player => { // calculate final percentages and averages
+        const aggregatedList = Object.values(statsByPlayer).map(player => {
             return {
                 ...player,
                 winRate: (player.wins / player.gamesPlayed) * 100,
@@ -104,10 +93,10 @@ export default class StatsTracker { // singleton class to intercept game stat lo
                 avgRank: player.totalRank / player.gamesPlayed,
             };
         });
-        aggregatedList.sort((a, b) => b.totalCultureScore - a.totalCultureScore || b.winRate - a.winRate); // sort by culture score, then win rate
+        aggregatedList.sort((a, b) => b.totalCultureScore - a.totalCultureScore || b.winRate - a.winRate);
         return aggregatedList;
     }
-    clearStats() { // clears stats from memory and localStorage
+    clearStats() {
         this.games = {};
         this.playerRecords = [];
         localStorage.removeItem('cultureWarStats');

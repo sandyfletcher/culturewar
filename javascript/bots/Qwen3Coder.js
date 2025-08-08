@@ -12,8 +12,8 @@ import BaseBot from './BaseBot.js';
  * 4. Production Optimization: Prioritizes capturing planets with good production rates.
  */
 export default class Qwen3Coder extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
         // Custom properties in memory for advanced state management
         this.memory.lastEvaluatedThreats = 0;
         this.memory.playerThreatLevels = {}; // { playerId: number }

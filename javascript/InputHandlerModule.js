@@ -67,7 +67,6 @@ export default class InputHandler {
             eventManager.emit('selection-box', selectionBox);
         }
     }
-
     handleTouchStart(e) {
         e.preventDefault();
         if (e.touches.length === 1) {
@@ -83,7 +82,6 @@ export default class InputHandler {
             this.touchStartTime = Date.now();
         }
     }
-
     handleTouchMove(e) {
         e.preventDefault();
         if (e.touches.length === 1 && this.isSelecting) {
@@ -93,10 +91,9 @@ export default class InputHandler {
             this.mousePos.y = touch.clientY - rect.top;
             this.selectionEnd.x = this.mousePos.x;
             this.selectionEnd.y = this.mousePos.y;
-            this.game.mousePos = this.mousePos;
+            eventManager.emit('mouse-moved', this.mousePos); // Emit event for consistency
         }
     }
-
     handleTouchEnd(e) {
         e.preventDefault();
         this.isSelecting = false;

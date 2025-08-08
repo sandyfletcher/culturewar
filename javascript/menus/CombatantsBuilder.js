@@ -6,8 +6,8 @@ import MenuBuilderBase from '../MenuBuilderBase.js';
 import botRegistry from '../bots/index.js';
 
 export default class CombatantsBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, configManager) {
-        super(container, configManager);
+    constructor(parentBuilder, container, screenManager, configManager, menuManager) {
+        super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
     }
     build() {
@@ -42,7 +42,7 @@ export default class CombatantsBuilder extends MenuBuilderBase {
         });
         content.appendChild(combatantsList);
         menuContainer.appendChild(content);
-        window.menuManager.footerManager.showBackButton(() => {
+        this.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
         return menuContainer;

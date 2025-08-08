@@ -27,16 +27,14 @@ Your bot will extend the BaseBot class. It provides the essential structure for 
 
 // root/javascript/bots/BaseBot.js
 
-import GameAPI from '../GameAPI.js';
 export default class BaseBot {
-    constructor(game, playerId) {
+    constructor(api, playerId) {
         if (this.constructor === BaseBot) {
             throw new Error("BaseBot is an abstract class and cannot be instantiated directly.");
         }
-        this.game = game;
         this.playerId = playerId;
         // Your primary tool for interacting with the game state.
-        this.api = new GameAPI(game, playerId);
+        this.api = api;
         // A persistent object for storing state between decisions.
         this.memory = { 
             actionCooldown: 0, 
@@ -57,30 +55,49 @@ export default class BaseBot {
 }
 
 4. The GameAPI: Your Senses and Intel
-this.api is your window into the game world. It provides a rich set of read-only functions to get data and perform complex calculations. Here is your complete API reference:
+`this.api` is your window into the game world. It provides a rich set of read-only functions to get data and perform complex calculations. Here is your complete API reference:
 
 class GameAPI { 
     // --- GENERAL GAME STATE FUNCTIONS ---
     getAllPlanets() {} // @returns {Planet[]}
     getPlanetById(planetId) {} // @returns {Planet | null}
-    getEnemyPlanets() {} // @returns {Planet[]}
-    getNeutralPlanets() {} // @returns {Planet[]}
-    getAllTroopMovements() {} // @returns {TroopMovement[]}
-    getAllPlayerIds() {} // @returns {string[]}
-    getOpponentIds() {} // @returns {string[]}
-    getElapsedTime() {} // @returns {number} The elapsed time in seconds since the game started.
-    getGameDuration() {} // @returns {number} The total configured duration of the game in seconds.
-    getDecisionCooldown() {} // @returns {number} The global minimum time in seconds between any two AI actions.
-    getMaxPlanetTroops() {} // @returns {number} The maximum number of troops a planet can hold.
-    getDistance(planet1, planet2) {} // @returns {number} The Euclidean distance between two planets.
-    getTravelTime(planet1, planet2) {} // @returns {number} The travel time in seconds for a fleet.
-    findNearestPlanet(sourcePlanet, targetPlanets) {} // @returns {Planet | null} The closest planet from a list.
-    calculatePlanetValue(planet) {} // @returns {number} A strategic score for a planet (higher is better).
-    calculateThreat(myPlanet) {} // @returns {number} A threat score for one of your planets (higher is more threatened).
-    getIncomingAttacks(targetPlanet) {} // @returns {TroopMovement[]} Enemy fleets targeting a planet.
-    getIncomingReinforcements(targetPlanet) {} // @returns {TroopMovement[]} Friendly fleets targeting a planet.
-    calculateCentrality(planet) {} // @returns {number} A score from 0 to 1, where 1 is the map center.
-    getGamePhase() {} // @returns {string} The current game phase: 'EARLY', 'MID', or 'LATE'.
+    /** @returns {Planet[]} All enemy planets (owned by other players, excluding neutral). */
+    getEnemyPlanets() {}
+    /** @returns {Planet[]} All neutral planets. */
+    getNeutralPlanets() {}
+    /** @returns {TroopMovement[]} All active troop movements. */
+    getAllTroopMovements() {}
+    /** @returns {string[]} An array of all player IDs currently in the game. */
+    getAllPlayerIds() {}
+    /** @returns {string[]} An array of all opponent player IDs currently in the game. */
+    getOpponentIds() {}
+    /** @returns {number} The elapsed time in seconds since the game started. */
+    getElapsedTime() {}
+    /** @returns {number} The total configured duration of the game in seconds. */
+    getGameDuration() {}
+    /** @returns {number} The global minimum time in seconds between any two AI actions. */
+    getDecisionCooldown() {}
+    /** @returns {number} The maximum number of troops a planet can hold. */
+    getMaxPlanetTroops() {}
+    /** @returns {number} The Euclidean distance between two planets. */
+    getDistance(planet1, planet2) {}
+    /** @returns {number} The travel time in seconds for a fleet between two planets. */
+    getTravelTime(planet1, planet2) {}
+    /** @returns {Planet | null} The closest planet from a list to a source planet. */
+    findNearestPlanet(sourcePlanet, targetPlanets) {}
+    /** @returns {number} A strategic score for a planet (higher is better). Factors in size, production, and centrality. */
+    calculatePlanetValue(planet) {}
+    /** @returns {number} A threat score for one of your planets (higher is more threatened). Factors in nearby enemy troops and incoming attacks. */
+    calculateThreat(myPlanet) {}
+    /** @returns {TroopMovement[]} Enemy fleets targeting a specific planet. */
+    getIncomingAttacks(targetPlanet) {}
+    /** @returns {TroopMovement[]} Friendly fleets (reinforcements) targeting a specific planet. */
+    getIncomingReinforcements(targetPlanet) {}
+    /** @returns {number} A score from 0 to 1, where 1 is the exact center of the map. */
+    calculateCentrality(planet) {}
+    /** @returns {string} The current game phase: 'EARLY', 'MID', or 'LATE'. */
+    getGamePhase() {}
+
     /**
      * POWERFUL STRATEGIC TOOL: Predicts a planet's owner and troop count at a future time,
      * accounting for production and all incoming fleets.
@@ -89,13 +106,21 @@ class GameAPI {
      * @returns {{owner: string, troops: number}} The predicted state of the planet.
      */
     predictPlanetState(planet, timeInFuture) {}
+
     // --- PLAYER DATA QUERY FUNCTIONS ---
-    getMyPlanets() {} // @returns {Planet[]} All planets you own.
-    getMyTotalTroops() {} // @returns {number} Your total troops (on planets and in transit).
-    getMyTotalProduction() {} // @returns {number} Your total production rate per second.
-    isPlayerActive(playerId) {} // @returns {boolean} True if a player still has planets or troops.
-    getPlayerTotalTroops(playerId) {} // @returns {number} Total troops for any specified player.
-    getPlayerTotalProduction(playerId) {} // @returns {number} Total production for any specified player.
+    /** @returns {Planet[]} All planets you own. */
+    getMyPlanets() {}
+    /** @returns {number} Your total troops (on planets and in transit). */
+    getMyTotalTroops() {}
+    /** @returns {number} Your total production rate per second from all owned planets. */
+    getMyTotalProduction() {}
+    /** @returns {boolean} True if a player still has planets or troops in transit. */
+    isPlayerActive(playerId) {}
+    /** @returns {number} Total troops for any specified player. */
+    getPlayerTotalTroops(playerId) {}
+    /** @returns {number} Total production for any specified player. */
+    getPlayerTotalProduction(playerId) {}
+
     /**
      * Calculates your overall strength (troops + weighted production) relative to the strongest opponent.
      * A value > 1.0 means you are likely stronger.
@@ -149,10 +174,11 @@ To do nothing, return null.
 
 8. Strategic Considerations
 A successful bot needs a clear, prioritized logic loop. On every turn, it should evaluate its options and act.
-State Management: Use this.memory to track long-term goals, ongoing missions, or threats. This allows your bot to execute multi-step plans.
-Phased Strategy: The game's nature changes over time. An aggressive expansion strategy might be best in the EARLY game, while a more defensive or targeted approach might be better in the LATE game. Use this.api.getGamePhase() to adapt.
-Threat vs. Opportunity: Should you defend a planet under attack or seize a vulnerable enemy planet? Your bot must weigh these choices. The predictPlanetState and calculateThreat API calls are essential here.
-Efficiency: Don't just attack; attack smart. Use predictPlanetState to send just enough troops to win, preserving your forces for other fronts. Target high-value planets (calculatePlanetValue) to maximize your return on investment.
+State Management: Use `this.memory` to track long-term goals, ongoing missions, or threats. This allows your bot to execute multi-step plans.
+Phased Strategy: The game's nature changes over time. An aggressive expansion strategy might be best in the EARLY game, while a more defensive or targeted approach might be better in the LATE game. Use `this.api.getGamePhase()` to adapt.
+Threat vs. Opportunity: Should you defend a planet under attack or seize a vulnerable enemy planet? Your bot must weigh these choices. The `predictPlanetState` and `calculateThreat` API calls are essential here.
+Efficiency: Don't just attack; attack smart. Use `predictPlanetState` to send just enough troops to win, preserving your forces for other fronts. Target high-value planets (`calculatePlanetValue`) to maximize your return on investment.
+Performance: The `makeDecision` method is called frequently for every active bot. While JavaScript is fast, avoid extremely heavy, long-running calculations on every single tick. Consider using timers in `this.memory` to run expensive strategic re-evaluations only once every second or two.
 
 9. Your Starting Template
 Use this template as the starting point for your [YourModelName].js file:
@@ -170,8 +196,8 @@ import BaseBot from './BaseBot.js';
  *  e.g., "1. Defensive Priority, 2. Value-based Expansion, etc."]
  */
 export default class [YourModelName] extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
         // You can add custom properties to this.memory here.
         this.log("Bot initialized.");
     }

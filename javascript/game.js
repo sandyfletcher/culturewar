@@ -1,20 +1,19 @@
 // ===========================================
-// root/game.js
+// root/javascript/game.js
 // ===========================================
 
-import eventManager from './javascript/EventManager.js';
-import Planet from './javascript/Planet.js';
-import TroopMovement from './javascript/TroopMovement.js';
-import InputHandler from './javascript/InputHandlerModule.js';
-import Renderer from './javascript/RendererModule.js';
-import GameState from './javascript/GameStateCheck.js';
-import PlayersController from './javascript/PlayersController.js';
-import PlanetGeneration from './javascript/PlanetGeneratorModule.js';
-import TroopTracker from './javascript/TroopTracker.js';
-import TimerManager from './javascript/TimerManager.js';
+import eventManager from './EventManager.js';
+import TroopMovement from './TroopMovement.js';
+import InputHandler from './InputHandlerModule.js';
+import Renderer from './RendererModule.js';
+import GameState from './GameStateCheck.js';
+import PlayersController from './PlayersController.js';
+import PlanetGeneration from './PlanetGeneratorModule.js';
+import TroopTracker from './TroopTracker.js';
+import TimerManager from './TimerManager.js';
 
 export default class Game {
-    constructor(gameConfig, footerManager = null, configManager = null, innerContainer, canvas) {
+    constructor(gameConfig, footerManager = null, configManager = null, menuManager = null, statsTracker = null, innerContainer, canvas) {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
         this.innerContainer = innerContainer;
@@ -27,6 +26,8 @@ export default class Game {
         this.config = gameConfig;
         this.footerManager = footerManager;
         this.configManager = configManager;
+        this.menuManager = menuManager;
+        this.statsTracker = statsTracker;
         this.planets = [];
         this.troopMovements = [];
         this.selectedPlanets = [];
@@ -37,7 +38,7 @@ export default class Game {
         this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from config
         this.playersController = new PlayersController(this, this.config);
         this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds) : null; // InputHandler is created only if there are human players
-        this.renderer = new Renderer(this.ctx, this.canvas);
+        this.renderer = new Renderer(this); // Pass the entire game instance
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
         this.planetGenerator = new PlanetGeneration(this);
@@ -55,7 +56,6 @@ export default class Game {
         } else {
             this.gameLoop();
         }
-
         eventManager.on('screen-changed', (screenName) => {
             if (screenName === 'game') {
                 this.troopTracker.showTroopBar();
@@ -63,12 +63,10 @@ export default class Game {
                 this.troopTracker.hideTroopBar();
             }
         });
-
         // Properties for double-click detection
         this.lastClickedPlanet = null;
         this.lastClickTime = 0;
         this.doubleClickTimeThreshold = this.config.doubleClickTimeThreshold || 300; // ms
-
         // Event listeners for input
         eventManager.on('mouse-moved', (pos) => {
             if (this.gameOver) return;
@@ -83,18 +81,19 @@ export default class Game {
             this.handleSelectionBox(box);
         });
     }
-
+    reportStats(data) {
+        if (this.statsTracker) {
+            this.statsTracker.report(data);
+        }
+    }
     handleClick({ x, y }) {
         const clickedPlanet = this.planets.find(planet => planet.containsPoint(x, y));
-
         if (!clickedPlanet) {
             this.clearSelection();
             return;
         }
-
         const isHumanPlanet = this.humanPlayerIds.includes(clickedPlanet.owner);
         const now = Date.now();
-
         if (isHumanPlanet &&
             clickedPlanet === this.lastClickedPlanet &&
             now - this.lastClickTime < this.doubleClickTimeThreshold) {
@@ -103,10 +102,8 @@ export default class Game {
             this.lastClickTime = 0;
             return;
         }
-
         this.lastClickedPlanet = clickedPlanet;
         this.lastClickTime = now;
-
         if (this.selectedPlanets.length > 0 && !this.selectedPlanets.includes(clickedPlanet)) {
             if (this.selectedPlanets.every(p => this.humanPlayerIds.includes(p.owner))) {
                 const troopPercentage = this.footerManager.getTroopPercentage() / 100;
@@ -124,7 +121,6 @@ export default class Game {
             this.selectedPlanets = [clickedPlanet];
         }
     }
-
     handleSelectionBox(box) {
         this.clearSelection();
         const planetsInBox = this.planets.filter(planet =>
@@ -145,7 +141,6 @@ export default class Game {
             }
         }
     }
-
     selectAllPlayerPlanets(playerId) {
         this.clearSelection();
         for (const planet of this.planets) {
@@ -156,11 +151,6 @@ export default class Game {
         }
     }
     resize() {
-        // In headless mode, the canvas's direct parent ('#game-screen') is not displayed,
-        // causing its clientWidth and clientHeight to be 0. This prevents planets from
-        // being generated correctly as the game world has no area.
-        // To fix this, we size the canvas based on '#inner-container', which is the
-        // main content area and always has the correct dimensions.
         this.canvas.width = this.innerContainer.clientWidth;
         this.canvas.height = this.innerContainer.clientHeight;
     }
@@ -180,26 +170,26 @@ export default class Game {
     update() {
         if (this.gameOver) return;
         const now = Date.now();
-        const rawDt = (now - this.gameState.lastUpdate) / 1000; // 'rawDt' is unscaled time delta
+        const rawDt = (now - this.gameState.lastUpdate) / 1000;
         this.gameState.lastUpdate = now;
         let speedMultiplier = 1.0;
-        if (this.footerManager && this.footerManager.mode === 'speed') { // footer slider can exist in "human" games if human is eliminated
+        if (this.footerManager && this.footerManager.mode === 'speed') {
             speedMultiplier = this.footerManager.getSpeedMultiplier();
         }
         this.timerManager.update(speedMultiplier);
-        this.gameState.update(rawDt, speedMultiplier); // pass rawDt for accurate stat calculations
+        this.gameState.update(rawDt, speedMultiplier);
         if (this.gameOver) return;
-        const gameDt = rawDt * speedMultiplier; // calculate a scaled delta time for all game logic that should be affected by speed
-        this.updatePlanets(gameDt); // update planets and troop movements with new 'gameDt' so they respect game speed
+        const gameDt = rawDt * speedMultiplier;
+        this.updatePlanets(gameDt);
         this.updateTroopMovements(gameDt);
-        this.playersController.updateAIPlayers(gameDt); // pass dt to manage bot cooldowns
+        this.playersController.updateAIPlayers(gameDt);
         this.troopTracker.update();
     }
     updatePlanets(dt) {
-        const activePlayerIds = this.gameState.activePlayers; // get set of currently active players from game state
+        const activePlayerIds = this.gameState.activePlayers;
         for (const planet of this.planets) {
             planet.update(dt);
-            if (planet.selected && !activePlayerIds.has(planet.owner)) { // an active player is one who still has planets or troops
+            if (planet.selected && !activePlayerIds.has(planet.owner)) {
                 planet.selected = false;
                 this.selectedPlanets = this.selectedPlanets.filter(p => p !== planet);
             }
@@ -218,40 +208,40 @@ export default class Game {
     processTroopArrival(movement) {
         const targetPlanet = movement.to;
         if (targetPlanet.owner === movement.owner) {
-            targetPlanet.troops += movement.amount; // reinforcement, add troops
-        } else { // attack, time for battle!
+            targetPlanet.troops += movement.amount;
+        } else {
             const defenderTroops = targetPlanet.troops;
             const attackerTroops = movement.amount;
             targetPlanet.troops -= attackerTroops;
-            if (targetPlanet.troops < 0) { // attacker wins
-                const attackerLosses = defenderTroops; // attackers lose as many as defenders had
-                const defenderLosses = defenderTroops; // all defenders are lost
+            if (targetPlanet.troops < 0) {
+                const attackerLosses = defenderTroops;
+                const defenderLosses = defenderTroops;
                 this.gameState.incrementTroopsLost(attackerLosses);
                 this.gameState.incrementTroopsLost(defenderLosses);
                 targetPlanet.owner = movement.owner;
-                targetPlanet.troops = Math.abs(targetPlanet.troops); // remaining attacker troops
+                targetPlanet.troops = Math.abs(targetPlanet.troops);
                 this.gameState.incrementPlanetsConquered();
-            } else { // defender wins (or it's a draw and defender holds)
-                const attackerLosses = attackerTroops; // all attackers are lost
-                const defenderLosses = attackerTroops; // defenders lose as many as attackers sent
+            } else {
+                const attackerLosses = attackerTroops;
+                const defenderLosses = attackerTroops;
                 this.gameState.incrementTroopsLost(attackerLosses);
                 this.gameState.incrementTroopsLost(defenderLosses);
             }
         }
     }
     sendTroops(fromPlanet, toPlanet, amount) {
-        if (!amount || amount <= 0) { // ensure amount is positive
+        if (!amount || amount <= 0) {
             return;
         }
-        const troopsAvailable = Math.floor(fromPlanet.troops); // ensure more troops aren't sent than available
+        const troopsAvailable = Math.floor(fromPlanet.troops);
         const sanitizedAmount = Math.min(amount, troopsAvailable);
-        if (sanitizedAmount < 1) { // ensure it's at least one whole troop
+        if (sanitizedAmount < 1) {
             return;
         }
         const movement = new TroopMovement(
             fromPlanet,
             toPlanet,
-            sanitizedAmount, // use sanitized amount
+            sanitizedAmount,
             fromPlanet.owner,
             this
         );
@@ -261,32 +251,18 @@ export default class Game {
     }
     gameLoop() {
         this.update();
-
-        const selectionBox = this.inputHandler ? this.inputHandler.getSelectionBox() : null;
-        const renderables = {
-            planets: this.planets,
-            troopMovements: this.troopMovements,
-            selectedPlanets: this.selectedPlanets,
-            mousePos: this.mousePos,
-            selectionBox: selectionBox,
-            uiData: {
-                totalTroops: this.troopTracker.lastTotalTroops,
-                timeRemaining: this.timerManager.getTimeRemaining()
-            }
-        };
-        this.renderer.draw(renderables);
-
+        this.renderer.draw();
         if (!this.gameOver) {
             requestAnimationFrame(() => this.gameLoop());
         }
     }
-    runHeadless() { // headless game loop that runs without rendering
+    runHeadless() {
         const headlessLoop = () => {
             if (this.gameOver) {
                 return;
             }
             this.update();
-            setTimeout(headlessLoop, 0); // use setTimeout to yield to the browser's event loop, preventing a freeze
+            setTimeout(headlessLoop, 0);
         };
         headlessLoop();
     }

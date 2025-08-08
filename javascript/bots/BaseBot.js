@@ -1,17 +1,14 @@
 // =============================================
-// assets/javascript/bots/BaseBot.js — base class for AI players, handles boilerplate player setup and GameAPI instance
+// root/javascript/bots/BaseBot.js — base class for AI players, handles boilerplate player setup and GameAPI instance
 // =============================================
 
-import GameAPI from '../GameAPI.js';
-
 export default class BaseBot {
-    constructor(game, playerId) {
+    constructor(api, playerId) {
         if (this.constructor === BaseBot) {
             throw new Error("BaseBot is an abstract class and cannot be instantiated directly.");
         }
-        this.game = game;
         this.playerId = playerId;
-        this.api = new GameAPI(game, playerId);
+        this.api = api;
         this.memory = { // This object will persist between calls to makeDecision().
             actionCooldown: 0, // A personal timer for this bot, managed by PlayersController.
             phase: 'GAME_START', // To differentiate strategies according to time remaining in-game.
@@ -34,6 +31,7 @@ export default class BaseBot {
     */
     log(message) {
         const time = this.api.getElapsedTime().toFixed(2);
+        // This log is safe for bots to use for their own debugging.
         console.log(`[${this.playerId}@${time}s]: ${message}`);
     }
 }

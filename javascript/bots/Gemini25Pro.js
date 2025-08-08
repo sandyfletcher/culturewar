@@ -21,8 +21,8 @@ import BaseBot from './BaseBot.js';
  * 4.  **Stateful Missions**: Uses `this.memory` to track ongoing missions, preventing it from over-committing troops from a single planet and leaving it vulnerable.
  */
 export default class Gemini25Pro extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
         // Custom configuration for easy tuning of the bot's behavior.
         this.CONFIG = {
             // General

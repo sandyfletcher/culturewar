@@ -15,8 +15,8 @@ import BaseBot from './BaseBot.js';
  * 4) Phased play: Early = rapid safe expansion; Mid = consolidation and pressure; Late = finish strongest rival.
  */
 export default class HorizonBeta extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
         // Tunable parameters
         this.memory.attackCooldown = 0;           // Global cooldown to avoid over-issuing commands.
         this.memory.minSendThreshold = 6;         // Don't send tiny fleets unless necessary.

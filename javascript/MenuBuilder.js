@@ -10,13 +10,13 @@ import CombatantsBuilder from './menus/CombatantsBuilder.js';
 import StandingsBuilder from './menus/StandingsBuilder.js';
 
 export default class MenuBuilder extends MenuBuilderBase {
-    constructor(container, configManager, startGameCallback, statsTracker) {
-        super(container, configManager);
-        this.mainMenuBuilder = new MainMenuBuilder(this, container, configManager);
-        this.gameSetupBuilder = new GameSetupBuilder(this, container, configManager, startGameCallback);
-        this.instructionsBuilder = new InstructionsBuilder(this, container, configManager);
-        this.combatantsBuilder = new CombatantsBuilder(this, container, configManager);
-        this.standingsBuilder = new StandingsBuilder(this, container, configManager, statsTracker);
+    constructor(container, screenManager, configManager, menuManager) {
+        super(container, screenManager, configManager, menuManager);
+        this.mainMenuBuilder = new MainMenuBuilder(this, container, screenManager, configManager, menuManager);
+        this.gameSetupBuilder = new GameSetupBuilder(this, container, screenManager, configManager, menuManager, () => menuManager.startGame());
+        this.instructionsBuilder = new InstructionsBuilder(this, container, screenManager, configManager, menuManager);
+        this.combatantsBuilder = new CombatantsBuilder(this, container, screenManager, configManager, menuManager);
+        this.standingsBuilder = new StandingsBuilder(this, container, screenManager, configManager, menuManager, menuManager.statsTracker);
     }
     buildMainMenu() {
         return this.mainMenuBuilder.build();
@@ -34,4 +34,3 @@ export default class MenuBuilder extends MenuBuilderBase {
         return this.standingsBuilder.build();
     }
 }
-

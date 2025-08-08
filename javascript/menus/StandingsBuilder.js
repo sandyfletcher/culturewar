@@ -4,10 +4,11 @@
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
 import { formatTime } from '../utils.js';
+import eventManager from '../EventManager.js';
 
 export default class StandingsBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, configManager, statsTracker) {
-        super(container, configManager);
+    constructor(parentBuilder, container, screenManager, configManager, menuManager, statsTracker) {
+        super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
         this.statsTracker = statsTracker;
     }
@@ -62,7 +63,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
             });
             leaderboardHTML = `
                 <h2>STANDINGS</h2>
-                <div class="leaderboard">
+                <div class.leaderboard">
                     <table>
                         <thead>
                             <tr>
@@ -98,7 +99,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
             });
             menuContainer.appendChild(clearButton);
         }
-        window.menuManager.footerManager.showBackButton(() => {
+        this.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
         return menuContainer;

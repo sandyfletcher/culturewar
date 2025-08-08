@@ -2,8 +2,6 @@
 // root/javascript/GameStateCheck.js
 // ===========================================
 
-import eventManager from './EventManager.js';
-
 export default class GameState {
     constructor(game) {
         this.game = game;
@@ -82,50 +80,26 @@ export default class GameState {
         }
         return false;
     }
-
     endGame(winnerId, victoryType) {
         if (this.gameOver) return;
         this.winner = winnerId;
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-
-        this.logGameStats(winnerId);
-
-        const isBatchGame = this.game.config.isBatchGame || false;
-        if (!isBatchGame) {
-            const humanWon = this.game.humanPlayerIds.includes(this.winner);
-            const stats = {
-                winner: this.winner,
-                time: this.elapsedGameTime,
-                planetsConquered: this.planetsConquered,
-                troopsSent: this.troopsSent,
-                troopsLost: this.troopsLost,
-                eliminationTimes: this.eliminationTimes,
-                playerWon: humanWon,
-                hasHumanPlayer: this.game.humanPlayerIds.length > 0
-            };
-            const onPlayAgain = () => {
-                eventManager.emit('navigate-to', 'game-setup');
-            };
-            const onBackToMenu = () => {
-                eventManager.emit('navigate-to', 'main-menu');
-            };
-            eventManager.emit('show-game-over', { stats, onPlayAgain, onBackToMenu });
-        }
-
-        eventManager.emit('game-ended');
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-    }
-
-    logGameStats(winnerId) {
         const allPlayersData = this.game.playersController.players;
-        const playerStats = this.game.playersController.getPlayerStats().filter(p => p.id !== 'neutral');
-        playerStats.sort((a, b) => b.planets - a.planets || b.troops - a.troops);
-        const gameId = `${this.game.config.userId || 'unknown'}-${Date.now()}`;
-
-        const gameStatsLog = `[GAME_STATS],${gameId},${this.elapsedGameTime.toFixed(2)},${Math.round(this.troopsSent || 0)},${Math.round(this.planetsConquered || 0)},${Math.round(this.troopsLost || 0)}`;
-        console.log(gameStatsLog);
+        const playerStats = this.game.playersController.getPlayerStats()
+            .filter(p => p.id !== 'neutral');
+        playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
+        const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
+        // Report game stats using the new robust system
+        this.game.reportStats({
+            type: 'GAME_STATS',
+            gameId: gameId,
+            duration: this.elapsedGameTime,
+            troopsSent: this.troopsSent,
+            planetsConquered: this.planetsConquered,
+            troopsLost: this.troopsLost
+        });
 
         playerStats.forEach((player, index) => {
             const rank = index + 1;
@@ -133,8 +107,47 @@ export default class GameState {
             const survivalTime = this.eliminationTimes[player.id] || this.elapsedGameTime;
             const originalPlayerData = allPlayersData.find(p => p.id === player.id);
             const aggregationKey = originalPlayerData.aiController || 'PLAYER';
-            const playerStatsLog = `[PLAYER_STATS],${gameId},${rank},${aggregationKey},${player.planets},${Math.floor(player.troops)},${survivalTime.toFixed(2)},${cultureScore.toFixed(4)}`;
-            console.log(playerStatsLog);
+            // Report player stats using the new robust system
+            this.game.reportStats({
+                type: 'PLAYER_STATS',
+                gameId: gameId,
+                rank: rank,
+                nickname: aggregationKey,
+                planets: player.planets,
+                troops: Math.floor(player.troops),
+                survivalTime: survivalTime,
+                cultureScore: cultureScore
+            });
         });
+        if (this.game.menuManager.isBatchRunning) { // decide what to do next based on batch mode
+            this.game.menuManager.startNextBatchGame();
+            return; // exit to prevent showing game over screen
+        }
+        // single-game screen display logic
+        const humanWon = this.game.humanPlayerIds.includes(this.winner);
+        const stats = {
+            winner: this.winner,
+            time: this.elapsedGameTime,
+            planetsConquered: this.planetsConquered,
+            troopsSent: this.troopsSent,
+            troopsLost: this.troopsLost,
+            eliminationTimes: this.eliminationTimes,
+            playerWon: humanWon,
+            hasHumanPlayer: this.game.humanPlayerIds.length > 0
+        };
+        if (this.game.menuManager) {
+            const onPlayAgain = () => {
+                this.game.menuManager.menuBuilder.buildGameSetup();
+                this.game.menuManager.switchToScreen('menu');
+            };
+            const onBackToMenu = () => {
+                this.game.menuManager.menuBuilder.buildMainMenu();
+                this.game.menuManager.switchToScreen('menu');
+            };
+            this.game.menuManager.showGameOver(stats, this.game, onPlayAgain, onBackToMenu);
+        } else {
+            console.error("MenuManager not found.");
+        }
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 }

@@ -12,8 +12,8 @@ Value Targeting: Prioritize high-value planets with strategic importance
 Resource Management: Optimize troop allocations to maximize efficiency
 */
 export default class MistralSmall32 extends BaseBot {
-constructor(game, playerId) {
-super(game, playerId);
+constructor(api, playerId) {
+super(api, playerId);
 // Initialize memory with additional strategic tracking
 this.memory.trackedPlanets = new Set();
 this.memory.attackTargets = [];

@@ -2,36 +2,50 @@
 // root/javascript/MenuManager.js
 // ===========================================================
 
+import ScreenManager from './ScreenManager.js';
 import GameConfigManager from './GameConfigManager.js';
 import MenuBuilder from './MenuBuilder.js';
 import GameOverScreen from './GameOverScreen.js';
 import FooterManager from './FooterManager.js';
+import Game from './game.js';
 import StatsTracker from './StatsTracker.js';
 import eventManager from './EventManager.js';
 
 export default class MenuManager {
     constructor(uiManager) {
         this.uiManager = uiManager;
-        this.initializeUserIdentity(); // Create or load a persistent user ID.
+        this.initializeUserIdentity(); // create or load persistent user ID
+        this.screenManager = new ScreenManager();
         this.configManager = new GameConfigManager();
         this.footerManager = new FooterManager();
         this.statsTracker = new StatsTracker();
         this.menuBuilder = new MenuBuilder(
             this.uiManager.getMenuScreenElement(),
+            this.screenManager,
             this.configManager,
-            this.startGame.bind(this),
-            this.statsTracker
+            this // Pass the MenuManager instance to the builder
         );
-        this.gameOverScreen = new GameOverScreen(this.uiManager.getInnerContainerElement());
+        this.game = null;
+        this.gameOverScreen = new GameOverScreen(
+            this.uiManager.getInnerContainerElement(),
+            this.configManager,
+            this
+        );
         this.isBatchRunning = false;
         this.gamesRemaining = 0;
         this.currentBatchConfig = null;
+        
+        // Listen for confirmation dialog requests from other modules
+        eventManager.on('confirm-action', this.handleConfirmAction.bind(this));
 
         this.menuBuilder.buildMainMenu();
-        eventManager.emit('screen-changed', 'menu');
+        this.screenManager.switchToScreen('menu');
+    }
 
-        eventManager.on('show-game-over', (data) => this.showGameOver(data.stats, data.onPlayAgain, data.onBackToMenu));
-        eventManager.on('game-ended', () => this.onGameEnd());
+    handleConfirmAction({ message, onConfirm }) {
+        if (window.confirm(message)) {
+            onConfirm();
+        }
     }
 
     initializeUserIdentity() {
@@ -45,23 +59,28 @@ export default class MenuManager {
                 console.error('Could not save user ID to localStorage:', error);
             }
         }
-        // Instead of a global, this could be passed to modules that need it,
-        // or they could request it from a central App/Session manager.
-        // For now, we'll just store it and not expose it globally.
-        this.userId = userId;
+        window.CULTURE_WAR_USER_ID = userId; // make ID globally accessible for other modules
     }
-
     switchToScreen(screenName) {
         eventManager.emit('screen-changed', screenName);
-
-        if (screenName === 'menu') {
+        if (screenName === 'game') {
+            if (this.game && this.game.troopTracker) {
+                this.game.troopTracker.showTroopBar();
+            }
+        } else if (screenName === 'menu') {
+            if (this.game && this.game.troopTracker) {
+                this.game.troopTracker.hideTroopBar();
+            }
             if (this.footerManager.sliderContainer) {
                 this.footerManager.revertToDefault();
             }
         }
     }
-
-    showGameOver(stats, onPlayAgain, onBackToMenu) {
+    showGameOver(stats, gameInstance, onPlayAgain, onBackToMenu) {
+        this.game = gameInstance;
+        if (gameInstance && gameInstance.troopTracker) {
+            gameInstance.troopTracker.hideTroopBar();
+        }
         const backToMenuHandler = () => {
             this.gameOverScreen.remove();
             if (onBackToMenu) {
@@ -69,70 +88,69 @@ export default class MenuManager {
             }
         };
         this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
-        this.gameOverScreen.show(stats, onPlayAgain);
+        this.gameOverScreen.show(stats, gameInstance, onPlayAgain);
     }
-
     startGame() {
         const config = this.configManager.getConfig();
-        this.currentBatchConfig = { ...config }; // Store a copy of the config
+        this.currentBatchConfig = { ...config }; // store a copy of config
         this.gamesRemaining = this.currentBatchConfig.batchSize;
         this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
-
         if (this.isBatchRunning) {
             if (this.currentBatchConfig.isHeadless) {
                 eventManager.emit('show-batch-overlay');
             }
             this.startNextBatchGame();
         } else {
-            this.switchToScreen('game');
+            this.switchToScreen('game'); // single-game logic
             const hasHumanPlayer = config.players.some(p => p.type === 'human');
             const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
             this.footerManager.showSlider(initialSliderMode);
-
-        config.userId = this.userId;
-            eventManager.emit('start-game', {
-                config: config,
-                footerManager: this.footerManager,
-                configManager: this.configManager
-            });
+            this.game = new Game(
+                config,
+                this.footerManager,
+                this.configManager,
+                this,
+                this.statsTracker,
+                this.uiManager.getInnerContainerElement(),
+                this.uiManager.getCanvasElement()
+            );
+            this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
         }
     }
-
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
             this.isBatchRunning = false;
             eventManager.emit('hide-batch-overlay');
-
             this.menuBuilder.buildStandingsScreen(); // Go to standings after a batch
             this.switchToScreen('menu');
             return;
         }
-
         const gameNumber = this.currentBatchConfig.batchSize - this.gamesRemaining + 1;
         eventManager.emit('update-batch-overlay', gameNumber, this.currentBatchConfig.batchSize);
         this.gamesRemaining--;
-
         if (!this.currentBatchConfig.isHeadless) {
             this.switchToScreen('game');
         }
         this.footerManager.showSlider('botbattle');
-
-        this.currentBatchConfig.userId = this.userId;
-        eventManager.emit('start-game', {
-            config: this.currentBatchConfig,
-            footerManager: this.footerManager,
-            configManager: this.configManager,
-            isBatchGame: true
-        });
-    }
-
-    onGameEnd() {
-        if (this.isBatchRunning) {
-            this.startNextBatchGame();
-        }
+        this.game = new Game(
+            this.currentBatchConfig,
+            this.footerManager,
+            this.configManager,
+            this,
+            this.statsTracker,
+            this.uiManager.getInnerContainerElement(),
+            this.uiManager.getCanvasElement()
+        );
+        this.game.timerManager.shouldPauseOnHidden = false;
     }
 
     getGameConfig() {
         return this.configManager.getConfig();
+    }
+    formatTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes}:${secs.toString().padStart(2, '0')}`;
     }
 }

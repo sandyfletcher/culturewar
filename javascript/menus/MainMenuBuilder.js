@@ -5,12 +5,12 @@
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
 export default class MainMenuBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, configManager) {
-        super(container, configManager);
+    constructor(parentBuilder, container, screenManager, configManager, menuManager) {
+        super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
     }
     build() {
-        window.menuManager.footerManager.showDefault(); // when main menu is built, ensure footer is set to default
+        this.menuManager.footerManager.showDefault(); // when main menu is built, ensure footer is set to default
         const menuContainer = this.createMenuContainer();
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';

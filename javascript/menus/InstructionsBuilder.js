@@ -5,8 +5,8 @@
 import MenuBuilderBase from '../MenuBuilderBase.js';
 
 export default class InstructionsBuilder extends MenuBuilderBase {
-    constructor(parentBuilder, container, configManager) {
-        super(container, configManager);
+    constructor(parentBuilder, container, screenManager, configManager, menuManager) {
+        super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
     }
     build() {
@@ -38,7 +38,7 @@ export default class InstructionsBuilder extends MenuBuilderBase {
             </div>
         `;
         menuContainer.appendChild(content);
-        window.menuManager.footerManager.showBackButton(() => { // set footer to back button
+        this.menuManager.footerManager.showBackButton(() => { // set footer to back button
             this.parentBuilder.buildMainMenu();
         });
         return menuContainer;

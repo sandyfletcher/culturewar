@@ -2,13 +2,12 @@
 // root/javascript/GameOverScreen.js
 // ===========================================
 
-import GameConfigManager from './GameConfigManager.js';
-
 export default class GameOverScreen {
-    constructor(parentContainer) {
+    constructor(parentContainer, configManager, menuManager) {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
         this.gameOverScreen = null;
-        this.configManager = window.menuManager.configManager;
+        this.configManager = configManager;
+        this.menuManager = menuManager;
     }
     show(stats, gameInstance, onPlayAgainCallback) {
         this.remove();
@@ -84,7 +83,7 @@ export default class GameOverScreen {
                 <div class="stats-container">
                     <div class="stat-item">
                         <span class="stat-label">Preservation:</span>
-                        <span class="stat-value">${window.menuManager.formatTime(stats.time)}</span>
+                        <span class="stat-value">${this.menuManager.formatTime(stats.time)}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Persuasions:</span>

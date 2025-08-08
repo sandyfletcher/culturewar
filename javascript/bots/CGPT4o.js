@@ -25,8 +25,8 @@ import BaseBot from './BaseBot.js';
  * All decision logic is kept inside makeDecision(dt) as required.
  */
 export default class CGPT4o extends BaseBot {
-    constructor(game, playerId) {
-        super(game, playerId);
+    constructor(api, playerId) {
+        super(api, playerId);
 
         // Initialize any custom memory fields we want to persist.
         // memory.missions: Map(targetPlanetId -> {type, deadline})
