@@ -173,16 +173,34 @@ export default class Game {
         const rawDt = (now - this.gameState.lastUpdate) / 1000;
         this.gameState.lastUpdate = now;
         let speedMultiplier = 1.0;
-        if (this.footerManager && this.footerManager.mode === 'speed') {
+        if (this.config.isHeadless) {
+            speedMultiplier = 100.0; // Use a high multiplier for fast simulations
+        } else if (this.footerManager && this.footerManager.mode === 'speed') {
             speedMultiplier = this.footerManager.getSpeedMultiplier();
         }
+        // Update overall timers and game state based on real-world time elapsed.
+        // This should happen once per frame.
         this.timerManager.update(speedMultiplier);
         this.gameState.update(rawDt, speedMultiplier);
         if (this.gameOver) return;
-        const gameDt = rawDt * speedMultiplier;
-        this.updatePlanets(gameDt);
-        this.updateTroopMovements(gameDt);
-        this.playersController.updateAIPlayers(gameDt);
+        // --- FIXED-STEP SIMULATION LOOP ---
+        // This ensures game logic runs in small, consistent increments, even at high speeds,
+        // preventing the "large time step" problem and maintaining simulation accuracy.
+        const totalGameDt = rawDt * speedMultiplier;
+        const FIXED_TIME_STEP = 1 / 60; // Simulate the game at a consistent 60 ticks per second.
+        let accumulator = totalGameDt;
+        // Run the simulation logic in a loop until we've "caught up" to the total time for this frame.
+        // A cap is added to prevent an infinite spiral on very slow machines.
+        const maxStepsPerFrame = 200; 
+        let steps = 0;
+        while (accumulator >= FIXED_TIME_STEP && steps < maxStepsPerFrame) {
+            this.updatePlanets(FIXED_TIME_STEP);
+            this.updateTroopMovements(FIXED_TIME_STEP);
+            this.playersController.updateAIPlayers(FIXED_TIME_STEP);
+            accumulator -= FIXED_TIME_STEP;
+            steps++;
+        }
+        // Update the visual troop bar based on the final state of this frame's simulation.
         this.troopTracker.update();
     }
     updatePlanets(dt) {
