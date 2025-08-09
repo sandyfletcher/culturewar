@@ -46,7 +46,8 @@ export default class PlayersController {
     }
     updateAIPlayers(dt) {
         const activeAiPlayers = this.getAIPlayers()
-        .filter(p => this.game.gameState.activePlayers.has(p.id));
+            .filter(p => this.game.gameState.activePlayers.has(p.id));
+
         if (activeAiPlayers.length === 0) {
             return;
         }
@@ -58,7 +59,7 @@ export default class PlayersController {
             // If the bot is on cooldown, decrement the timer and skip its turn.
             if (aiController.memory.actionCooldown > 0) {
                 aiController.memory.actionCooldown -= dt;
-                continue;
+                continue; // <<< This bot is on cooldown, check the next one.
             }
             // If the cooldown is finished, the bot can make a decision.
             const aiDecision = aiController.makeDecision(dt);
@@ -70,8 +71,12 @@ export default class PlayersController {
                     aiDecision.to,
                     aiDecision.troops
                 );
-                // ...and reset ITS OWN cooldown. This doesn't affect other bots.
+                // ...and reset ITS OWN cooldown. The amount can be decided by the bot,
+                // but for now, we'll use the global config value as a default.
                 aiController.memory.actionCooldown = config.ai.globalDecisionCooldown;
+                // An action was taken, so we immediately exit the AI update for this frame.
+                // This prevents other AIs from acting on the same tick.
+                return;
             }
         }
     }
