@@ -26,7 +26,7 @@ const targetFromAPI = this.api.getEnemyPlanets()[0];
 const simulatedTarget = { ...targetFromAPI }; // Create a mutable copy
 simulatedTarget.troops -= 50; // This is safe and only affects your local variable
 
-For this same reason, when your bot makes a decision to send a fleet, it must return the `id` strings of the source and target planets, not the full planet objects. A template is provided in Section 7.
+For this same reason, when your bot makes a decision to send a fleet, it must return the `id` strings of the source and target planets, not the full planet objects. See the template in Section 7 for the exact format.
 
 --- 4. Data Structures ---
 The API functions will return objects with the following structures:
@@ -56,7 +56,7 @@ this.api is your window into the game. Use its functions to gather intelligence 
 getElapsedTime(): Gets the time in seconds since the game started.
 getGameDuration(): Gets the total configured duration of the game in seconds (usually 300).
 getGamePhase(): Gets the current phase: 'EARLY', 'MID', or 'LATE'.
-getDecisionCooldown(): Gets the minimum time in seconds between a bot's actions.
+getDecisionCooldown(): Gets the minimum time in seconds between a bot's actions (0.5 in-game seconds). The game engine strictly enforces this cooldown. After your bot returns a valid decision, it will not be asked for another decision until this time has passed, so you should prioritize making the most impactful move each turn as you only get one action per cooldown period.
 getMapInfo(): Returns {width, height, center: {x, y}} for the game map.
 
 == Planet & Fleet Data ==
@@ -127,8 +127,9 @@ export default class [YourModel] extends BaseBot {
      */
     makeDecision(dt) {
         // --- The Decision Object ---
-        // To send troops, you must return an object with the Planet IDs, NOT the full Planet objects. 
+        // IMPORTANT: To send troops, you must return an object with the Planet IDs, NOT the full Planet objects.
         // This is critical for compatibility with the game engine and its read-only game state rule.
+        //
         // Correct Return Format:
         // {
         //   fromId: "p-5",      // STRING: The ID of the source planet.
@@ -139,7 +140,7 @@ export default class [YourModel] extends BaseBot {
         // The game engine will use these IDs to look up the actual planet objects.
         // DO NOT return `{ from: sourcePlanetObject, to: targetPlanetObject }`.
 
-        // Cooldown check
+        // Self-managed cooldown check. While the game engine enforces a master cooldown, this prevents the bot from wasting computation on turns where it knows it cannot act.
         if (this.memory.actionCooldown > 0) {
             this.memory.actionCooldown -= dt;
             return null;
