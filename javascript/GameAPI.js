@@ -5,41 +5,35 @@
 import { config } from './config.js';
 
 /**
- * Creates a deep, read-only proxy for a given object or array.
- * This is the security layer that prevents bots from cheating by modifying
- * game state objects passed to them through the API.
- * @param {any} obj - The object, array, or primitive to make read-only.
- * @returns {any} A read-only version of the input.
+ * Creates a factory for generating deep, read-only proxies.
+ * By creating a factory, we can pass in the bot's ID to make debugging much easier.
+ * @param {string} botId - The ID of the bot this proxy factory is for.
+ * @returns {function(any): any} A function that takes an object and returns a read-only proxy.
  */
-function createReadOnlyProxy(obj) {
-    // Primitives are inherently read-only in this context, so return them directly.
-    if (typeof obj !== 'object' || obj === null) {
-        return obj;
-    }
-
-    // A single, unified handler works for both arrays and objects.
-    return new Proxy(obj, {
-        set(target, property, value) {
-            console.error(`Bot attempted to modify read-only property '${String(property)}' on a game object. This is not allowed.`);
-            return true; // Silently fail the write operation.
-        },
-
-        get(target, property, receiver) {
-            // Get the value from the original object.
-            const value = target[property];
-
-            // If the retrieved value is a function, we must bind it to the original
-            // target to ensure the correct 'this' context when the function is called.
-            // This prevents "Illegal invocation" errors on native methods (e.g., canvas.getContext, array.map).
-            if (typeof value === 'function') {
-                return value.bind(target);
-            }
-
-            // For all other properties (nested objects, arrays, primitives),
-            // we recursively wrap them in a new proxy to ensure deep readonly-ness.
-            return createReadOnlyProxy(value);
+function createProxyFactory(botId) {
+    // This is the function that will be returned by the factory.
+    // It's a closure, so it will always have access to the `botId`.
+    return function createReadOnlyProxy(obj) {
+        if (typeof obj !== 'object' || obj === null) {
+            return obj;
         }
-    });
+
+        return new Proxy(obj, {
+            set(target, property, value) {
+                // Logging to identify bot in violation.
+                console.warn(`[${botId}] attempted to modify read-only property '${String(property)}' on a game object. This is not allowed.`);
+                return true; // Silently fail the write operation.
+            },
+            get(target, property, receiver) {
+                const value = target[property];
+                if (typeof value === 'function') {
+                    return value.bind(target);
+                }
+                // Recursively call the same function to ensure deep readonly-ness.
+                return createReadOnlyProxy(value);
+            }
+        });
+    }
 }
 
 
@@ -47,9 +41,11 @@ export default class GameAPI {
     constructor(game, playerId) {
         this.game = game;
         this.playerId = playerId;
-        // The canvas object has native getters (width, height) that need the correct 'this' context.
-        // The proxy handles this correctly now.
-        this.canvas = createReadOnlyProxy(game.canvas); 
+
+        // Create a proxy creation function specific to this bot instance.
+        this.createReadOnlyProxy = createProxyFactory(this.playerId);
+
+        this.canvas = this.createReadOnlyProxy(game.canvas); 
         this.troopMovementSpeed = config.troop.movementSpeed;
     }
 
@@ -59,7 +55,7 @@ export default class GameAPI {
      * @returns {Planet[]} A read-only array of read-only Planet objects.
      */
     getAllPlanets() {
-        return createReadOnlyProxy(this.game.planets);
+        return this.createReadOnlyProxy(this.game.planets);
     }
 
     /**
@@ -69,7 +65,7 @@ export default class GameAPI {
      */
     getPlanetById(planetId) {
         const planet = this.game.planets.find(p => p.id === planetId);
-        return planet ? createReadOnlyProxy(planet) : null;
+        return planet ? this.createReadOnlyProxy(planet) : null;
     }
 
     /**
@@ -78,7 +74,7 @@ export default class GameAPI {
      */
     getEnemyPlanets() {
         const planets = this.game.planets.filter(p => p.owner !== this.playerId && p.owner !== 'neutral');
-        return createReadOnlyProxy(planets);
+        return this.createReadOnlyProxy(planets);
     }
 
     /**
@@ -87,7 +83,7 @@ export default class GameAPI {
      */
     getNeutralPlanets() {
         const planets = this.game.planets.filter(p => p.owner === 'neutral');
-        return createReadOnlyProxy(planets);
+        return this.createReadOnlyProxy(planets);
     }
 
     /**
@@ -95,7 +91,7 @@ export default class GameAPI {
      * @returns {TroopMovement[]} A read-only array of read-only TroopMovement objects.
      */
     getAllTroopMovements() {
-        return createReadOnlyProxy(this.game.troopMovements);
+        return this.createReadOnlyProxy(this.game.troopMovements);
     }
 
     /**
@@ -195,7 +191,7 @@ export default class GameAPI {
                 nearest = target;
             }
         }
-        return nearest ? createReadOnlyProxy(nearest) : null;
+        return nearest ? this.createReadOnlyProxy(nearest) : null;
     }
 
     /**
@@ -230,7 +226,7 @@ export default class GameAPI {
             }
         }
         // Threat from incoming attacks
-        const incomingAttacks = this.getIncomingAttacks(myPlanet); // This already returns a proxy
+        const incomingAttacks = this.getIncomingAttacks(myPlanet);
         threat += incomingAttacks.reduce((sum, attack) => sum + attack.amount, 0);
         return threat;
     }
@@ -244,7 +240,7 @@ export default class GameAPI {
         const movements = this.game.troopMovements.filter(m => 
             m.to.id === targetPlanet.id && m.owner !== targetPlanet.owner && m.owner !== 'neutral'
         );
-        return createReadOnlyProxy(movements);
+        return this.createReadOnlyProxy(movements);
     }
 
     /**
@@ -256,7 +252,7 @@ export default class GameAPI {
         const movements = this.game.troopMovements.filter(m => 
             m.to.id === targetPlanet.id && m.owner === targetPlanet.owner
         );
-        return createReadOnlyProxy(movements);
+        return this.createReadOnlyProxy(movements);
     }
 
     /**
@@ -294,8 +290,9 @@ export default class GameAPI {
             }
             predictedTroops = Math.min(this.getMaxPlanetTroops(), predictedTroops);
         }
+        
         const result = { owner: predictedOwner, troops: Math.floor(predictedTroops) };
-        return createReadOnlyProxy(result);
+        return this.createReadOnlyProxy(result);
     }
 
     /**
@@ -330,7 +327,7 @@ export default class GameAPI {
      */
     getMyPlanets() {
         const planets = this.game.planets.filter(p => p.owner === this.playerId);
-        return createReadOnlyProxy(planets);
+        return this.createReadOnlyProxy(planets);
     }
 
     /**
