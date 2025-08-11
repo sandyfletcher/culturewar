@@ -12,6 +12,7 @@ export default class PlayersController {
         this.config = gameConfig;
         this.players = [];
         this.aiControllers = {};
+        this.aiCooldowns = {};
         this.playerColors = config.player.colors;
         this.defaultAIName = config.player.defaultAIValue;
         this.availableAITypes = new Map(
@@ -39,6 +40,7 @@ export default class PlayersController {
             if (AIClass) {
                 const gameApiForBot = new GameAPI(this.game, player.id);
                 this.aiControllers[player.id] = new AIClass(gameApiForBot, player.id);
+                this.aiCooldowns[player.id] = 0;
             } else {
                 console.error(`AI type "${player.aiController}" not found in registry!`);
             }
@@ -46,35 +48,23 @@ export default class PlayersController {
     }
     updateAIPlayers(dt) {
         const activeAiPlayers = this.getAIPlayers()
-        .filter(p => this.game.gameState.activePlayers.has(p.id));
-        if (activeAiPlayers.length === 0) {
-            return;
-        }
-        // On every game update, iterate through all active bots.
-        for (const player of activeAiPlayers) {
-            const aiController = this.aiControllers[player.id];
-            if (!aiController) continue;
-            // Each bot has its own personal cooldown timer.
-            // If the bot is on cooldown, decrement the timer and skip its turn.
-            if (aiController.memory.actionCooldown > 0) {
-                aiController.memory.actionCooldown -= dt;
-                continue; // <<< This bot is on cooldown, check the next one.
+            .filter(p => this.game.gameState.activePlayers.has(p.id));
+        for (const player of activeAiPlayers) { // iterate through every active AI on every update
+            if (this.aiCooldowns[player.id] > 0) { // controller manages its own authoritative timer and decrements timer regardless of what bot does
+                this.aiCooldowns[player.id] -= dt;
+                continue; // if bot is on cooldown according to *controller*, skip its turn immediately — bot's code isn't even called
             }
-            // If the cooldown is finished, the bot can make a decision.
+            const aiController = this.aiControllers[player.id]; // if controller's timer has expired, bot is allowed to think
+            if (!aiController) continue;
             const aiDecision = aiController.makeDecision(dt);
-            // If the bot chooses to act...
+            // if bot makes a move, execute it and enforce the cooldown
             if (aiDecision) {
-                // ...execute the action...
                 this.game.sendTroops(
                     aiDecision.from,
                     aiDecision.to,
                     aiDecision.troops
                 );
-                // ...and reset ITS OWN cooldown. This doesn't affect other bots.
-                aiController.memory.actionCooldown = config.ai.decisionCooldown;
-                // An action was taken. The 'return' statement that was here has been
-                // removed to allow other AIs to act in the same game update frame,
-                // creating a more simultaneous feel.
+                this.aiCooldowns[player.id] = config.ai.decisionCooldown; // controller sets cooldown in its private tracker using value from global config, and a bot cannot change this
             }
         }
     }
