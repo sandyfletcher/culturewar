@@ -26,6 +26,8 @@ const targetFromAPI = this.api.getEnemyPlanets()[0];
 const simulatedTarget = { ...targetFromAPI }; // Create a mutable copy
 simulatedTarget.troops -= 50; // This is safe and only affects your local variable
 
+For this same reason, when your bot makes a decision to send a fleet, it must return the `id` strings of the source and target planets, not the full planet objects. A template is provided in Section 7.
+
 --- 4. Data Structures ---
 The API functions will return objects with the following structures:
 Planet Object:
@@ -125,12 +127,17 @@ export default class [YourModel] extends BaseBot {
      */
     makeDecision(dt) {
         // --- The Decision Object ---
-        // To send troops, you must return an object with this EXACT structure:
-        // { 
-        //   from: sourcePlanetObject, // The full Planet object from the API
-        //   to:   targetPlanetObject, // The full Planet object from the API
-        //   troops: troopsToSend      // A positive integer
+        // To send troops, you must return an object with the Planet IDs, NOT the full Planet objects. 
+        // This is critical for compatibility with the game engine and its read-only game state rule.
+        // Correct Return Format:
+        // {
+        //   fromId: "p-5",      // STRING: The ID of the source planet.
+        //   toId:   "p-10",      // STRING: The ID of the target planet.
+        //   troops: troopsToSend // NUMBER: A positive integer.
         // }
+        //
+        // The game engine will use these IDs to look up the actual planet objects.
+        // DO NOT return `{ from: sourcePlanetObject, to: targetPlanetObject }`.
 
         // Cooldown check
         if (this.memory.actionCooldown > 0) {
