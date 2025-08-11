@@ -71,7 +71,7 @@ export default class PlayersController {
                     aiDecision.troops
                 );
                 // ...and reset ITS OWN cooldown. This doesn't affect other bots.
-                aiController.memory.actionCooldown = config.ai.globalDecisionCooldown;
+                aiController.memory.actionCooldown = config.ai.decisionCooldown;
                 // An action was taken. The 'return' statement that was here has been
                 // removed to allow other AIs to act in the same game update frame,
                 // creating a more simultaneous feel.

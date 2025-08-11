@@ -56,7 +56,7 @@ export const config = {
             radius: 300,
             distanceDivisor: 10,
         },
-        globalDecisionCooldown: 0.25, // seconds between ANY AI being allowed to make a decision
+        decisionCooldown: 0.25, // seconds between AI being allowed to make a decision
     },
     // --- UI & INPUT ---
     ui: {

@@ -21,13 +21,10 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         playerSelectorsContainer.className = 'ai-selectors-container';
         playerSelectorsContainer.id = 'player-selectors-container';
         setupForm.appendChild(playerSelectorsContainer);
-
         const advancedPanel = this.createAdvancedPanel();
         setupForm.appendChild(advancedPanel); 
-
         const bottomButtons = this.createBottomButtons(advancedPanel);
         setupForm.appendChild(bottomButtons);
-
         menuContainer.appendChild(setupForm);
         this.updatePlayerSelectors();
         this.menuManager.footerManager.showBackButton(() => {
@@ -35,29 +32,22 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         });
         return menuContainer;
     }
-
     createAdvancedPanel() {
         const panel = document.createElement('div');
         panel.className = 'advanced-settings-panel';
         panel.id = 'advanced-settings-panel';
-
         const title = document.createElement('h3');
         title.className = 'section-title';
         title.textContent = 'ADVANCED SETTINGS';
         panel.appendChild(title);
-
-        // NEW: Wrapper for the actual settings
         const settingsContent = document.createElement('div');
         settingsContent.className = 'advanced-settings-content';
-
         settingsContent.appendChild(this.createBatchGameControl());
         settingsContent.appendChild(this.createGamePaceControl());
         settingsContent.appendChild(this.createHeadlessModeControl());
-        
         panel.appendChild(settingsContent);
         return panel;
     }
-
     createBatchGameControl() {
         const batchContainer = document.createElement('div');
         batchContainer.className = 'advanced-setting-item';
@@ -78,9 +68,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         batchContainer.appendChild(input);
         return batchContainer;
     }
-    
-    // NEW: Placeholder UI for Game Pace
-    createGamePaceControl() {
+    createGamePaceControl() { // placeholder UI for game pace
         const container = document.createElement('div');
         container.className = 'advanced-setting-item';
         const label = document.createElement('label');
@@ -101,9 +89,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         container.appendChild(input);
         return container;
     }
-
-    // NEW: Placeholder UI for Headless Mode
-    createHeadlessModeControl() {
+    createHeadlessModeControl() { // placeholder UI for headless mode
         const container = document.createElement('div');
         container.className = 'advanced-setting-item';
         const label = document.createElement('label');
@@ -120,7 +106,6 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         container.appendChild(input);
         return container;
     }
-
     createBottomButtons(advancedPanel) {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'setup-buttons';
@@ -141,7 +126,6 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         buttonContainer.appendChild(startButton);
         return buttonContainer;
     }
-
     createPlayerCountControl() {
         const container = document.createElement('div');
         const countLabelElement = document.createElement('h2');
@@ -164,7 +148,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
                 document.querySelectorAll('.count-button').forEach(btn => btn.classList.remove('active'));
                 countButton.classList.add('active');
                 this.configManager.setPlayerCount(i);
-                this.updatePlayerSelectors(); // re-render the player list
+                this.updatePlayerSelectors(); // re-render player list
             });
             countSelect.appendChild(countButton);
         }
@@ -193,7 +177,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
             typeSelector.innerHTML = `<option value="human">Human</option><option value="bot">Bot</option>`;
             typeSelector.value = player.type;
             const aiSelector = document.createElement('select');
-aiOptions.forEach(opt => {
+            aiOptions.forEach(opt => {
                 const option = document.createElement('option');
                 option.value = opt.value;
                 option.textContent = opt.name;

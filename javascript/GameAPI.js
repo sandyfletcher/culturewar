@@ -77,7 +77,7 @@ export default class GameAPI {
      * @returns {number}
      */
     getDecisionCooldown() {
-        return config.ai.globalDecisionCooldown;
+        return config.ai.decisionCooldown;
     }
     /**
      * Gets the total configured duration of the game in seconds.

@@ -163,7 +163,7 @@ planet.maxTroops = 999;
 troop.movementSpeed = 150; 
 // AI bots are given a chance to act one after another. This is the minimum time between
 // ANY bot making a move. Your bot's actual thinking time will vary based on player count.
-ai.globalDecisionCooldown = 0.25;
+ai.decisionCooldown = 0.25;
 
 7. The Heart of Your Bot: makeDecision(dt)
 This is the only method you need to implement. It is called periodically by the game engine.
