@@ -6,6 +6,11 @@
 import Claude4Sonnet from './Claude4Sonnet.js';
 // --- Google (USA) ---
 import Gemini25Pro from './Gemini25Pro.js';
+import Gemini25ProA from './Gemini25ProA.js';
+import Gemini25ProB from './Gemini25ProB.js';
+import Gemini25ProC from './Gemini25ProC.js';
+import Gemini25ProD from './Gemini25ProD.js';
+import Gemini25ProE from './Gemini25ProE.js';
 // --- OpenAI (USA) ---
 import CGPT4o from './CGPT4o.js';
 // --- TNG Tech (Germany) ---
@@ -28,12 +33,47 @@ const botRegistry = [
         description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
     },
     { 
-        value: 'G-2.5-P', 
+        value: 'G2.5P', 
         name: 'Gemini 2.5 Pro', 
         class: Gemini25Pro, 
-        creationDate: '?? 2025', 
+        creationDate: 'March 2025?', 
         description: 'Operates on a "waterfall" logic model, where it evaluates a strict hierarchy of possible actions each turn. This ensures that critical tasks are always handled first.'
-     },
+    },
+    { 
+        value: 'G2.5PA', 
+        name: 'Gemini 2.5 Pro A', 
+        class: Gemini25ProA, 
+        creationDate: 'March 2025', 
+        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
+    },
+    { 
+        value: 'G2.5PB', 
+        name: 'Gemini 2.5 Pro B', 
+        class: Gemini25ProB, 
+        creationDate: 'March 2025', 
+        description: "Employs a phased strategy that adapts its behavior based on the game's progression, prioritizing survival and efficient resource acquisition to dominate the battlefield."
+    },
+    { 
+        value: 'G2.5PC', 
+        name: 'Gemini 2.5 Pro C', 
+        class: Gemini25ProC, 
+        creationDate: 'March 2025', 
+        description: "A balanced bot that adapts its strategy based on the game phase, focusing on efficient expansion, strong defense, and calculated aggression."
+    },
+    { 
+        value: 'G2.5PD', 
+        name: 'Gemini 2.5 Pro D', 
+        class: Gemini25ProD, 
+        creationDate: 'March 2025', 
+        description: "Employs an adaptive, three-phase strategy focusing on aggressive expansion, strategic targeting, and intelligent consolidation."
+    },
+    { 
+        value: 'G2.5PE', 
+        name: 'Gemini 2.5 Pro E', 
+        class: Gemini25ProE, 
+        creationDate: 'March 2025', 
+        description: "Employs a defense-first, phased strategy that adapts to the game's flow."
+    },
     { 
         value: 'GPT-4o', 
         name: 'ChatGPT 4o', 

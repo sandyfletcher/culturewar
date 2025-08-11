@@ -31,6 +31,8 @@ export default class Game {
         this.planets = [];
         this.troopMovements = [];
         this.selectedPlanets = [];
+        this.accumulator = 0;
+        this.renderAlpha = 0; // MOD: Add property for interpolation factor
         this.mousePos = { x: 0, y: 0 };
         this.timerManager = new TimerManager(this);
         this.isActive = false;
@@ -189,16 +191,19 @@ export default class Game {
         if (this.gameOver) return;
         const totalGameDt = rawDt * speedMultiplier;
         const FIXED_TIME_STEP = 1 / 60;
-        let accumulator = totalGameDt;
+        this.accumulator += totalGameDt;
         const maxStepsPerFrame = 200; 
         let steps = 0;
-        while (accumulator >= FIXED_TIME_STEP && steps < maxStepsPerFrame) {
+        while (this.accumulator >= FIXED_TIME_STEP && steps < maxStepsPerFrame) {
             this.updatePlanets(FIXED_TIME_STEP);
             this.updateTroopMovements(FIXED_TIME_STEP);
             this.playersController.updateAIPlayers(FIXED_TIME_STEP);
-            accumulator -= FIXED_TIME_STEP;
+            this.accumulator -= FIXED_TIME_STEP;
             steps++;
         }
+        // MOD: Calculate the alpha value for smooth rendering
+        this.renderAlpha = this.accumulator / FIXED_TIME_STEP;
+
         this.troopTracker.update();
     }
     updatePlanets(dt) {
@@ -267,7 +272,7 @@ export default class Game {
     }
     gameLoop() {
         this.update();
-        this.renderer.draw();
+        this.renderer.draw(this.renderAlpha); // MOD: Pass alpha to the renderer
         if (!this.gameOver) {
             requestAnimationFrame(() => this.gameLoop());
         }
@@ -278,7 +283,7 @@ export default class Game {
                 return;
             }
             this.update();
-            setTimeout(headlessLoop, 0);
+            setTimeout( headlessLoop, 0);
         };
         headlessLoop();
     }

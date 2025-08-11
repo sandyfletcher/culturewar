@@ -26,15 +26,19 @@ export default class TroopMovement {
         this.progress += dt / this.duration;
         return this.progress >= 1;
     }
-    getCurrentPosition() {
-        const easedProgress = this.progress; // Can add easing function here if desired
+    getCurrentPosition(alpha = 0) { // MOD: Accept alpha for interpolation
+        // Calculate how much progress would be made in a single fixed logic step.
+        const progressPerStep = (1 / 60) / this.duration;
+        // The render progress is the last known logic progress plus a fraction of the next step.
+        const renderProgress = this.progress + (progressPerStep * alpha);
+        
         return {
-            x: this.startX + this.dx * easedProgress,
-            y: this.startY + this.dy * easedProgress
+            x: this.startX + this.dx * renderProgress,
+            y: this.startY + this.dy * renderProgress
         };
     }
-    draw(ctx) { // draw troop movement
-        const pos = this.getCurrentPosition();
+    draw(ctx, alpha = 0) { // MOD: Accept alpha
+        const pos = this.getCurrentPosition(alpha); // MOD: Pass alpha to get interpolated position
         ctx.beginPath(); // draw movement trail
         ctx.moveTo(this.startX, this.startY);
         ctx.lineTo(pos.x, pos.y);

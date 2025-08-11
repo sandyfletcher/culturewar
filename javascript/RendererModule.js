@@ -8,15 +8,15 @@ export default class Renderer {
         this.ctx = game.ctx;
         this.canvas = game.canvas;
     }
-    draw() {
+    draw(alpha = 0) { // MOD: Accept alpha, default to 0
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawTrajectory();
         this.drawSelectionBox();
         for (const planet of this.game.planets) {
-            planet.draw(this.ctx);
+            planet.draw(this.ctx); // MOD: Planets don't need interpolation, their state is discrete.
         }
         for (const movement of this.game.troopMovements) {
-            movement.draw(this.ctx);
+            movement.draw(this.ctx, alpha); // MOD: Pass alpha to troop movements for smooth rendering.
         }
         this.drawUIOverlays();
     }

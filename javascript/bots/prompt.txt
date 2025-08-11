@@ -1,70 +1,53 @@
 Your Mission: Design a Champion AI
-
 Your mission is to design and implement a high-performance AI bot for a real-time strategy game based on "Galcon". Your bot will be entered into an arena to compete against a diverse field of other AIs. The goal is not merely to participate, but to win. Create a bot that is robust, adaptive, and strategically superior.
 
 --- 1. Game Fundamentals ---
-
-The game is a fast-paced battle for control. Here are the core rules:
-
-*   **Objective:** Eliminate all opponents by conquering their planets. The game ends when only one player (or team) remains, or when the 5-minute timer runs out.
-*   **Time-Out Victory:** If the timer expires, the winner is the player controlling the most planets. Total troops serves as the tiebreaker.
-*   **Planets & Production:** The map contains planets of various sizes. Player-owned planets generate new "troops" (units of cultural influence) over time. A planet's production rate is directly proportional to its size. Neutral planets are static and do not produce troops.
-*   **Fleets & Conquest:** You can send fleets of troops from your planets to any other planet. When a fleet arrives at a friendly planet, it reinforces it. When it arrives at an enemy or neutral planet, a 1-for-1 battle ensues. If the attacking fleet is larger than the defending garrison, it conquers the planet.
+Objective: Eliminate all opponents by conquering their planets. The game ends when only one player remains, or when the 5-minute timer runs out.
+Time-Out Victory: If the timer expires, the winner is the player controlling the most planets. Total troops serves as the tiebreaker.
+Planets & Production: Player-owned planets generate new "troops" at a rate proportional to their size. Neutral planets do not produce troops.
+Fleets & Conquest: You can send fleets of troops from your planets to any other planet. When a fleet arrives at a friendly planet, it reinforces it. When it arrives at an enemy or neutral planet, a 1-for-1 battle ensues. If the attacking fleet is larger than the defending garrison, it conquers the planet.
 
 --- 2. Your Task & Deliverable ---
-
 You must write a single, self-contained JavaScript file that defines your bot's class.
+The file must be named [YourModelName].js.
+Your class must extend the BaseBot class.
+Your file must have only one import: import BaseBot from './BaseBot.js';.
+All your bot's decision-making logic must be contained within the makeDecision(dt) method.
+Add comments to your code explaining your high-level strategic choices.
 
-*   The file must be named `[YourModelName].js`.
-*   Your class must extend the `BaseBot` class.
-*   Your file must have only one import: `import BaseBot from './BaseBot.js';`.
-*   All your bot's decision-making logic must be contained within the `makeDecision(dt)` method.
-*   Add comments to your code explaining your high-level strategic choices and the purpose of your main logic blocks.
-
---- 3. The BaseBot Class: Your Foundation ---
-
-Your bot will extend `BaseBot`, which provides the essential structure.
-
-// root/javascript/bots/BaseBot.js
-
-export default class BaseBot {
-    constructor(api, playerId) {
-        if (this.constructor === BaseBot) {
-            throw new Error("BaseBot is an abstract class and cannot be instantiated directly.");
-        }
-        this.playerId = playerId;
-        // Your primary tool for interacting with the game state.
-        this.api = api;
-        // A persistent object for storing state between decisions.
-        this.memory = { 
-            actionCooldown: 0, 
-            missions: new Map(),
-            //... add your own properties here
-        };
-    }
-    /**
-    * This is the method you MUST implement in your class.
-    * @param {number} dt - The game's delta time, scaled by game speed.
-    * @returns {object|null} A decision object like { from, to, troops } or null.
-    */
-    makeDecision(dt) {
-        throw new Error("The 'makeDecision' method must be implemented by the subclass.");
-    }
-}
-
---- 4. Critical Rule: Read-Only Game State ---
-
-To ensure a fair competition, your bot has read-only access to the game world. You cannot directly modify the state of planets or fleets you receive from the API. Attempting to do so will be blocked and will generate a console warning.
-INCORRECT:
+--- 3. Critical Rule: Read-Only Game State ---
+To ensure a fair competition, your bot has read-only access to the game world. You cannot directly modify objects you receive from the API. Attempting to do so will be blocked and will generate a console warning.
+INCORRECT (will not work):
 const target = this.api.getEnemyPlanets()[0];
 target.troops -= 50; // This is an illegal modification!
-CORRECT:
-const targetFromAPI = this.api.getEnemyPlanets()[0]; If you need to simulate an outcome
+CORRECT (for "what-if" simulations):
+If you need to simulate an outcome, create a local, mutable copy of the object first.
+const targetFromAPI = this.api.getEnemyPlanets()[0];
 const simulatedTarget = { ...targetFromAPI }; // Create a mutable copy
 simulatedTarget.troops -= 50; // This is safe and only affects your local variable
 
---- 5. Master the GameAPI: Your Senses and Intel ---
+--- 4. Data Structures ---
+The API functions will return objects with the following structures:
+Planet Object:
+{
+  id: "p-12",          // Unique and stable identifier for the planet.
+  x: 150.7,            // X-coordinate.
+  y: 300.2,            // Y-coordinate.
+  size: 25,            // Radius of the planet. Affects production rate.
+  troops: 45.8,        // Current number of troops (can be a float).
+  owner: "player1",    // The ID of the owning player ('neutral' if unowned).
+  productionRate: 1.25 // Troops generated per second. Read-only.
+}
+TroopMovement Object (Fleet):
+{
+  from: Planet,        // The origin Planet object.
+  to: Planet,          // The destination Planet object.
+  amount: 30,          // The number of troops in the fleet.
+  owner: "player2",    // The ID of the player who sent the fleet.
+  duration: 4.5        // The remaining time in seconds until the fleet arrives.
+}
 
+--- 5. Master the GameAPI: Your Senses and Intel ---
 this.api is your window into the game. Use its functions to gather intelligence and make informed decisions.
 
 == General Game Info ==
@@ -109,50 +92,59 @@ calculatePlanetValue(planet): A generic helper that combines size, production, a
 calculateThreat(myPlanet): A generic helper that calculates a threat score for one of your planets based on nearby enemy troops and incoming fleets.
 
 --- 6. Strategic Philosophy ---
-
 A winning bot must do more than react. It needs a plan.
 State Management: Use this.memory to track long-term goals. For example, use this.memory.missions to remember which planets are already tasked with an attack so you don't over-commit your forces.
 Phased Strategy: The best strategy changes. Early game may be about rapid, low-cost expansion. Mid-game may focus on crippling a key opponent. Late game might be a desperate all-in attack or a defensive consolidation. Use getGamePhase() to adapt your logic.
-Custom Intelligence: The provided calculatePlanetValue and calculateThreat helpers are decent, but a champion bot will have its own definition of "value" and "threat". Use the raw data functions (getPlanetProductionRate, getPlanetCentrality, planet.size, planet.troops) to build your own superior evaluation algorithms. Does your bot value a high-production planet on the edge of the map more than a low-production one in the center? That's for you to decide.
+Custom Intelligence: The provided calculatePlanetValue and calculateThreat helpers are decent, but a champion bot will have its own definition of "value" and "threat". Use the raw data functions (getPlanetProductionRate, getPlanetCentrality, planet.size, planet.troops) to build your own superior evaluation algorithms.
 Efficiency is Key: Don't just attack; attack with precision. Use predictPlanetState to calculate the exact number of troops needed for a successful conquest, plus a small safety buffer. Wasting troops is a path to defeat.
 
 --- 7. Your Starting Template ---
-
 Use this template as the starting point for your [YourModelName].js file.
 
+// =============================================
 // root/javascript/bots/[YourModelName].js
+// =============================================
 
 import BaseBot from './BaseBot.js';
 
 /**
  * [A brief, one-sentence description of your bot's core strategy.]
  * 
- * [A more detailed explanation of your bot's strategic pillars,
- *  e.g., "1. Defensive Priority, 2. Value-based Expansion, etc."]
+ * [A more detailed explanation of your bot's strategic pillars.]
  */
 export default class [YourModelName] extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
-        // You can add custom configuration or properties to this.memory here.
+        // Add custom configuration or properties to this.memory here.
     }
+
     /**
      * This method is called by the game engine every turn.
      * @param {number} dt - The time elapsed since the last decision, in game seconds.
-     * @returns {object|null} A decision object { from, to, troops } or null to do nothing.
+     * @returns {object|null} A decision object or null.
      */
     makeDecision(dt) {
+        // --- The Decision Object ---
+        // To send troops, you must return an object with this EXACT structure:
+        // { 
+        //   from: sourcePlanetObject, // The full Planet object from the API
+        //   to:   targetPlanetObject, // The full Planet object from the API
+        //   troops: troopsToSend      // A positive integer
+        // }
+
         // Cooldown check
         if (this.memory.actionCooldown > 0) {
             this.memory.actionCooldown -= dt;
             return null;
         }
+
         const myPlanets = this.api.getMyPlanets();
         if (myPlanets.length === 0) {
             return null; // No planets left, surrender.
         }
 
         // --- Your champion-level strategic logic begins here ---
-        
+
         // If no decision is made, return null.
         return null;
     }
