@@ -46,8 +46,7 @@ export default class PlayersController {
     }
     updateAIPlayers(dt) {
         const activeAiPlayers = this.getAIPlayers()
-            .filter(p => this.game.gameState.activePlayers.has(p.id));
-
+        .filter(p => this.game.gameState.activePlayers.has(p.id));
         if (activeAiPlayers.length === 0) {
             return;
         }
@@ -71,12 +70,11 @@ export default class PlayersController {
                     aiDecision.to,
                     aiDecision.troops
                 );
-                // ...and reset ITS OWN cooldown. The amount can be decided by the bot,
-                // but for now, we'll use the global config value as a default.
+                // ...and reset ITS OWN cooldown. This doesn't affect other bots.
                 aiController.memory.actionCooldown = config.ai.globalDecisionCooldown;
-                // An action was taken, so we immediately exit the AI update for this frame.
-                // This prevents other AIs from acting on the same tick.
-                return;
+                // An action was taken. The 'return' statement that was here has been
+                // removed to allow other AIs to act in the same game update frame,
+                // creating a more simultaneous feel.
             }
         }
     }

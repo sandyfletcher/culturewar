@@ -23,7 +23,7 @@ export default class MenuManager {
             this.uiManager.getMenuScreenElement(),
             this.screenManager,
             this.configManager,
-            this // Pass the MenuManager instance to the builder
+            this // pass MenuManager instance to builder
         );
         this.game = null;
         this.gameOverScreen = new GameOverScreen(
@@ -33,29 +33,25 @@ export default class MenuManager {
         );
         this.isBatchRunning = false;
         this.gamesRemaining = 0;
+        this.totalGamesInBatch = 0;
         this.currentBatchConfig = null;
-        
-        // Listen for confirmation dialog requests from other modules
-        eventManager.on('confirm-action', this.handleConfirmAction.bind(this));
-
+        eventManager.on('confirm-action', this.handleConfirmAction.bind(this)); // listen for confirmation dialog requests from other modules
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
-
     handleConfirmAction({ message, onConfirm }) {
         if (window.confirm(message)) {
             onConfirm();
         }
     }
-
     initializeUserIdentity() {
         const storageKey = 'cultureWarUserId';
         let userId = localStorage.getItem(storageKey);
         if (!userId) {
-            userId = Math.random().toString(36).substring(2, 7); // generates a short random alphanumeric string
+            userId = Math.random().toString(36).substring(2, 7); // generate short random alphanumeric string
             try {
                 localStorage.setItem(storageKey, userId);
-            } catch (error) { // if localStorage is disabled, just have a session-based ID as fallback
+            } catch (error) { // if localStorage is disabled, just a session-based ID as fallback
                 console.error('Could not save user ID to localStorage:', error);
             }
         }
@@ -94,6 +90,7 @@ export default class MenuManager {
         const config = this.configManager.getConfig();
         this.currentBatchConfig = { ...config }; // store a copy of config
         this.gamesRemaining = this.currentBatchConfig.batchSize;
+        this.totalGamesInBatch = this.currentBatchConfig.batchSize;
         this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
         if (this.isBatchRunning) {
             if (this.currentBatchConfig.isHeadless) {
@@ -125,8 +122,8 @@ export default class MenuManager {
             this.switchToScreen('menu');
             return;
         }
-        const gameNumber = this.currentBatchConfig.batchSize - this.gamesRemaining + 1;
-        eventManager.emit('update-batch-overlay', gameNumber, this.currentBatchConfig.batchSize);
+        const gameNumber = this.totalGamesInBatch - this.gamesRemaining + 1;
+        eventManager.emit('update-batch-overlay', gameNumber, this.totalGamesInBatch);
         this.gamesRemaining--;
         if (!this.currentBatchConfig.isHeadless) {
             this.switchToScreen('game');

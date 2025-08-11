@@ -37,7 +37,9 @@ export default class Game {
         this.gameOver = false;
         this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from config
         this.playersController = new PlayersController(this, this.config);
-        this.inputHandler = this.humanPlayerIds.length > 0 ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds) : null; // InputHandler is created only if there are human players
+    this.inputHandler = this.humanPlayerIds.length > 0 && !this.config.isHeadless
+        ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds)
+        : null;
         this.renderer = new Renderer(this); // Pass the entire game instance
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);

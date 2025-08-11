@@ -72,9 +72,9 @@ export default class TroopTracker {
         this.lastTotalTroops = totalTroops; // store calculated total for renderer
         if (this.barSegmentsContainer) {
             this.barSegmentsContainer.innerHTML = '';
-            const orderedPlayerIds = [
-                'player1', 'player2', 'player3', 'player4', 'player5', 'player6', 'neutral'
-            ];
+            const orderedPlayerIds = this.game.playersController.players.map(p => p.id);
+            // Add the neutral player, which is always handled last.
+            orderedPlayerIds.push('neutral');
             for (const playerId of orderedPlayerIds) {
                 if (playerTroops[playerId] && playerTroops[playerId] > 0) {
                     const percentage = (playerTroops[playerId] / totalTroops) * 100;
