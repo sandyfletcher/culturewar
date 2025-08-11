@@ -2,6 +2,8 @@
 // root/javascript/GameStateCheck.js
 // ===========================================
 
+import eventManager from './EventManager.js';
+
 export default class GameState {
     constructor(game) {
         this.game = game;
@@ -15,9 +17,16 @@ export default class GameState {
         this.planetsConquered = 0;
         this.elapsedGameTime = 0;
         this.eliminationTimes = {};
-        this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));
+        // activePlayers will be initialized in the init() method.
+        this.activePlayers = new Set();
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        this.memory_human_eliminated = false;
+    }
+    // New init() method for second-phase initialization
+    init() {
+        // This line is now safe to run because playersController is guaranteed to exist.
+        this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));
     }
     handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
@@ -45,18 +54,15 @@ export default class GameState {
         }
     }
     checkHumanPlayerStatus() {
-        if (!this.game.footerManager || this.game.humanPlayerIds.length === 0) {
+        if (this.game.humanPlayerIds.length === 0) {
             return;
         }
-        if (this.game.footerManager.mode === 'troop') {
-            const activeHumanPlayers = this.game.humanPlayerIds.filter(id =>
-                this.game.playersController.hasPlayerPlanets(id) ||
-                this.game.playersController.hasPlayerTroopsInMovement(id)
-            );
-            if (activeHumanPlayers.length === 0) {
-                this.game.footerManager.switchToSpeedMode();
-                this.game.timerManager.shouldPauseOnHidden = false;
-            }
+        const hasActiveHuman = this.game.humanPlayerIds.some(id =>
+            this.game.gameState.activePlayers.has(id)
+        );
+        if (!hasActiveHuman && !this.memory_human_eliminated) {
+            this.memory_human_eliminated = true;
+            eventManager.emit('human-players-eliminated');
         }
     }
     incrementTroopsSent(amount) { this.troopsSent += amount; }
@@ -91,7 +97,6 @@ export default class GameState {
             .filter(p => p.id !== 'neutral');
         playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
         const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
-        // Report game stats using the new robust system
         this.game.reportStats({
             type: 'GAME_STATS',
             gameId: gameId,
@@ -107,7 +112,6 @@ export default class GameState {
             const survivalTime = this.eliminationTimes[player.id] || this.elapsedGameTime;
             const originalPlayerData = allPlayersData.find(p => p.id === player.id);
             const aggregationKey = originalPlayerData.aiController || 'PLAYER';
-            // Report player stats using the new robust system
             this.game.reportStats({
                 type: 'PLAYER_STATS',
                 gameId: gameId,
@@ -119,11 +123,10 @@ export default class GameState {
                 cultureScore: cultureScore
             });
         });
-        if (this.game.menuManager.isBatchRunning) { // decide what to do next based on batch mode
+        if (this.game.menuManager.isBatchRunning) {
             this.game.menuManager.startNextBatchGame();
-            return; // exit to prevent showing game over screen
+            return;
         }
-        // single-game screen display logic
         const humanWon = this.game.humanPlayerIds.includes(this.winner);
         const stats = {
             winner: this.winner,

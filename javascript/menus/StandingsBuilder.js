@@ -63,7 +63,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
             });
             leaderboardHTML = `
                 <h2>STANDINGS</h2>
-                <div class.leaderboard">
+                <div class="leaderboard">
                     <table>
                         <thead>
                             <tr>

@@ -71,8 +71,8 @@ export default class GameConfigManager {
     getPlayerColors() {
         return this.playerColors;
     }
-    getPlayerDisplayName(playerData, gameInstance, getNickname = false) {
-        const configPlayer = gameInstance.config.players.find(p => p.id === playerData.id);
+    getPlayerDisplayName(playerData, playersConfigArray, getNickname = false) {
+        const configPlayer = playersConfigArray.find(p => p.id === playerData.id);
         if (configPlayer?.type === 'human') {
             return getNickname ? 'PLAYER' : 'Player';
         }

@@ -35,29 +35,39 @@ export default class Game {
         this.timerManager = new TimerManager(this);
         this.isActive = false;
         this.gameOver = false;
-        this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id); // determine which players are human from config
+        this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id);
+
+        // --- Phase 1: Construction ---
+        // All modules are created here, but they should not access each other yet.
         this.playersController = new PlayersController(this, this.config);
-    this.inputHandler = this.humanPlayerIds.length > 0 && !this.config.isHeadless
-        ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds)
-        : null;
-        this.renderer = new Renderer(this); // Pass the entire game instance
+        this.inputHandler = this.humanPlayerIds.length > 0 && !this.config.isHeadless
+            ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds, this)
+            : null;
+        this.renderer = new Renderer(this);
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
         this.planetGenerator = new PlanetGeneration(this);
+
+        // --- Phase 2: Initialization ---
+        // Now that all modules exist, we can call their init methods to wire them up.
+        this.gameState.init(); // This will now safely access this.playersController.
+        
         if (this.config && this.config.planetDensity !== undefined) {
             this.planetGenerator.setPlanetDensity(this.config.planetDensity);
         }
-        if (this.footerManager && this.footerManager.mode === 'speed' && this.config.initialGamePace) { // set initial game pace if configured
+        if (this.footerManager && this.footerManager.mode === 'speed' && this.config.initialGamePace) {
             this.footerManager.setSpeedFromMultiplier(this.config.initialGamePace);
         }
         this.timerManager.initialize();
         this.isActive = true;
         this.initializeGame();
-        if (this.config.isHeadless) { // choose game loop based on headless mode
+        if (this.config.isHeadless) {
             this.runHeadless();
         } else {
             this.gameLoop();
         }
+
+        // --- Event Listeners ---
         eventManager.on('screen-changed', (screenName) => {
             if (screenName === 'game') {
                 this.troopTracker.showTroopBar();
@@ -65,18 +75,17 @@ export default class Game {
                 this.troopTracker.hideTroopBar();
             }
         });
-        // Properties for double-click detection
-        this.lastClickedPlanet = null;
-        this.lastClickTime = 0;
-        this.doubleClickTimeThreshold = this.config.doubleClickTimeThreshold || 300; // ms
-        // Event listeners for input
         eventManager.on('mouse-moved', (pos) => {
             if (this.gameOver) return;
             this.mousePos = pos;
         });
-        eventManager.on('click', (pos) => {
+        eventManager.on('click', (data) => {
             if (this.gameOver) return;
-            this.handleClick(pos);
+            this.handleClick(data);
+        });
+        eventManager.on('planet-double-clicked', (planet) => {
+            if (this.gameOver) return;
+            this.handleDoubleClick(planet);
         });
         eventManager.on('selection-box', (box) => {
             if (this.gameOver) return;
@@ -88,24 +97,14 @@ export default class Game {
             this.statsTracker.report(data);
         }
     }
-    handleClick({ x, y }) {
-        const clickedPlanet = this.planets.find(planet => planet.containsPoint(x, y));
+    handleClick({ target: clickedPlanet }) {
         if (!clickedPlanet) {
             this.clearSelection();
             return;
         }
+
         const isHumanPlanet = this.humanPlayerIds.includes(clickedPlanet.owner);
-        const now = Date.now();
-        if (isHumanPlanet &&
-            clickedPlanet === this.lastClickedPlanet &&
-            now - this.lastClickTime < this.doubleClickTimeThreshold) {
-            this.selectAllPlayerPlanets(clickedPlanet.owner);
-            this.lastClickedPlanet = null;
-            this.lastClickTime = 0;
-            return;
-        }
-        this.lastClickedPlanet = clickedPlanet;
-        this.lastClickTime = now;
+
         if (this.selectedPlanets.length > 0 && !this.selectedPlanets.includes(clickedPlanet)) {
             if (this.selectedPlanets.every(p => this.humanPlayerIds.includes(p.owner))) {
                 const troopPercentage = this.footerManager.getTroopPercentage() / 100;
@@ -121,6 +120,11 @@ export default class Game {
             this.clearSelection();
             clickedPlanet.selected = true;
             this.selectedPlanets = [clickedPlanet];
+        }
+    }
+    handleDoubleClick(planet) {
+        if (this.humanPlayerIds.includes(planet.owner)) {
+            this.selectAllPlayerPlanets(planet.owner);
         }
     }
     handleSelectionBox(box) {
@@ -176,23 +180,16 @@ export default class Game {
         this.gameState.lastUpdate = now;
         let speedMultiplier = 1.0;
         if (this.config.isHeadless) {
-            speedMultiplier = 100.0; // Use a high multiplier for fast simulations
+            speedMultiplier = 100.0;
         } else if (this.footerManager && this.footerManager.mode === 'speed') {
             speedMultiplier = this.footerManager.getSpeedMultiplier();
         }
-        // Update overall timers and game state based on real-world time elapsed.
-        // This should happen once per frame.
         this.timerManager.update(speedMultiplier);
         this.gameState.update(rawDt, speedMultiplier);
         if (this.gameOver) return;
-        // --- FIXED-STEP SIMULATION LOOP ---
-        // This ensures game logic runs in small, consistent increments, even at high speeds,
-        // preventing the "large time step" problem and maintaining simulation accuracy.
         const totalGameDt = rawDt * speedMultiplier;
-        const FIXED_TIME_STEP = 1 / 60; // Simulate the game at a consistent 60 ticks per second.
+        const FIXED_TIME_STEP = 1 / 60;
         let accumulator = totalGameDt;
-        // Run the simulation logic in a loop until we've "caught up" to the total time for this frame.
-        // A cap is added to prevent an infinite spiral on very slow machines.
         const maxStepsPerFrame = 200; 
         let steps = 0;
         while (accumulator >= FIXED_TIME_STEP && steps < maxStepsPerFrame) {
@@ -202,7 +199,6 @@ export default class Game {
             accumulator -= FIXED_TIME_STEP;
             steps++;
         }
-        // Update the visual troop bar based on the final state of this frame's simulation.
         this.troopTracker.update();
     }
     updatePlanets(dt) {

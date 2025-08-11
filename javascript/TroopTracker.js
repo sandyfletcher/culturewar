@@ -73,7 +73,6 @@ export default class TroopTracker {
         if (this.barSegmentsContainer) {
             this.barSegmentsContainer.innerHTML = '';
             const orderedPlayerIds = this.game.playersController.players.map(p => p.id);
-            // Add the neutral player, which is always handled last.
             orderedPlayerIds.push('neutral');
             for (const playerId of orderedPlayerIds) {
                 if (playerTroops[playerId] && playerTroops[playerId] > 0) {
@@ -87,7 +86,7 @@ export default class TroopTracker {
                     if (playerId !== 'neutral') { // add player nickname to segment
                         const playerInfo = this.game.playersController.getPlayerById(playerId);
                         if (playerInfo) {
-                            const nickname = this.configManager.getPlayerDisplayName(playerInfo, this.game, true);
+                            const nickname = this.configManager.getPlayerDisplayName(playerInfo, this.game.config.players, true);
                             const nameSpan = document.createElement('span');
                             nameSpan.className = 'troop-bar-name';
                             nameSpan.textContent = nickname;

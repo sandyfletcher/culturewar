@@ -6,16 +6,18 @@ import { config } from './config.js';
 import eventManager from './EventManager.js';
 
 export default class InputHandler {
-    constructor(canvas, footerManager, humanPlayerIds) {
+    constructor(canvas, footerManager, humanPlayerIds, game) {
         this.canvas = canvas;
         this.footerManager = footerManager;
         this.humanPlayerIds = humanPlayerIds;
+        this.game = game; // Store the game instance to access planets
         this.mousePos = { x: 0, y: 0 };
         this.isSelecting = false;
         this.selectionStart = { x: 0, y: 0 };
         this.selectionEnd = { x: 0, y: 0 };
         this.touchStartTime = 0;
-        this.lastClickedPlanet = null;
+        // Double-click detection state is now managed here
+        this.lastClickTarget = null;
         this.lastClickTime = 0;
         this.doubleClickTimeThreshold = config.ui.input.doubleClickThreshold;
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
@@ -24,6 +26,25 @@ export default class InputHandler {
         this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
         this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
         this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+    }
+    processClick(x, y) {
+        const clickedPlanet = this.game.planets.find(planet => planet.containsPoint(x, y));
+        const now = Date.now();
+        // Check for double click on the same planet
+        if (clickedPlanet &&
+            clickedPlanet === this.lastClickTarget &&
+            (now - this.lastClickTime < this.doubleClickTimeThreshold)
+        ) {
+            eventManager.emit('planet-double-clicked', clickedPlanet);
+            // Reset state to prevent a triple-click from also counting as a double-click
+            this.lastClickTime = 0;
+            this.lastClickTarget = null;
+        } else {
+            // It's a single click
+            eventManager.emit('click', { x, y, target: clickedPlanet });
+            this.lastClickTime = now;
+            this.lastClickTarget = clickedPlanet;
+        }
     }
     handleMouseMove(e) {
         const rect = this.canvas.getBoundingClientRect();
@@ -56,7 +77,7 @@ export default class InputHandler {
         );
 
         if (distMoved < config.ui.input.clickMoveThreshold) {
-            eventManager.emit('click', { x, y });
+            this.processClick(x, y);
         } else {
             const selectionBox = {
                 left: Math.min(this.selectionStart.x, this.selectionEnd.x),
@@ -104,7 +125,7 @@ export default class InputHandler {
         );
 
         if (touchDuration < config.ui.input.touchDurationThreshold && distMoved < config.ui.input.touchMoveThreshold) {
-            eventManager.emit('click', { x: this.selectionEnd.x, y: this.selectionEnd.y });
+            this.processClick(this.selectionEnd.x, this.selectionEnd.y);
         } else {
             const selectionBox = {
                 left: Math.min(this.selectionStart.x, this.selectionEnd.x),

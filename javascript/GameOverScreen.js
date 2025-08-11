@@ -25,8 +25,8 @@ export default class GameOverScreen {
             const survivalTime = eliminationTimes[playerData.id] || gameTime;
             return {
                 id: playerData.id,
-                displayName: this.configManager.getPlayerDisplayName(playerData, gameInstance, false),
-                nickname: this.configManager.getPlayerDisplayName(playerData, gameInstance, true),
+                displayName: this.configManager.getPlayerDisplayName(playerData, gameInstance.config.players, false),
+                nickname: this.configManager.getPlayerDisplayName(playerData, gameInstance.config.players, true),
                 planets: playerStat.planets,
                 troops: Math.floor(playerStat.troops || 0),
                 survivalTime,
