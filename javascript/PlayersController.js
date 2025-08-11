@@ -56,15 +56,26 @@ export default class PlayersController {
             }
             const aiController = this.aiControllers[player.id]; // if controller's timer has expired, bot is allowed to think
             if (!aiController) continue;
+            // THE COOLDOWN FIX: Set the cooldown immediately.
+            // The bot gets one chance to think, then must wait.
+            this.aiCooldowns[player.id] = config.ai.decisionCooldown;
             const aiDecision = aiController.makeDecision(dt);
-            // if bot makes a move, execute it and enforce the cooldown
+            // if bot makes a move, execute it
             if (aiDecision) {
-                this.game.sendTroops(
-                    aiDecision.from,
-                    aiDecision.to,
-                    aiDecision.troops
-                );
-                this.aiCooldowns[player.id] = config.ai.decisionCooldown; // controller sets cooldown in its private tracker using value from global config, and a bot cannot change this
+                // THE READ-ONLY FIX: The bot now returns IDs. Look up the REAL game objects.
+                const fromPlanet = this.game.planets.find(p => p.id === aiDecision.fromId);
+                const toPlanet = this.game.planets.find(p => p.id === aiDecision.toId);
+                // Add a safety check in case a bot returns a non-existent ID
+                if (fromPlanet && toPlanet) {
+                     this.game.sendTroops(
+                        fromPlanet,
+                        toPlanet,
+                        aiDecision.troops
+                    );
+                } else {
+                    // This can help debug bots that return invalid planet IDs
+                    console.warn(`Bot ${player.id} returned a decision with an invalid planet ID.`);
+                }
             }
         }
     }

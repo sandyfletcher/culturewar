@@ -96,7 +96,7 @@ export default class Gemini25ProD extends BaseBot {
      */
     _executeDecision(decision) {
         this.memory.actionCooldown = this.config.ACTION_COOLDOWN;
-        this.memory.missions[decision.to.id] = { fromId: decision.from.id, troops: decision.troops };
+        this.memory.missions[decision.toId] = { fromId: decision.fromId, troops: decision.troops };
         return decision;
     }
     
@@ -149,8 +149,8 @@ export default class Gemini25ProD extends BaseBot {
                     if (planetValue > highestValueSaved) {
                         highestValueSaved = planetValue;
                         bestSave = {
-                            from: bestSaver.planet,
-                            to: myPlanet,
+                            fromId: bestSaver.planet.id,
+                            toId: myPlanet.id,
                             troops: troopsNeeded
                         };
                     }
@@ -201,8 +201,8 @@ export default class Gemini25ProD extends BaseBot {
 
         if (bestTarget && bestSource) {
             return {
-                from: bestSource,
-                to: bestTarget,
+                fromId: bestSource.id,
+                toId: bestTarget.id,
                 troops: Math.ceil(bestTarget.troops) + 1
             };
         }
@@ -251,7 +251,14 @@ export default class Gemini25ProD extends BaseBot {
             }
         }
 
-        return bestAttack;
+        if (bestAttack) {
+            return {
+                fromId: bestAttack.from.id,
+                toId: bestAttack.to.id,
+                troops: bestAttack.troops
+            };
+        }
+        return null;
     }
     
     /**
@@ -287,8 +294,8 @@ export default class Gemini25ProD extends BaseBot {
 
             if (troopsToSend >= this.config.MIN_ATTACK_FLEET) {
                 return {
-                    from: donor.planet,
-                    to: frontline.planet,
+                    fromId: donor.planet.id,
+                    toId: frontline.planet.id,
                     troops: troopsToSend
                 };
             }

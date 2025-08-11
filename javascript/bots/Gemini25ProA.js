@@ -193,8 +193,8 @@ export default class Gemini25ProA extends BaseBot {
 
                 virtualPlanets.get(bestSource.id).troops -= troopsToSend;
                 return {
-                    from: this.api.getPlanetById(bestSource.id),
-                    to: this.api.getPlanetById(planetToSave.id),
+                    fromId: bestSource.id,
+                    toId: planetToSave.id,
                     troops: troopsToSend,
                 };
             }
@@ -237,8 +237,8 @@ export default class Gemini25ProA extends BaseBot {
         if (bestOption) {
             virtualPlanets.get(bestOption.source.id).troops -= bestOption.troops;
             return {
-                from: this.api.getPlanetById(bestOption.source.id),
-                to: bestOption.target,
+                fromId: bestOption.source.id,
+                toId: bestOption.target.id,
                 troops: Math.ceil(bestOption.troops),
             };
         }
@@ -290,8 +290,8 @@ export default class Gemini25ProA extends BaseBot {
         if (bestAttack) {
             virtualPlanets.get(bestAttack.source.id).troops -= bestAttack.troops;
             return {
-                from: this.api.getPlanetById(bestAttack.source.id),
-                to: bestAttack.target,
+                fromId: bestAttack.source.id,
+                toId: bestAttack.target.id,
                 troops: Math.ceil(bestAttack.troops),
             };
         }
@@ -341,8 +341,8 @@ export default class Gemini25ProA extends BaseBot {
             if (troopsToSend > 0) {
                 virtualPlanets.get(sourceData.planet.id).troops -= troopsToSend;
                 return {
-                    from: this.api.getPlanetById(sourceData.planet.id),
-                    to: this.api.getPlanetById(destData.id),
+                    fromId: sourceData.planet.id,
+                    toId: destData.id,
                     troops: troopsToSend,
                 };
             }

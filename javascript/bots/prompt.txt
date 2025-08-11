@@ -102,7 +102,7 @@ Efficiency is Key: Don't just attack; attack with precision. Use predictPlanetSt
 Use this template as the starting point for your [YourModelName].js file.
 
 // =============================================
-// root/javascript/bots/[YourModelName].js
+// root/javascript/bots/[YourModel].js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -112,10 +112,10 @@ import BaseBot from './BaseBot.js';
  * 
  * [A more detailed explanation of your bot's strategic pillars.]
  */
-export default class [YourModelName] extends BaseBot {
+export default class [YourModel] extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
-        // Add custom configuration or properties to this.memory here.
+        // You can add custom configuration or properties to this.memory here.
     }
 
     /**
@@ -143,7 +143,7 @@ export default class [YourModelName] extends BaseBot {
             return null; // No planets left, surrender.
         }
 
-        // --- Your champion-level strategic logic begins here ---
+        // --- Your champion-level strategic logic can be placed here ---
 
         // If no decision is made, return null.
         return null;
