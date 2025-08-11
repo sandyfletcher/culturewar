@@ -12,7 +12,7 @@ export default class UIManager {
         this.gameScreen = document.getElementById('game-screen');
         this.canvas = document.getElementById('game-canvas');
         eventManager.on('show-batch-overlay', () => this.showBatchOverlay());
-        eventManager.on('update-batch-overlay', (gameNumber, totalGames) => this.updateBatchOverlay(gameNumber, totalGames));
+        eventManager.on('update-batch-overlay', ({ gameNumber, totalGames }) => this.updateBatchOverlay(gameNumber, totalGames)); // destructure object in listener's arguments
         eventManager.on('hide-batch-overlay', () => this.hideBatchOverlay());
         eventManager.on('screen-changed', (screenName) => this.switchToScreen(screenName));
     }
@@ -49,7 +49,7 @@ export default class UIManager {
         if (!this.batchOverlay) return;
         const progressText = this.batchOverlay.querySelector('#batch-progress-text');
         if (progressText) {
-            progressText.textContent = `Running Game ${gameNumber} of ${totalGames}`;
+            progressText.textContent = `Game ${gameNumber} of ${totalGames}`;
         }
     }
     hideBatchOverlay() {

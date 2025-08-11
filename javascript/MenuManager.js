@@ -23,7 +23,7 @@ export default class MenuManager {
             this.uiManager.getMenuScreenElement(),
             this.screenManager,
             this.configManager,
-            this // Pass the MenuManager instance to the builder
+            this // pass MenuManager instance to builder
         );
         this.game = null;
         this.gameOverScreen = new GameOverScreen(
@@ -35,28 +35,21 @@ export default class MenuManager {
         this.gamesRemaining = 0;
         this.totalGamesInBatch = 0;
         this.currentBatchConfig = null;
-        
-        // Listen for confirmation dialog requests from other modules
-        eventManager.on('confirm-action', this.handleConfirmAction.bind(this));
-
-        // Listen for when all human players are eliminated to update the UI
-        eventManager.on('human-players-eliminated', () => {
+        eventManager.on('confirm-action', this.handleConfirmAction.bind(this)); // listen for confirmation dialog requests from other modules
+        eventManager.on('human-players-eliminated', () => { // listen for all human players eliminated to update UI
             if (this.game && !this.game.gameOver && this.footerManager.mode === 'troop') {
                 this.footerManager.switchToSpeedMode();
                 this.game.timerManager.shouldPauseOnHidden = false;
             }
         });
-
         this.menuBuilder.buildMainMenu();
         this.screenManager.switchToScreen('menu');
     }
-
     handleConfirmAction({ message, onConfirm }) {
         if (window.confirm(message)) {
             onConfirm();
         }
     }
-
     initializeUserIdentity() {
         const storageKey = 'cultureWarUserId';
         let userId = localStorage.getItem(storageKey);
@@ -131,12 +124,12 @@ export default class MenuManager {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
             this.isBatchRunning = false;
             eventManager.emit('hide-batch-overlay');
-            this.menuBuilder.buildStandingsScreen(); // Go to standings after a batch
+            this.menuBuilder.buildStandingsScreen(); // go to standings after a batch
             this.switchToScreen('menu');
             return;
         }
         const gameNumber = this.totalGamesInBatch - this.gamesRemaining + 1;
-        eventManager.emit('update-batch-overlay', gameNumber, this.totalGamesInBatch);
+        eventManager.emit('update-batch-overlay', { gameNumber, totalGames: this.totalGamesInBatch }); // pass a single object as event data payload
         this.gamesRemaining--;
         if (!this.currentBatchConfig.isHeadless) {
             this.switchToScreen('game');
@@ -153,7 +146,6 @@ export default class MenuManager {
         );
         this.game.timerManager.shouldPauseOnHidden = false;
     }
-
     getGameConfig() {
         return this.configManager.getConfig();
     }
