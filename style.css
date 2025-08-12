@@ -638,23 +638,22 @@ header h1 {
     border-collapse: collapse;
     background-color: rgba(30, 30, 30, 0.8);
     table-layout: fixed;
-    font-size: 0.65rem;
 }
 .leaderboard th {
     background-color: rgba(60, 60, 60, 0.8);
-    padding: 3px 2px;
+    padding: 4px 2px;
     text-align: center;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     color: #ccc;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 .leaderboard td {
-    padding: 3px 2px;
+    padding: 4px 2px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -664,12 +663,21 @@ header h1 {
     color: #ffcc00;
     font-weight: bold;
 }
-/* COLUMN WIDTHS */
-.leaderboard th:nth-child(1), .leaderboard td:nth-child(1) { width: 12%; } /* Rank */
-.leaderboard th:nth-child(2), .leaderboard td:nth-child(2) { width: 28%; } /* Player */
-.leaderboard th:nth-child(3), .leaderboard td:nth-child(3) { width: 20%; } /* Planets */
-.leaderboard th:nth-child(4), .leaderboard td:nth-child(4) { width: 20%; } /* Troops */
-.leaderboard th:nth-child(5), .leaderboard td:nth-child(5) { width: 20%; } /* Survived */
+/* COLUMN WIDTHS FOR GAME OVER SCREEN */
+.leaderboard:not(.standings) .col-rank    { width: 12%; }
+.leaderboard:not(.standings) .col-player  { width: 28%; }
+.leaderboard:not(.standings) .col-planets { width: 20%; }
+.leaderboard:not(.standings) .col-troops  { width: 20%; }
+.leaderboard:not(.standings) .col-score   { width: 20%; }
+
+/* COLUMN WIDTHS FOR STANDINGS SCREEN */
+.leaderboard.standings .col-rank      { width: 10%; }
+.leaderboard.standings .col-combatant { width: 26%; }
+.leaderboard.standings .col-score     { width: 12%; }
+.leaderboard.standings .col-winrate   { width: 12%; }
+.leaderboard.standings .col-survival  { width: 15%; }
+.leaderboard.standings .col-games     { width: 10%; }
+.leaderboard.standings .col-avgrank   { width: 15%; }
 /* STATS */
 .overall-stats {
     width: 98%;

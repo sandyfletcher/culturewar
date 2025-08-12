@@ -16,11 +16,12 @@ export default class GameOverScreen {
         const playerStats = gameInstance.playersController.getPlayerStats()
             .filter(player => player.id !== 'neutral');
         const allPlayersData = gameInstance.playersController.players;
-        const playerCount = allPlayersData.length;
+        const playerStatsMap = new Map(gameInstance.playersController.getPlayerStats().map(p => [p.id, p]));
         const eliminationTimes = gameInstance.gameState.eliminationTimes || {};
         const gameTime = stats.time;
+
         const leaderboardData = allPlayersData.map(playerData => {
-            const playerStat = playerStats.find(p => p.id === playerData.id) || { planets: 0, troops: 0 };
+            const playerStat = playerStatsMap.get(playerData.id) || { planets: 0, troops: 0 }; // More efficient lookup
             const isWinner = playerData.id === stats.winner;
             const survivalTime = eliminationTimes[playerData.id] || gameTime;
             return {
