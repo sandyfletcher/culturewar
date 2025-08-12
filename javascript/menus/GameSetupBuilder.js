@@ -77,8 +77,9 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         const input = document.createElement('input');
         input.type = 'number';
         input.id = 'game-pace-input';
-        input.min = '0.1';
-        input.max = '4.0';
+        const { min, max } = config.ui.footerSlider.speed; // read from config
+        input.min = min; // use config value
+        input.max = max;
         input.step = '0.1';
         input.value = this.configManager.getConfig().initialGamePace;
         input.addEventListener('change', (e) => {

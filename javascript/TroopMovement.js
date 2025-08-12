@@ -26,19 +26,17 @@ export default class TroopMovement {
         this.progress += dt / this.duration;
         return this.progress >= 1;
     }
-    getCurrentPosition(alpha = 0) { // MOD: Accept alpha for interpolation
-        // Calculate how much progress would be made in a single fixed logic step.
-        const progressPerStep = (1 / 60) / this.duration;
-        // The render progress is the last known logic progress plus a fraction of the next step.
-        const renderProgress = this.progress + (progressPerStep * alpha);
-        
+    getCurrentPosition(alpha = 0) {
+        const lastStepProgress = this.progress - ((1/60) / this.duration); // progress at start of current logic step
+        const progressThisStep = this.progress - lastStepProgress; // total distance this fleet will travel in one logic step
+        const renderProgress = lastStepProgress + (progressThisStep * alpha); // interpolate between last logic step's position and current one
         return {
             x: this.startX + this.dx * renderProgress,
             y: this.startY + this.dy * renderProgress
         };
     }
-    draw(ctx, alpha = 0) { // MOD: Accept alpha
-        const pos = this.getCurrentPosition(alpha); // MOD: Pass alpha to get interpolated position
+    draw(ctx, alpha = 0) { // accept alpha
+        const pos = this.getCurrentPosition(alpha); // pass alpha to get interpolated position
         ctx.beginPath(); // draw movement trail
         ctx.moveTo(this.startX, this.startY);
         ctx.lineTo(pos.x, pos.y);

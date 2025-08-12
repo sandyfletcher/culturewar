@@ -38,7 +38,6 @@ export default class Game {
         this.isActive = false;
         this.gameOver = false;
         this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id);
-
         // --- Phase 1: Construction ---
         // All modules are created here, but they should not access each other yet.
         this.playersController = new PlayersController(this, this.config);
@@ -49,7 +48,6 @@ export default class Game {
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
         this.planetGenerator = new PlanetGeneration(this);
-
         // --- Phase 2: Initialization ---
         // Now that all modules exist, we can call their init methods to wire them up.
         this.gameState.init(); // This will now safely access this.playersController.
@@ -68,7 +66,6 @@ export default class Game {
         } else {
             this.gameLoop();
         }
-
         // --- Event Listeners ---
         eventManager.on('screen-changed', (screenName) => {
             if (screenName === 'game') {
@@ -104,9 +101,7 @@ export default class Game {
             this.clearSelection();
             return;
         }
-
         const isHumanPlanet = this.humanPlayerIds.includes(clickedPlanet.owner);
-
         if (this.selectedPlanets.length > 0 && !this.selectedPlanets.includes(clickedPlanet)) {
             if (this.selectedPlanets.every(p => this.humanPlayerIds.includes(p.owner))) {
                 const troopPercentage = this.footerManager.getTroopPercentage() / 100;
@@ -138,7 +133,6 @@ export default class Game {
             planet.y + planet.size >= box.top &&
             planet.y - planet.size <= box.bottom
         );
-
         if (planetsInBox.length > 0) {
             const ownerToSelect = planetsInBox[0].owner;
             for (const planet of planetsInBox) {
@@ -201,9 +195,8 @@ export default class Game {
             this.accumulator -= FIXED_TIME_STEP;
             steps++;
         }
-        // MOD: Calculate the alpha value for smooth rendering
+        this.gameState.checkWinConditions(this.timerManager.getTimeRemaining()); // check for a winner once per frame after all logic steps are done
         this.renderAlpha = this.accumulator / FIXED_TIME_STEP;
-
         this.troopTracker.update();
     }
     updatePlanets(dt) {
@@ -222,7 +215,6 @@ export default class Game {
             if (movement.update(dt)) {
                 this.processTroopArrival(movement);
                 this.troopMovements.splice(i, 1);
-                this.gameState.checkWinConditions(this.timerManager.getTimeRemaining());
             }
         }
     }

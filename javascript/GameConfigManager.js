@@ -30,7 +30,8 @@ export default class GameConfigManager {
     // setter for game pace
     setInitialGamePace(pace) {
         const gamePace = parseFloat(pace);
-        if (!isNaN(gamePace) && gamePace >= 0.1 && gamePace <= 4.0) {
+        const { min, max } = config.ui.footerSlider.speed; // <-- Read from config
+        if (!isNaN(gamePace) && gamePace >= min && gamePace <= max) { // <-- Use config values
             this.gameConfig.initialGamePace = gamePace;
         }
     }
