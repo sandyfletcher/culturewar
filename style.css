@@ -178,36 +178,95 @@ header h1 {
     margin-bottom: 1rem;
     color: #ffff00;
 }
-.instructions-section {
-    margin-bottom: 0rem;
-}
 .instructions-section h3 {
     color: #00ffff;
-    margin: 0.5rem;
+    margin: 0.75rem 0rem;
 }
 .instructions-section ul {
+    padding-left: 1.5rem;
+}
+.instructions-section ol {
     padding-left: 1.5rem;
 }
 .instructions-section li {
     margin-bottom: 0.5rem;
 }
-/* COMBATANTS / STANDINGS CARD (MERGED) */
+/* STANDINGS */
 .standings-card {
     background-color: rgba(30, 30, 30, 0.8);
-    padding: 1rem;
+    padding: 0.4rem;
     border-top: 1px solid #555;
 }
 .standings-card p {
-    margin: 0.5rem 0 0 0;
+    margin-top: 0.3rem;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: 0.8rem;
+    line-height: 1;
     color: #ccc;
-    white-space: normal; /* Override table nowrap */
+    white-space: normal; /* override table nowrap */
 }
-.standings-card p.blurb {
-    opacity: 0.8;
+.leaderboard {
+    width: 98%;
+    max-width: 390px;
+    margin-bottom: 1rem;
+    overflow: visible;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0;
 }
+.leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(30, 30, 30, 0.8);
+    table-layout: fixed;
+}
+.leaderboard th {
+    background-color: rgba(60, 60, 60, 0.8);
+    padding: 4px 2px;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.leaderboard td {
+    padding: 4px 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.leaderboard .winner td {
+    background-color: rgba(255, 204, 0, 0.2);
+    color: #ffcc00;
+    font-weight: bold;
+}
+.standings-main-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.standings-main-row:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+.standings-main-row.active {
+    background-color: rgba(255, 170, 0, 0.15);
+}
+.standings-detail-row td {
+    padding: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.standings-detail-row .standings-card {
+    background-color: rgba(50, 50, 50, 0.9);
+}
+.leaderboard.standings .col-rank { width: 10%; }
+.leaderboard.standings .col-fighter { width: 30%; }
+.leaderboard.standings .col-score { width: 12%; }
+.leaderboard.standings .col-games { width: 12%; }
+.leaderboard.standings .col-winrate { width: 10%; }
+.leaderboard.standings .col-survival { width: 10%; }
+.leaderboard.standings .col-avgrank { width: 10%; }
 /* GAME SETUP MENU */
 .setup-form {
     display: flex;
@@ -602,69 +661,6 @@ header h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-.leaderboard {
-    width: 98%;
-    max-width: 390px;
-    margin-bottom: 1rem;
-    overflow: visible;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 0;
-}
-.leaderboard table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: rgba(30, 30, 30, 0.8);
-    table-layout: fixed;
-}
-.leaderboard th {
-    background-color: rgba(60, 60, 60, 0.8);
-    padding: 4px 2px;
-    text-align: center;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    color: #ccc;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-.leaderboard td {
-    padding: 4px 2px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-    font-size: 0.8rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.leaderboard .winner td {
-    background-color: rgba(255, 204, 0, 0.2);
-    color: #ffcc00;
-    font-weight: bold;
-}
-.standings-main-row {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-.standings-main-row:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-.standings-main-row.active {
-    background-color: rgba(255, 170, 0, 0.15);
-}
-.standings-detail-row td {
-    padding: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.standings-detail-row .standings-card {
-    background-color: rgba(50, 50, 50, 0.9);
-}
-/* COLUMN WIDTHS */
-.leaderboard.standings .col-rank { width: 10%; }
-.leaderboard.standings .col-fighter { width: 25%; }
-.leaderboard.standings .col-score { width: 10%; }
-.leaderboard.standings .col-games { width: 10%; }
-.leaderboard.standings .col-winrate { width: 10%; }
-.leaderboard.standings .col-survival { width: 15%; }
-.leaderboard.standings .col-avgrank { width: 10%; }
 
 /* Game Over Screen has different widths */
 #game-over-screen .col-rank { width: 15%; }

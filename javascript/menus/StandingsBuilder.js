@@ -13,8 +13,8 @@ export default class StandingsBuilder extends MenuBuilderBase {
         this.parentBuilder = parentBuilder;
         this.statsTracker = statsTracker;
     }
-    getArchetype(player) { // determines a bot's "personality" from its stats
-        if (player.gamesPlayed === 0) return 'Rookie'; // New: Archetype for bots that haven't played
+    getArchetype(player) { // determine a bot's personality from its stats
+        if (player.gamesPlayed === 0) return 'Rookie'; // archetype for bots that haven't played yet
         const scorePerGame = player.totalCultureScore / player.gamesPlayed;
         const avgGameDuration = 180; // rough baseline for average game length
         if (player.winRate > 60 && scorePerGame > 1.5) return 'Tyrant';
@@ -36,10 +36,10 @@ export default class StandingsBuilder extends MenuBuilderBase {
         const statsMap = new Map(aggregatedStats.map(s => [s.nickname, s]));
         // 2. Combine bot registry data with stats
         const combinedData = botRegistry.map(bot => {
-            const stats = statsMap.get(bot.name);
+            const stats = statsMap.get(bot.value); 
             return {
                 ...bot, // value, name, class, creationDate, description
-                stats: stats || { // Default stats if bot has not played
+                stats: stats || { // default stats if bot has not played
                     nickname: bot.name, wins: 0, gamesPlayed: 0, totalSurvivalTime: 0,
                     totalCultureScore: 0, totalRank: 0, winRate: 0, avgSurvival: 0, avgRank: 0
                 }
@@ -52,16 +52,16 @@ export default class StandingsBuilder extends MenuBuilderBase {
             }
             return a.name.localeCompare(b.name);
         });
-        // 4. Build the HTML table with expandable rows
+        // 4. Build HTML table with expandable rows
         let tableBody = '';
         combinedData.forEach((player, index) => {
             const rank = player.stats.gamesPlayed > 0 ? index + 1 : '—';
-            const winRate = player.stats.gamesPlayed > 0 ? `${player.stats.winRate.toFixed(1)}%` : '—';
+            const winRate = player.stats.gamesPlayed > 0 ? `${player.stats.winRate.toFixed(1)}` : '—';
             const scoreText = player.stats.gamesPlayed > 0 ? (player.stats.totalCultureScore > 0 ? `+${player.stats.totalCultureScore.toFixed(1)}` : player.stats.totalCultureScore.toFixed(1)) : '—';
             const avgSurvival = player.stats.gamesPlayed > 0 ? formatTime(player.stats.avgSurvival) : '—';
             const avgRank = player.stats.gamesPlayed > 0 ? player.stats.avgRank.toFixed(1) : '—';
             const archetype = this.getArchetype(player.stats);
-            // Main row (always visible)
+            // always visible main row
             tableBody += `
                 <tr class="standings-main-row" data-bot-name="${player.name}">
                     <td class="col-rank">${rank}</td>
@@ -76,13 +76,13 @@ export default class StandingsBuilder extends MenuBuilderBase {
                     <td class="col-avgrank">${avgRank}</td>
                 </tr>
             `;
-            // Detail row (initially hidden)
+            // initially hidden detail row
             tableBody += `
                 <tr class="standings-detail-row" style="display: none;">
                     <td colspan="7">
-                        <div class="combatant-card standings-card">
+                        <div class="standings-card">
                             <p><strong>Commissioned:</strong> ${player.creationDate}</p>
-                            <p class="blurb">${player.description}</p>
+                            <p>${player.description}</p>
                         </div>
                     </td>
                 </tr>
@@ -122,7 +122,6 @@ export default class StandingsBuilder extends MenuBuilderBase {
                 }
             });
         });
-        // "Clear Stats" button logic remains the same
         if (aggregatedStats.length > 0) {
             const clearButton = document.createElement('button');
             clearButton.id = 'clear-stats-button';
