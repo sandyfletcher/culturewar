@@ -15,27 +15,27 @@ import KimiK2 from './KimiK2.js';
 // --- OpenAI (USA) ---
 import CGPT5 from './CGPT5.js';
 import gptoss20b from './gptoss20b.js';
-
+// --- TNG Tech (Germany) ---
+import DeepSeekR1T2 from './DeepSeekR1T2.js';
 // --- Mistral AI (France) MistralSmall32 ---
-// --- TNG Tech (Germany) DeepSeekR1T2Chimera ---
 // --- OpenRouter / OpenAI? (USA?) HorizonBeta ---
 
 const botRegistry = [
-    { // Alibaba
+    { // ALIBABA
         value: 'Q3C', 
         name: 'Qwen3Coder', 
         class: Qwen3Coder, 
         creationDate: '08/2025', 
         description: 'A strategic, adaptive RTS commander.'
     },
-    { // Anthropic
+    { // ANTHROPIC
         value: 'C4',
         name: 'Claude 4.0 Sonnet',
         class: Claude40Sonnet,
         creationDate: '05/2025',
         description: "A multi-phase adaptive strategy that prioritizes rapid expansion, intelligent targeting, and dynamic threat response." 
     },
-    { // Google
+    { // GOOGLE
         value: 'G3n',
         name: 'Gemma 3n E2B',
         class: Gemma3nE2B,
@@ -56,14 +56,14 @@ const botRegistry = [
         creationDate: '06/2025', 
         description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
     },
-    { // Moonshot
+    { // MOONSHOT
         value: 'KK2', 
         name: 'Kimi K2', 
         class: KimiK2, 
         creationDate: '07/2025', 
         description: 'Explosive early–expansion that turns into remorseless mid-game strikes on the strongest neighbour, then clinical endgame consolidation.'
     },
-    { // OpenAI
+    { // OPENAI
         value: 'CGPT5', 
         name: 'ChatGPT 5', 
         class: CGPT5, 
@@ -76,6 +76,13 @@ const botRegistry = [
         class: gptoss20b, 
         creationDate: '08/2025', 
         description: 'A phased, predictive Galcon AI.' 
+    },
+    { // TNG TECH
+        value: 'DSR1T2', 
+        name: 'DeepSeekR1T2', 
+        class: DeepSeekR1T2, 
+        creationDate: '08/2025', 
+        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
     },
 ];
 
