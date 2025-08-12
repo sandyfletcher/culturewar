@@ -3,7 +3,11 @@
 // ===========================================
 
 // --- Anthropic (USA) ---
-import Claude4Sonnet from './Claude4Sonnet.js';
+import Claude4SonnetA from './Claude40SonnetA.js';
+import Claude4SonnetB from './Claude40SonnetB.js';
+import Claude4SonnetC from './Claude40SonnetC.js';
+import Claude4SonnetD from './Claude40SonnetD.js';
+import Claude4SonnetE from './Claude40SonnetE.js';
 // --- Google (USA) ---
 import Gemini20FlashA from './Gemini20FlashA.js';
 import Gemini20FlashB from './Gemini20FlashB.js';
@@ -28,9 +32,37 @@ import MistralSmall32 from './MistralSmall32.js';
 
 const botRegistry = [
     { 
-        value: 'C-4-S',
-        name: 'Claude 4 Sonnet',
-        class: Claude4Sonnet,
+        value: 'C-4.0-SA',
+        name: 'Claude 4.0 Sonnet A',
+        class: Claude4SonnetA,
+        creationDate: 'May 2025',
+        description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
+    },
+    { 
+        value: 'C-4.0-SB',
+        name: 'Claude 4.0 Sonnet B',
+        class: Claude4SonnetB,
+        creationDate: 'May 2025',
+        description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
+    },
+    { 
+        value: 'C-4.0-SC',
+        name: 'Claude 4.0 Sonnet C',
+        class: Claude4SonnetC,
+        creationDate: 'May 2025',
+        description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
+    },
+    { 
+        value: 'C-4.0-SD',
+        name: 'Claude 4.0 Sonnet D',
+        class: Claude4SonnetD,
+        creationDate: 'May 2025',
+        description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
+    },
+    { 
+        value: 'C-4.0-SE',
+        name: 'Claude 4.0 Sonnet E',
+        class: Claude4SonnetE,
         creationDate: 'May 2025',
         description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
     },
