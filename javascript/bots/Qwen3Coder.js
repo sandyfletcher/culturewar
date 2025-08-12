@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/Qwen3CoderA.js
+// root/javascript/bots/Qwen3Coder.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -13,7 +13,7 @@ import BaseBot from './BaseBot.js';
  * based on its relative strength and the game phase.
  */
 
-export default class Qwen3CoderA extends BaseBot {
+export default class Qwen3Coder extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
         // Persistent memory for mission tracking and strategic state.

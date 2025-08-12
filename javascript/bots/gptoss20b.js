@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/gptoss20bB.js
+// root/javascript/bots/gptoss20b.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -14,7 +14,7 @@ import BaseBot from './BaseBot.js';
     The bot respects the one‑action‑per‑cooldown rule and never mutates game objects.
 */
 
-export default class gptoss20bB extends BaseBot {
+export default class gptoss20b extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
         this.memory = {
