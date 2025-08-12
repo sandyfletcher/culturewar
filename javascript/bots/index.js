@@ -11,11 +11,7 @@ import Gemma3nE2B from './Gemma3nE2B.js';
 import Gemini20Flash from './Gemini20Flash.js';
 import Gemini25Pro from './Gemini25Pro.js';
 // --- Moonshot AI (China)  ---
-import KimiK2A from './KimiK2A.js';
-import KimiK2B from './KimiK2B.js';
-import KimiK2C from './KimiK2C.js';
-import KimiK2D from './KimiK2D.js';
-import KimiK2E from './KimiK2E.js';
+import KimiK2 from './KimiK2.js';
 // --- OpenAI (USA) ---
 import CGPT5 from './CGPT5.js';
 import gptoss20b from './gptoss20b.js';
@@ -61,39 +57,11 @@ const botRegistry = [
         description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
     },
     { // Moonshot
-        value: 'KK2A', 
-        name: 'Kimi K2 A', 
-        class: KimiK2A, 
+        value: 'KK2', 
+        name: 'Kimi K2', 
+        class: KimiK2, 
         creationDate: '07/2025', 
-        description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
-    },
-    {
-        value: 'KK2B', 
-        name: 'Kimi K2 B', 
-        class: KimiK2B, 
-        creationDate: '07/2025', 
-        description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
-    },
-    {
-        value: 'KK2C', 
-        name: 'Kimi K2 C', 
-        class: KimiK2C, 
-        creationDate: '07/2025', 
-        description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
-    },
-    {
-        value: 'KK2D', 
-        name: 'Kimi K2 D', 
-        class: KimiK2D, 
-        creationDate: '07/2025', 
-        description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
-    },
-    {
-        value: 'KK2E', 
-        name: 'Kimi K2 E', 
-        class: KimiK2E, 
-        creationDate: '07/2025', 
-        description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
+        description: 'Explosive early–expansion that turns into remorseless mid-game strikes on the strongest neighbour, then clinical endgame consolidation.'
     },
     { // OpenAI
         value: 'CGPT5', 
@@ -101,7 +69,7 @@ const botRegistry = [
         class: CGPT5, 
         creationDate: '08/2025', 
         description: 'Fast, surgical expansion early, transition to value-targeted crippling attacks mid-game, and perform coordinated all-in pushes in the late game using accurate arrival predictions.' 
-    },
+    }, 
     {
         value: 'go20b', 
         name: 'gpt-oss 20b', 

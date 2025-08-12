@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/KimiK2E.js
+// root/javascript/bots/KimiK2.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -11,7 +11,7 @@ import BaseBot from './BaseBot.js';
  * safe-buffer math, and dynamic task lists to hoard value, not troops.
  */
 
-export default class KimiK2E extends BaseBot {
+export default class KimiK2 extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
         this.memory.lastTickElapsed = 0;
