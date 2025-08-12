@@ -110,6 +110,8 @@ Efficiency is Key: Don't just attack; attack with precision. Use predictPlanetSt
 
 Use this template as the starting point for your [YourModel].js file.
 
+```javascript
+
 // =============================================
 // root/javascript/bots/[YourModel].js
 // =============================================
@@ -127,7 +129,6 @@ export default class [YourModel] extends BaseBot {
         // You can add custom configuration or properties to this.memory here.
         this.memory.actionCooldown = 0;
     }
-
     /**
         This method is called by the game engine when it's your turn.
         @param {number} dt - The time elapsed since the last turn, scaled by game speed.
@@ -148,7 +149,7 @@ export default class [YourModel] extends BaseBot {
     // --- Your champion-level strategic logic replaces the example logic below ---
 
         const target = this.api.getNeutralPlanets()[0];
-        
+
         if (myPlanets[0] && target && myPlanets[0].troops > 20) {
             const troopsToSend = Math.floor(myPlanets[0].troops * 0.75);
             // Set the bot's internal cooldown.

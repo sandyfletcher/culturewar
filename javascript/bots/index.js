@@ -7,7 +7,6 @@ import Claude4Sonnet from './Claude4Sonnet.js';
 // --- Google (USA) ---
 import Gemini25Pro from './Gemini25Pro.js';
 import Gemini25ProA from './Gemini25ProA.js';
-import Gemini25ProB from './Gemini25ProB.js';
 import Gemini25ProC from './Gemini25ProC.js';
 import Gemini25ProD from './Gemini25ProD.js';
 import Gemini25ProE from './Gemini25ProE.js';
@@ -45,13 +44,6 @@ const botRegistry = [
         class: Gemini25ProA, 
         creationDate: 'March 2025', 
         description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
-    },
-    { 
-        value: 'G2.5PB', 
-        name: 'Gemini 2.5 Pro B', 
-        class: Gemini25ProB, 
-        creationDate: 'March 2025', 
-        description: "Employs a phased strategy that adapts its behavior based on the game's progression, prioritizing survival and efficient resource acquisition to dominate the battlefield."
     },
     { 
         value: 'G2.5PC', 
