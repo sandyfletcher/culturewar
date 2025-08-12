@@ -3,105 +3,66 @@
 // ===========================================
 
 // --- Anthropic (USA) ---
-import Claude4SonnetA from './Claude40SonnetA.js';
-import Claude4SonnetB from './Claude40SonnetB.js';
-import Claude4SonnetC from './Claude40SonnetC.js';
-import Claude4SonnetD from './Claude40SonnetD.js';
-import Claude4SonnetE from './Claude40SonnetE.js';
+import Claude40SonnetC from './Claude40SonnetC.js';
+import Claude40SonnetD from './Claude40SonnetD.js';
 // --- Google (USA) ---
-import Gemini20FlashA from './Gemini20FlashA.js';
-import Gemini20FlashB from './Gemini20FlashB.js';
-import Gemini20FlashC from './Gemini20FlashC.js';
-import Gemini20FlashD from './Gemini20FlashD.js';
-import Gemini20FlashE from './Gemini20FlashE.js';
+import Gemma3nE2B from './Gemma3nE2B.js';
+import Gemini20Flash from './Gemini20Flash.js';
 import Gemini25ProA from './Gemini25ProA.js';
 import Gemini25ProD from './Gemini25ProD.js';
-import Gemini25ProE from './Gemini25ProE.js';
 // --- OpenAI (USA) ---
-import CGPT4o from './CGPT4o.js';
+import CGPT5B from './CGPT5B.js';
+import CGPT5D from './CGPT5D.js';
+import CGPT5E from './CGPT5E.js';
+import gptoss20bA from './gptoss20bA.js';
+import gptoss20bB from './gptoss20bB.js';
+import gptoss20bC from './gptoss20bC.js';
+import gptoss20bD from './gptoss20bD.js';
+// --- Alibaba Cloud (China) ---
+import Qwen3CoderA from './Qwen3CoderA.js';
+import Qwen3CoderB from './Qwen3CoderB.js';
+import Qwen3CoderC from './Qwen3CoderC.js';
+import Qwen3CoderD from './Qwen3CoderD.js';
+import Qwen3CoderE from './Qwen3CoderE.js';
+
+// --- Mistral AI (France) ---
+import MistralSmall32 from './MistralSmall32.js';
 // --- TNG Tech (Germany) ---
 import DeepSeekR1T2Chimera from './DeepSeekR1T2Chimera.js';
 // --- OpenRouter / OpenAI? (USA?) ---
 import HorizonBeta from './HorizonBeta.js';
 // --- Moonshot AI (China) ---
 import KimiDev72b from './KimiDev72b.js';
-// --- Unknown (Unknown) ---
-import Qwen3Coder from './Qwen3Coder.js';
-// --- Mistral AI (France) ---
-import MistralSmall32 from './MistralSmall32.js';
 
 const botRegistry = [
     { 
-        value: 'C-4.0-SA',
-        name: 'Claude 4.0 Sonnet A',
-        class: Claude4SonnetA,
-        creationDate: 'May 2025',
-        description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
-    },
-    { 
-        value: 'C-4.0-SB',
-        name: 'Claude 4.0 Sonnet B',
-        class: Claude4SonnetB,
-        creationDate: 'May 2025',
-        description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
-    },
-    { 
         value: 'C-4.0-SC',
         name: 'Claude 4.0 Sonnet C',
-        class: Claude4SonnetC,
+        class: Claude40SonnetC,
         creationDate: 'May 2025',
         description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
     },
     { 
         value: 'C-4.0-SD',
         name: 'Claude 4.0 Sonnet D',
-        class: Claude4SonnetD,
+        class: Claude40SonnetD,
         creationDate: 'May 2025',
         description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
     },
     { 
-        value: 'C-4.0-SE',
-        name: 'Claude 4.0 Sonnet E',
-        class: Claude4SonnetE,
+        value: 'G3nE2B',
+        name: 'Gemma 3n E2B',
+        class: Gemma3nE2B,
         creationDate: 'May 2025',
         description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
     },
     { 
-        value: 'G2.OFA', 
-        name: 'Gemini 2.0 Flash A', 
-        class: Gemini20FlashA, 
+        value: 'G2.OF', 
+        name: 'Gemini 2.0 Flash', 
+        class: Gemini20Flash, 
         creationDate: 'March 2025', 
         description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
     },
-        { 
-        value: 'G2.OFB', 
-        name: 'Gemini 2.0 Flash B', 
-        class: Gemini20FlashB, 
-        creationDate: 'March 2025', 
-        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
-    },
-        { 
-        value: 'G2.OFC', 
-        name: 'Gemini 2.0 Flash C', 
-        class: Gemini20FlashC, 
-        creationDate: 'March 2025', 
-        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
-    },
-        { 
-        value: 'G2.OFD', 
-        name: 'Gemini 2.0 Flash D', 
-        class: Gemini20FlashD, 
-        creationDate: 'March 2025', 
-        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
-    },
-        { 
-        value: 'G2.OFE', 
-        name: 'Gemini 2.0 Flash E', 
-        class: Gemini20FlashE, 
-        creationDate: 'March 2025', 
-        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
-    },
-
     { 
         value: 'G2.5PA', 
         name: 'Gemini 2.5 Pro A', 
@@ -117,54 +78,89 @@ const botRegistry = [
         description: "Employs an adaptive, three-phase strategy focusing on aggressive expansion, strategic targeting, and intelligent consolidation."
     },
     { 
-        value: 'G2.5PE', 
-        name: 'Gemini 2.5 Pro E', 
-        class: Gemini25ProE, 
-        creationDate: 'March 2025', 
-        description: "Employs a defense-first, phased strategy that adapts to the game's flow."
-    },
-    { 
-        value: 'GPT-4o', 
-        name: 'ChatGPT 4o', 
-        class: CGPT4o, 
+        value: 'CGPT5B', 
+        name: 'ChatGPT 5 B', 
+        class: CGPT5B, 
         creationDate: 'Aug 2025', 
         description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
     },
     { 
-        value: 'DSR1T2C', 
-        name: 'DeepSeekR1T2Chimera', 
-        class: DeepSeekR1T2Chimera, 
-        creationDate: 'July 2025', 
-        description: 'Strategic AI bot that dynamically balances expansion, defense, and attacks based on game phase, maintaining optimal troop efficiency and threat awareness.' 
+        value: 'CGPT5D', 
+        name: 'ChatGPT 5 D', 
+        class: CGPT5D, 
+        creationDate: 'Aug 2025', 
+        description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
     },
     { 
-        value: 'HB', 
-        name: 'HorizonBeta', 
-        class: HorizonBeta, 
+        value: 'CGPT5E', 
+        name: 'ChatGPT 5 E', 
+        class: CGPT5E, 
         creationDate: 'Aug 2025', 
-        description: 'Adaptive, value-driven RTS bot focused on safe expansion, surgical defense, and opportunistic strikes using forward predictions and phased strategy.'
-     },
+        description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
+    },
     { 
-        value: 'KD72', 
-        name: 'KimiDev72b', 
-        class: KimiDev72b, 
-        creationDate: 'June 2025', 
-        description: 'Automatically adjusts to focus on defense when under attack and aggressive expansion when safe.'
-     },
+        value: 'go20bA', 
+        name: 'gpt-oss 20b A', 
+        class: gptoss20bA, 
+        creationDate: 'Aug 2025', 
+        description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
+    },
     { 
-        value: 'Q3C', 
-        name: 'Qwen3Coder', 
-        class: Qwen3Coder, 
+        value: 'go20bB', 
+        name: 'gpt-oss 20b B', 
+        class: gptoss20bB, 
+        creationDate: 'Aug 2025', 
+        description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
+    },
+    { 
+        value: 'go20bC', 
+        name: 'gpt-oss 20b C', 
+        class: gptoss20bC, 
+        creationDate: 'Aug 2025', 
+        description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
+    },
+    { 
+        value: 'go20bD', 
+        name: 'gpt-oss 20b D', 
+        class: gptoss20bD, 
+        creationDate: 'Aug 2025', 
+        description: 'Adaptive value-driven expansion with layered defense and opportunistic punishment — play smart, conserve forces, and strike where predictions guarantee value.' 
+    },
+    { 
+        value: 'Q3CA', 
+        name: 'Qwen3Coder A', 
+        class: Qwen3CoderA, 
         creationDate: 'July 2025', 
         description: 'Prioritizes defense, expands based on value, and adapts its playstyle based on game phase and relative strength.'
     },
     { 
-        value: 'MS32', 
-        name: 'MistralSmall32', 
-        class: MistralSmall32, 
-        creationDate: 'June 2025', 
-        description: 'Memory maintains state between decisions, allowing it to execute coordinated strategic plans over multiple turns.'
-     },
+        value: 'Q3CB', 
+        name: 'Qwen3Coder B', 
+        class: Qwen3CoderB, 
+        creationDate: 'July 2025', 
+        description: 'Prioritizes defense, expands based on value, and adapts its playstyle based on game phase and relative strength.'
+    },
+    { 
+        value: 'Q3CC', 
+        name: 'Qwen3Coder C', 
+        class: Qwen3CoderC, 
+        creationDate: 'July 2025', 
+        description: 'Prioritizes defense, expands based on value, and adapts its playstyle based on game phase and relative strength.'
+    },
+    { 
+        value: 'Q3CD', 
+        name: 'Qwen3Coder D', 
+        class: Qwen3CoderD, 
+        creationDate: 'July 2025', 
+        description: 'Prioritizes defense, expands based on value, and adapts its playstyle based on game phase and relative strength.'
+    },
+    { 
+        value: 'Q3CE', 
+        name: 'Qwen3Coder E', 
+        class: Qwen3CoderE, 
+        creationDate: 'July 2025', 
+        description: 'Prioritizes defense, expands based on value, and adapts its playstyle based on game phase and relative strength.'
+    },
 ];
 
 export default botRegistry;

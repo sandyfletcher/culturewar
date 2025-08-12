@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/Gemini20FlashE.js
+// root/javascript/bots/Gemini20Flash.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -13,7 +13,7 @@ import BaseBot from './BaseBot.js';
     4.  Dynamic Targeting: Adapts its attack targets based on enemy strength and vulnerability.
 */
 
-export default class Gemini20FlashE extends BaseBot {
+export default class Gemini20Flash extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
         this.memory.actionCooldown = 0;
