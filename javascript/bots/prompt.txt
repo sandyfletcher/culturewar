@@ -2,14 +2,14 @@ Your Mission: Design a Champion AI Bot
 Your task is to design and implement a high-performance AI bot for a real-time strategy game based on "Galcon." Your bot will compete in an arena against a diverse field of other AIs.
 The goal is not merely to participate but to dominate, so design a bot that is robust, adaptive, and strategically superior.
 
-Important Concepts:
+IMPORTANT CONCEPTS:
 Time Scaling: The dt parameter in makeDecision(dt) is pre-scaled by the game speed. If a game runs at 4x speed, dt will be four times larger. All time-based API functions work with this scaled time.
 Cooldowns: The game enforces a strict "one action, then wait a half-second" cooldown. You get one chance to return a valid move, and then you must wait for the cooldown period to elapse before you can act again.
 Planet Capacity: Planets have a maximum capacity of 999 troops. You cannot hoard more than this on a single planet.
 Return Format: Your makeDecision method must return planet id strings, not full objects.
 The Arena: Your bot may be tested in high-speed simulations, so ensure your logic is not based around human reaction times.
 
-1. Core Game Mechanics
+CORE GAME MECHANICS:
 Objective: Eliminate all opponents by conquering their planets. The game ends when only one player (or team) remains, or when the 5-minute timer runs out.
 Time-Out Victory: If the timer expires, the winner is the player controlling the most planets. Total troops serves as the tiebreaker.
 Planets & Production: Player-owned planets generate "troops" at a rate proportional to their size. Neutral planets do not produce troops. Planets cannot hold more than 999 troops.
@@ -17,7 +17,7 @@ Fleets & Conquest: You can send fleets of troops from your planets to any other 
 Reinforcement: Fleets arriving at a friendly planet add to its troop count.
 Conquest: Fleets arriving at an enemy or neutral planet engage in a 1-for-1 battle. If the attacking fleet is larger than the defending garrison, it conquers the planet, and the remaining troops become the new garrison.
 
-2. Your Task & Critical Rules
+YOUR TASK & CRITICAL RULES
 Deliverable: A single, self-contained JavaScript file named [YourModel].js.
 Inheritance: Your class must extend the BaseBot class.
 Imports: Your file must have only one import: import BaseBot from './BaseBot.js';.
@@ -27,32 +27,32 @@ To ensure fair competition, your bot has read-only access to the game world. You
 ILLEGAL: const target = this.api.getEnemyPlanets()[0]; target.troops = 0; // This will fail.
 LEGAL (for simulation): const target = this.api.getEnemyPlanets()[0]; const simulatedTarget = { ...target }; simulatedTarget.troops = 0; // This is safe.
 CRITICAL RULE #2: Decision Object Format
-Because of the read-only rule, your decision to send a fleet must use planet IDs, not the full objects.
+Your decision to send a fleet MUST use planet IDs, not the full objects. Returning the full object instead of the ID string is a common error that will prevent your bot from functioning correctly.
 CORRECT: return { fromId: "p-5", toId: "p-10", troops: 50 };
 INCORRECT: return { from: myPlanetObj, to: enemyPlanetObj, troops: 50 };
 
-3. Data Structures
+DATA STRUCTURES:
 The API will provide objects with the following structures:
 Planet Object:
 {
-  id: "p-12",          // STRING: Unique and stable identifier. USE THIS for decisions.
-  x: 150.7,            // NUMBER: X-coordinate.
-  y: 300.2,            // NUMBER: Y-coordinate.
-  size: 25,            // NUMBER: Radius. Affects production rate.
-  troops: 45.8,        // NUMBER: Current troops (can be a float).
-  owner: "player1",    // STRING: The ID of the owning player ('neutral' if unowned).
-  productionRate: 1.25 // NUMBER: Troops generated per second. Read-only.
+    id: "p-12", // STRING: Unique and stable identifier. USE THIS for decisions.
+    x: 150.7, // NUMBER: X-coordinate.
+    y: 300.2, // NUMBER: Y-coordinate.
+    size: 25, // NUMBER: Radius. Affects production rate.
+    troops: 45.8, // NUMBER: Current troops (can be a float).
+    owner: "player1", // STRING: The ID of the owning player ('neutral' if unowned).
+    productionRate: 1.25 // NUMBER: Troops generated per second. Read-only.
 }
 TroopMovement Object (Fleet):
 {
-  from: Planet,        // OBJECT: The origin Planet object.
-  to: Planet,          // OBJECT: The destination Planet object.
-  amount: 30,          // NUMBER: The number of troops in the fleet.
-  owner: "player2",    // STRING: The ID of the player who sent the fleet.
-  duration: 4.5        // NUMBER: The remaining time in seconds until arrival.
+    from: Planet, // OBJECT: The origin Planet object.
+    to: Planet, // OBJECT: The destination Planet object.
+    amount: 30, // NUMBER: The number of troops in the fleet.
+    owner: "player2", // STRING: The ID of the player who sent the fleet.
+    duration: 4.5 // NUMBER: The remaining time in seconds until arrival.
 }
 
-4. Master the GameAPI: Your Senses and Intel
+MASTER THE GameAPI — YOUR SENSES AND INTEL:
 this.api is your window into the game. Use it to build your strategy.
 
 == General Game Info ==
@@ -73,7 +73,12 @@ getFleetsByOwner(playerId): All fleets sent by a specific player.
 getIncomingAttacks(targetPlanet): Enemy fleets heading to one of your planets.
 getIncomingReinforcements(targetPlanet): Friendly fleets heading to one of your planets.
 
-== Player & Opponent Data ==
+== Your Bot's Identity & Player Data ==
+Your bot's unique player ID is passed into the constructor as the playerId parameter and is stored on this.playerId. You will need this to identify your own planets and fleets. Do not attempt to call a function like this.api.getMyId(), as it does not exist.
+
+INCORRECT: const myId = this.api.getMyId(); // Will cause a game-freezing error!
+CORRECT: const myId = this.playerId;
+
 getAllPlayerIds(): Array of all active player IDs.
 getOpponentIds(): Array of all opponent IDs.
 isPlayerActive(playerId): Checks if a player still has any planets or fleets.
@@ -96,14 +101,13 @@ getPlanetCentrality(planet): A planet's centrality score (0 to 1, 1 being map ce
 calculatePlanetValue(planet): A generic helper combining size, production, and centrality. Good as a starting point.
 calculateThreat(myPlanet): A generic helper that calculates a threat score for one of your planets based on nearby enemy troops and incoming fleets.
 
-5. Strategic Philosophy
+STRATEGIC PHILOSOPHY:
 A winning bot needs a plan.
 State Management: Use this.memory to track long-term goals or states. For example, this.memory.missions could track which planets are already tasked with an attack so you don't over-commit your forces.
 Phased Strategy: Adapt your strategy. Early game may be about rapid expansion. Mid-game could be crippling a key opponent. Late game might be an all-in attack or a defensive consolidation. Use getGamePhase() to guide your logic.
 Custom Intelligence: A champion bot will have its own definition of "value" and "threat." Use the raw data functions (getPlanetProductionRate, getPlanetCentrality, planet.size) to build superior evaluation algorithms.
 Efficiency is Key: Don't just attack; attack with precision. Use predictPlanetState to calculate the exact number of troops needed for a successful conquest (plus a small safety buffer). Wasting troops is a path to defeat.
 
-6. Your Starting Template
 Use this template as the starting point for your [YourModel].js file.
 
 // =============================================
@@ -113,10 +117,10 @@ Use this template as the starting point for your [YourModel].js file.
 import BaseBot from './BaseBot.js';
 
 /**
- * [A brief, one-sentence description of your bot's core strategy.]
- * 
- * [A more detailed explanation of your bot's strategic pillars.]
- */
+    [A brief, one-sentence description of your bot's core strategy.]
+    [A more detailed explanation of your bot's strategic pillars.]
+*/
+
 export default class [YourModel] extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
@@ -125,13 +129,12 @@ export default class [YourModel] extends BaseBot {
     }
 
     /**
-     * This method is called by the game engine when it's your turn.
-     * @param {number} dt - The time elapsed since the last turn, scaled by game speed.
-     * @returns {object|null} A decision object or null to take no action.
-     */
+        This method is called by the game engine when it's your turn.
+        @param {number} dt - The time elapsed since the last turn, scaled by game speed.
+        @returns {object|null} A decision object or null to take no action.
+    */
     makeDecision(dt) {
-        // This optional cooldown is a performance optimization.
-        // It prevents the bot from re-evaluating the game state constantly when it knows it cannot act.
+        // This optional cooldown is a performance optimization, preventing the bot from re-evaluating the game state constantly when it knows it cannot act.
         if (this.memory.actionCooldown > 0) {
             this.memory.actionCooldown -= dt;
             return null;
@@ -142,26 +145,23 @@ export default class [YourModel] extends BaseBot {
             return null; // No planets left, do nothing.
         }
 
-        // --- Your champion-level strategic logic goes here ---
+    // --- Your champion-level strategic logic replaces the example logic below ---
 
-        // EXAMPLE DECISION LOGIC (TO BE REPLACED)
-        // const target = this.api.getNeutralPlanets()[0];
-        // if (myPlanets[0] && target && myPlanets[0].troops > 20) {
-        //     const troopsToSend = Math.floor(myPlanets[0].troops * 0.75);
-        //
-        //     // Set the bot's internal cooldown.
-        //     this.memory.actionCooldown = this.api.getDecisionCooldown(); 
-        //
-        //     // --- The Decision Object ---
-        //     // To send troops, you MUST return an object in this format.
-        //     return {
-        //       fromId: myPlanets[0].id, // STRING ID of the source planet
-        //       toId:   target.id,       // STRING ID of the target planet
-        //       troops: troopsToSend     // NUMBER of troops to send
-        //     };
-        // }
+        const target = this.api.getNeutralPlanets()[0];
+        
+        if (myPlanets[0] && target && myPlanets[0].troops > 20) {
+            const troopsToSend = Math.floor(myPlanets[0].troops * 0.75);
+            // Set the bot's internal cooldown.
+            this.memory.actionCooldown = this.api.getDecisionCooldown();
+            // To send troops, you MUST return an object in this format.
+            return {
+                fromId: myPlanets[0].id, // STRING ID of the source planet
+                toId: target.id, // STRING ID of the target planet
+                troops: troopsToSend // NUMBER of troops to send
+            };
+        }
 
-        // If no decision is made, return null.
-        return null;
+    // If no decision is made, return null.
+    return null;
     }
 }
