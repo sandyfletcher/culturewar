@@ -5,9 +5,12 @@
 // --- Anthropic (USA) ---
 import Claude4Sonnet from './Claude4Sonnet.js';
 // --- Google (USA) ---
-import Gemini25Pro from './Gemini25Pro.js';
+import Gemini20FlashA from './Gemini20FlashA.js';
+import Gemini20FlashB from './Gemini20FlashB.js';
+import Gemini20FlashC from './Gemini20FlashC.js';
+import Gemini20FlashD from './Gemini20FlashD.js';
+import Gemini20FlashE from './Gemini20FlashE.js';
 import Gemini25ProA from './Gemini25ProA.js';
-import Gemini25ProC from './Gemini25ProC.js';
 import Gemini25ProD from './Gemini25ProD.js';
 import Gemini25ProE from './Gemini25ProE.js';
 // --- OpenAI (USA) ---
@@ -32,25 +35,47 @@ const botRegistry = [
         description: "An adaptive multi-phase strategist that evolves from aggressive early expansion to strategic consolidation to decisive late-game pushes. It balances calculated risks with defensive discipline, adjusting its aggression based on whether it's winning or losing." 
     },
     { 
-        value: 'G2.5P', 
-        name: 'Gemini 2.5 Pro', 
-        class: Gemini25Pro, 
-        creationDate: 'March 2025?', 
-        description: 'Operates on a "waterfall" logic model, where it evaluates a strict hierarchy of possible actions each turn. This ensures that critical tasks are always handled first.'
+        value: 'G2.OFA', 
+        name: 'Gemini 2.0 Flash A', 
+        class: Gemini20FlashA, 
+        creationDate: 'March 2025', 
+        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
     },
+        { 
+        value: 'G2.OFB', 
+        name: 'Gemini 2.0 Flash B', 
+        class: Gemini20FlashB, 
+        creationDate: 'March 2025', 
+        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
+    },
+        { 
+        value: 'G2.OFC', 
+        name: 'Gemini 2.0 Flash C', 
+        class: Gemini20FlashC, 
+        creationDate: 'March 2025', 
+        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
+    },
+        { 
+        value: 'G2.OFD', 
+        name: 'Gemini 2.0 Flash D', 
+        class: Gemini20FlashD, 
+        creationDate: 'March 2025', 
+        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
+    },
+        { 
+        value: 'G2.OFE', 
+        name: 'Gemini 2.0 Flash E', 
+        class: Gemini20FlashE, 
+        creationDate: 'March 2025', 
+        description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
+    },
+
     { 
         value: 'G2.5PA', 
         name: 'Gemini 2.5 Pro A', 
         class: Gemini25ProA, 
         creationDate: 'March 2025', 
         description: 'Employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression..'
-    },
-    { 
-        value: 'G2.5PC', 
-        name: 'Gemini 2.5 Pro C', 
-        class: Gemini25ProC, 
-        creationDate: 'March 2025', 
-        description: "A balanced bot that adapts its strategy based on the game phase, focusing on efficient expansion, strong defense, and calculated aggression."
     },
     { 
         value: 'G2.5PD', 
