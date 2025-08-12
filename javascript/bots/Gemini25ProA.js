@@ -5,27 +5,38 @@
 import BaseBot from './BaseBot.js';
 
 /**
- * AegisBot employs a balanced, phase-aware strategy that prioritizes robust defense and calculated aggression.
+ * VanguardAI employs a dynamic, multi-phase strategy that adapts its priorities based on the game's progression.
  * 
- * Core Strategic Pillars:
- * 1.  Defense First: The bot's highest priority is to defend its planets. It uses the `predictPlanetState` API to foresee
- *     threats and dispatches the precise number of troops required for reinforcement, ensuring they arrive before the enemy.
- * 2.  Phase-Adaptive Logic: Its behavior changes with the game's phase (`EARLY`, `MID`, `LATE`).
- *     - EARLY Game: Focuses on rapid, efficient expansion by capturing the most valuable and easily defended neutral planets.
- *     - MID Game: Shifts to a more aggressive posture, identifying the strongest opponent and launching calculated attacks on
- *       their key strategic planets, while continuing to defend and expand opportunistically.
- *     - LATE Game: Aims to secure victory either through a decisive final assault if stronger, or by consolidating forces
- *       to win on planet count if the timer is low.
- * 3.  Calculated Offense: Attacks are not random. The bot targets the strongest opponent and uses `predictPlanetState` to
- *     determine the exact troop count needed for a successful conquest, minimizing waste. Targets are chosen based on a
- *     cost-benefit analysis (planet value vs. cost to capture).
- * 4.  Efficient Resource Management: If no immediate defensive or offensive actions are available, the bot consolidates its
- *     forces, moving troops from safe, overstocked rear planets to strategically important frontline planets.
+ * It operates on a strict priority system, ensuring survival before seeking opportunities.
+ * 1.  **Defense:** Immediately reinforces any planet facing a lethal attack it can save.
+ * 2.  **Offense:** Seeks high-value, cost-effective attacks on enemy planets to cripple their production.
+ * 3.  **Expansion:** Captures valuable neutral planets to grow its own economic base, especially in the early game.
+ * 4.  **Consolidation:** Redistributes troops from safe, overstocked planets to strategically important frontline positions.
+ * 
+ * The bot uses the `predictPlanetState` API to calculate the precise number of troops for missions, minimizing waste. Its evaluation of "value" considers not just a planet's production but also its strategic context, such as targeting the strongest opponent in the mid-game to maintain a competitive balance.
  */
 export default class Gemini25ProA extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
-        this.memory.actionCooldown = 0;
+        this.memory = {
+            // Self-managed cooldown to prevent wasting computation on turns where no action can be taken.
+            actionCooldown: 0,
+            // Configuration parameters for the bot's behavior.
+            config: {
+                // How many extra troops to send on an attack to be safe.
+                ATTACK_BUFFER: 3,
+                // How many extra troops to send for defense.
+                DEFENSE_BUFFER: 2,
+                // The minimum troops to leave on a planet after sending a fleet.
+                MIN_GARRISON: 1,
+                // Don't send fleets from a planet if it has fewer than this many troops (unless it's an emergency).
+                MIN_SOURCE_TROOPS: 15,
+                // Percentage of troops to send when consolidating.
+                CONSOLIDATION_PERCENT: 0.6,
+                // How close to the end of the game to switch to "final moments" logic.
+                LATE_GAME_THRESHOLD: 45, // seconds remaining
+            }
+        };
     }
 
     /**
@@ -34,9 +45,8 @@ export default class Gemini25ProA extends BaseBot {
      * @returns {object|null} A decision object or null.
      */
     makeDecision(dt) {
-        // --- 1. Cooldown & Initialization ---
-        this.memory.actionCooldown -= dt;
         if (this.memory.actionCooldown > 0) {
+            this.memory.actionCooldown -= dt;
             return null;
         }
 
@@ -45,309 +55,259 @@ export default class Gemini25ProA extends BaseBot {
             return null; // No planets left, nothing to do.
         }
 
-        // Create a mutable "virtual" state of our planets for this turn's planning.
-        // This prevents assigning the same troops to multiple tasks in a single decision cycle.
-        const virtualPlanets = new Map(myPlanets.map(p => [p.id, { ...p }]));
-
-        // --- 2. Information Gathering & Strategic Context ---
-        const gamePhase = this.api.getGamePhase();
-        const opponentIds = this.api.getOpponentIds();
-        const strongestOpponent = this.getStrongestOpponent(opponentIds);
-
-        // --- 3. Decision Making Priority Queue ---
+        // The core logic is a priority queue of actions. Try each one in order.
         let decision = null;
-
-        // Priority 1: Defend Planets Under Attack
-        decision = this.findDefenseMove(virtualPlanets);
+        
+        // 1. Defend planets that are about to be lost.
+        decision = this.findDefensiveMove(myPlanets);
         if (decision) {
             this.setCooldown();
             return decision;
         }
 
-        // Priority 2: Strategic Offense (Attack Players)
-        // More important in mid/late game, or if few neutrals are left.
-        const isTimeForWar = gamePhase !== 'EARLY' || this.api.getNeutralPlanets().length < 3;
-        if (isTimeForWar) {
-            decision = this.findAttackMove(virtualPlanets, strongestOpponent);
-            if (decision) {
-                this.setCooldown();
-                return decision;
-            }
+        // 2. Launch an offensive attack against an enemy.
+        decision = this.findOffensiveMove(myPlanets);
+        if (decision) {
+            this.setCooldown();
+            return decision;
+        }
+
+        // 3. Expand to neutral planets.
+        decision = this.findExpansionMove(myPlanets);
+        if (decision) {
+            this.setCooldown();
+            return decision;
+        }
+
+        // 4. Consolidate forces by moving troops to the front lines.
+        decision = this.findConsolidationMove(myPlanets);
+        if (decision) {
+            this.setCooldown();
+            return decision;
         }
         
-        // Priority 3: Expansion (Capture Neutrals)
-        // Most important in early game.
-        decision = this.findExpansionMove(virtualPlanets);
-        if (decision) {
-            this.setCooldown();
-            return decision;
-        }
-
-        // Priority 4: Consolidate Forces
-        // If nothing else to do, improve troop distribution.
-        if (gamePhase !== 'EARLY') {
-            decision = this.findConsolidationMove(virtualPlanets);
-            if (decision) {
-                this.setCooldown();
-                return decision;
-            }
-        }
-
         return null;
     }
-
-    // =============================================
-    // === STRATEGIC HELPER METHODS ===
-    // =============================================
 
     /**
      * Sets the action cooldown to prevent the bot from acting too frequently.
      */
     setCooldown() {
-        // Use the API's cooldown + a small buffer for safety.
-        this.memory.actionCooldown = this.api.getDecisionCooldown() * 1.1;
-    }
-
-    /**
-     * Identifies the strongest active opponent based on production, then total troops.
-     * @param {string[]} opponentIds - An array of opponent IDs.
-     * @returns {object|null} The stats object of the strongest opponent.
-     */
-    getStrongestOpponent(opponentIds) {
-        if (!opponentIds || opponentIds.length === 0) return null;
-        
-        const opponentStats = opponentIds
-            .map(id => this.api.getPlayerStats(id))
-            .filter(stats => stats && stats.isActive);
-
-        if (opponentStats.length === 0) return null;
-
-        opponentStats.sort((a, b) => {
-            if (b.totalProduction !== a.totalProduction) {
-                return b.totalProduction - a.totalProduction;
-            }
-            return b.totalTroops - a.totalTroops;
-        });
-
-        return opponentStats[0];
-    }
-
-    /**
-     * Finds critical defensive moves to save planets from being conquered.
-     * @param {Map<string, object>} virtualPlanets - A map of our mutable planet states for planning.
-     * @returns {object|null} A decision object for reinforcement, or null.
-     */
-    findDefenseMove(virtualPlanets) {
-        let threatenedPlanets = [];
-
-        for (const myPlanet of virtualPlanets.values()) {
-            const incomingAttacks = this.api.getIncomingAttacks(myPlanet);
-            if (incomingAttacks.length === 0) continue;
-
-            // Sort attacks by arrival time to handle the most imminent threat first.
-            incomingAttacks.sort((a, b) => a.duration - b.duration);
-
-            const earliestAttack = incomingAttacks[0];
-            const arrivalTime = earliestAttack.duration;
-
-            // Predict the state right after the earliest attack hits.
-            const predictedState = this.api.predictPlanetState(myPlanet, arrivalTime + 0.01);
-
-            if (predictedState.owner !== this.playerId) {
-                // This attack is fatal! Calculate how many troops we were short by.
-                const troopsDeficit = predictedState.troops + 1;
-                threatenedPlanets.push({
-                    planetToSave: myPlanet,
-                    deficit: troopsDeficit,
-                    deadline: arrivalTime,
-                });
-            }
-        }
-        
-        if (threatenedPlanets.length === 0) return null;
-
-        // Prioritize saving the planet with the earliest deadline.
-        threatenedPlanets.sort((a, b) => a.deadline - b.deadline);
-
-        for (const threat of threatenedPlanets) {
-            const { planetToSave, deficit, deadline } = threat;
-            
-            const potentialSources = Array.from(virtualPlanets.values())
-                .filter(p => p.id !== planetToSave.id) // Can't reinforce from itself
-                .map(p => {
-                    const sourcePlanetAPI = this.api.getPlanetById(p.id);
-                    const travelTime = this.api.getTravelTime(sourcePlanetAPI, planetToSave);
-                    
-                    // Can't make it in time or doesn't have enough spare troops.
-                    const spareTroops = p.troops - (p.size * 1.5); // Keep a defensive buffer
-                    if (travelTime >= deadline || spareTroops < deficit) return null;
-
-                    return { source: p, score: 1 / travelTime }; // Closer planets are better.
-                })
-                .filter(s => s !== null);
-
-            if (potentialSources.length > 0) {
-                potentialSources.sort((a, b) => b.score - a.score); // Pick the best (closest) source.
-                const bestSource = potentialSources[0].source;
-                const troopsToSend = Math.ceil(deficit);
-
-                virtualPlanets.get(bestSource.id).troops -= troopsToSend;
-                return {
-                    fromId: bestSource.id,
-                    toId: planetToSave.id,
-                    troops: troopsToSend,
-                };
-            }
-        }
-        return null; // No planet could be found to send reinforcements in time.
-    }
-
-    /**
-     * Finds the best neutral planet to capture for expansion.
-     * @param {Map<string, object>} virtualPlanets - A map of our mutable planet states.
-     * @returns {object|null} A decision object for expansion, or null.
-     */
-    findExpansionMove(virtualPlanets) {
-        let neutralPlanets = this.api.getNeutralPlanets();
-        if (neutralPlanets.length === 0) return null;
-
-        const allFleetTargets = new Set(this.api.getAllTroopMovements().map(f => f.to.id));
-        neutralPlanets = neutralPlanets.filter(p => !allFleetTargets.has(p.id)); // Ignore already-targeted planets.
-
-        let bestOption = null;
-
-        for (const target of neutralPlanets) {
-            const troopsNeeded = target.troops + 1;
-
-            for (const source of virtualPlanets.values()) {
-                const availableTroops = source.troops - (source.size); // Leave a small buffer
-                if (availableTroops >= troopsNeeded) {
-                    const travelTime = this.api.getTravelTime(source, target);
-                    // Score: value of planet / cost (time * troops)
-                    const value = this.api.calculatePlanetValue(target);
-                    const score = value / (travelTime * troopsNeeded);
-
-                    if (!bestOption || score > bestOption.score) {
-                        bestOption = { source, target, troops: troopsNeeded, score };
-                    }
-                }
-            }
-        }
-        
-        if (bestOption) {
-            virtualPlanets.get(bestOption.source.id).troops -= bestOption.troops;
-            return {
-                fromId: bestOption.source.id,
-                toId: bestOption.target.id,
-                troops: Math.ceil(bestOption.troops),
-            };
-        }
-        return null;
+        this.memory.actionCooldown = this.api.getDecisionCooldown();
     }
     
     /**
-     * Finds the best enemy planet to attack.
-     * @param {Map<string, object>} virtualPlanets - A map of our mutable planet states.
-     * @param {object|null} targetPlayer - The stats object of the player to attack.
-     * @returns {object|null} A decision object for an attack, or null.
+     * Priority 1: Identifies critical threats to owned planets and attempts to reinforce them.
+     * @param {Planet[]} myPlanets - A list of the bot's currently owned planets.
+     * @returns {object|null} A decision object for a defensive reinforcement, or null if none is needed/possible.
      */
-    findAttackMove(virtualPlanets, targetPlayer) {
-        if (!targetPlayer) return null;
-        
-        // Don't attack if we are significantly weaker, unless it's late game.
-        if (this.api.getMyStrengthRatio() < 0.8 && this.api.getGamePhase() === 'MID') {
-            return null;
-        }
+    findDefensiveMove(myPlanets) {
+        for (const myPlanet of myPlanets) {
+            const incomingAttacks = this.api.getIncomingAttacks(myPlanet);
+            if (incomingAttacks.length === 0) continue;
 
-        const enemyPlanets = this.api.getEnemyPlanets().filter(p => p.owner === targetPlayer.id);
-        if (enemyPlanets.length === 0) return null;
+            // Predict the state of the planet right when the first attack hits.
+            const firstAttackArrivalTime = Math.min(...incomingAttacks.map(f => f.duration));
+            const predictedState = this.api.predictPlanetState(myPlanet, firstAttackArrivalTime);
 
-        let bestAttack = null;
+            // If we are predicted to lose the planet, we need help.
+            if (predictedState.owner !== this.playerId && predictedState.troops > 0) {
+                const troopsNeeded = predictedState.troops + this.memory.config.DEFENSE_BUFFER;
 
-        for (const target of enemyPlanets) {
-            for (const source of virtualPlanets.values()) {
-                const travelTime = this.api.getTravelTime(source, target);
-                const predictedState = this.api.predictPlanetState(target, travelTime);
+                // Find the best planet to send reinforcements from.
+                const potentialReinforcements = myPlanets
+                    .filter(p => p.id !== myPlanet.id && p.troops > troopsNeeded)
+                    .map(p => ({
+                        planet: p,
+                        travelTime: this.api.getTravelTime(p, myPlanet)
+                    }))
+                    // Reinforcements must arrive BEFORE the attack lands.
+                    .filter(p => p.travelTime < firstAttackArrivalTime)
+                    .sort((a, b) => a.travelTime - b.travelTime); // Closest first
 
-                if (predictedState.owner === this.playerId) continue; // We're already going to own it.
-
-                const troopsNeeded = predictedState.troops + 2; // Need to beat their garrison, +1 for buffer.
-                const defensiveBuffer = source.size * 2;
-                const availableTroops = source.troops - defensiveBuffer;
-
-                if (availableTroops > troopsNeeded) {
-                    const value = this.api.calculatePlanetValue(target);
-                    const cost = troopsNeeded * travelTime;
-                    const score = value / cost;
-                    
-                    if (!bestAttack || score > bestAttack.score) {
-                        bestAttack = { source, target, troops: troopsNeeded, score };
-                    }
+                if (potentialReinforcements.length > 0) {
+                    const source = potentialReinforcements[0].planet;
+                    return { fromId: source.id, toId: myPlanet.id, troops: Math.ceil(troopsNeeded) };
                 }
             }
-        }
-
-        if (bestAttack) {
-            virtualPlanets.get(bestAttack.source.id).troops -= bestAttack.troops;
-            return {
-                fromId: bestAttack.source.id,
-                toId: bestAttack.target.id,
-                troops: Math.ceil(bestAttack.troops),
-            };
         }
         return null;
     }
 
     /**
-     * Finds opportunities to consolidate forces by moving troops from safe planets to frontline planets.
-     * @param {Map<string, object>} virtualPlanets - A map of our mutable planet states.
-     * @returns {object|null} A decision object for consolidation, or null.
+     * Priority 2: Finds the most valuable and cost-effective attack against an enemy planet.
+     * @param {Planet[]} myPlanets - A list of the bot's currently owned planets.
+     * @returns {object|null} A decision object for an attack, or null.
      */
-    findConsolidationMove(virtualPlanets) {
-        const myPlanetList = Array.from(virtualPlanets.values());
-        if (myPlanetList.length < 2) return null;
+    findOffensiveMove(myPlanets) {
+        const enemyPlanets = this.api.getEnemyPlanets();
+        if (enemyPlanets.length === 0) return null;
 
-        // Find safe planets with a surplus of troops.
-        const potentialSources = myPlanetList
-            .filter(p => {
-                const threat = this.api.calculateThreat(p);
-                // "Safe" means low threat and not on the immediate front line.
-                const nearestEnemyDist = this.api.getNearestEnemyPlanet(p) ? this.api.getDistance(p, this.api.getNearestEnemyPlanet(p)) : Infinity;
-                return threat < 0.1 && nearestEnemyDist > 150;
-            })
-            .map(p => ({ planet: p, excessTroops: p.troops - (p.size * 3) })) // Buffer of 3x size
-            .filter(item => item.excessTroops > 10)
-            .sort((a, b) => b.excessTroops - a.excessTroops);
+        const potentialAttacks = this.getPotentialActions(myPlanets, enemyPlanets);
+        if (potentialAttacks.length === 0) return null;
 
-        if (potentialSources.length === 0) return null;
-        
-        // Find important frontline planets that need reinforcement.
-        const potentialDests = myPlanetList
-            .filter(p => {
-                // "Frontline" means an enemy is relatively close.
-                const nearestEnemy = this.api.getNearestEnemyPlanet(p);
-                return nearestEnemy && this.api.getDistance(p, nearestEnemy) < 300;
-            })
-            .sort((a, b) => this.api.calculatePlanetValue(b) - this.api.calculatePlanetValue(a));
-
-        if (potentialDests.length === 0) return null;
-
-        const sourceData = potentialSources[0]; // Take the safest, most overstocked planet.
-        // Find a destination that is not the source itself.
-        const destData = potentialDests.find(d => d.id !== sourceData.planet.id);
-
-        if (destData) {
-            const troopsToSend = Math.floor(sourceData.excessTroops * 0.75); // Send 75% of the excess.
-            if (troopsToSend > 0) {
-                virtualPlanets.get(sourceData.planet.id).troops -= troopsToSend;
-                return {
-                    fromId: sourceData.planet.id,
-                    toId: destData.id,
-                    troops: troopsToSend,
-                };
-            }
+        // Add a strategic bonus for attacking the strongest opponent during mid-game.
+        const strongestOpponent = this.findStrongestOpponent();
+        if (this.api.getGamePhase() === 'MID' && strongestOpponent) {
+            potentialAttacks.forEach(attack => {
+                if (attack.target.owner === strongestOpponent.id) {
+                    attack.score *= 1.5; // Prioritize targets owned by the leader.
+                }
+            });
         }
         
-        return null;
+        // Late game desperation: if we are losing, focus on any small planet to win by count.
+        const timeRemaining = this.api.getGameDuration() - this.api.getElapsedTime();
+        const myStats = this.api.getPlayerStats(this.playerId);
+        if (timeRemaining < this.memory.config.LATE_GAME_THRESHOLD && strongestOpponent && myStats.planetCount < strongestOpponent.planetCount) {
+             potentialAttacks.forEach(attack => {
+                // Prioritize cheap, fast captures over big, slow ones.
+                attack.score = (1 / attack.troopsNeeded) * (1 / attack.travelTime);
+            });
+        }
+
+        potentialAttacks.sort((a, b) => b.score - a.score); // Highest score first.
+        const bestAttack = potentialAttacks[0];
+
+        return { fromId: bestAttack.source.id, toId: bestAttack.target.id, troops: bestAttack.troopsNeeded };
+    }
+
+    /**
+     * Priority 3: Finds the best neutral planet to capture for expansion.
+     * @param {Planet[]} myPlanets - A list of the bot's currently owned planets.
+     * @returns {object|null} A decision object for expansion, or null.
+     */
+    findExpansionMove(myPlanets) {
+        const neutralPlanets = this.api.getNeutralPlanets();
+        if (neutralPlanets.length === 0) return null;
+
+        const potentialExpansions = this.getPotentialActions(myPlanets, neutralPlanets);
+        if (potentialExpansions.length === 0) return null;
+
+        // In the early game, expansion is paramount. Give it a scoring boost.
+        if (this.api.getGamePhase() === 'EARLY') {
+            potentialExpansions.forEach(p => p.score *= 2.0);
+        }
+
+        potentialExpansions.sort((a, b) => b.score - a.score);
+        const bestExpansion = potentialExpansions[0];
+
+        return { fromId: bestExpansion.source.id, toId: bestExpansion.target.id, troops: bestExpansion.troopsNeeded };
+    }
+    
+    /**
+     * Priority 4: Redistributes forces from safe backline planets to frontline planets.
+     * @param {Planet[]} myPlanets - A list of the bot's currently owned planets.
+     * @returns {object|null} A decision object for troop consolidation, or null.
+     */
+    findConsolidationMove(myPlanets) {
+        if (myPlanets.length < 2 || this.api.getEnemyPlanets().length === 0) return null;
+
+        // Identify frontline (near enemies) and backline (safe) planets.
+        const frontlinePlanets = myPlanets.filter(p => this.api.getNearestEnemyPlanet(p) !== null);
+        const backlinePlanets = myPlanets.filter(p => frontlinePlanets.every(fp => fp.id !== p.id));
+        
+        if (frontlinePlanets.length === 0 || backlinePlanets.length === 0) return null;
+        
+        // Find the most over-stocked backline planet.
+        backlinePlanets.sort((a, b) => b.troops - a.troops);
+        const source = backlinePlanets[0];
+
+        if (source.troops < this.memory.config.MIN_SOURCE_TROOPS * 2) return null; // Only move from very safe planets.
+
+        // Find the nearest frontline planet to reinforce.
+        const target = this.api.findNearestPlanet(source, frontlinePlanets);
+        if (!target) return null;
+
+        const troopsToSend = Math.floor(source.troops * this.memory.config.CONSOLIDATION_PERCENT);
+        
+        // Ensure we are not stripping the source planet bare.
+        if (source.troops - troopsToSend < this.memory.config.MIN_GARRISON) {
+            return null;
+        }
+
+        return { fromId: source.id, toId: target.id, troops: troopsToSend };
+    }
+    
+    /**
+     * Generic helper to evaluate and score potential actions (attacks or expansions).
+     * @param {Planet[]} sources - The list of planets to send from.
+     * @param {Planet[]} targets - The list of planets to capture.
+     * @returns {Array} A sorted list of scored, viable actions.
+     */
+    getPotentialActions(sources, targets) {
+        const actions = [];
+        const myOutgoingFleets = this.api.getFleetsByOwner(this.playerId);
+
+        // Calculate troops already committed from each of my planets.
+        const reservedTroops = {};
+        for(const fleet of myOutgoingFleets) {
+            reservedTroops[fleet.from.id] = (reservedTroops[fleet.from.id] || 0) + fleet.amount;
+        }
+
+        for (const target of targets) {
+            // Find the best source planet to attack this target.
+            let bestSource = null;
+            let bestTravelTime = Infinity;
+            
+            for(const source of sources) {
+                const availableTroops = source.troops - (reservedTroops[source.id] || 0);
+                if (availableTroops < this.memory.config.MIN_SOURCE_TROOPS) continue;
+
+                const travelTime = this.api.getTravelTime(source, target);
+                if (travelTime < bestTravelTime) {
+                    bestTravelTime = travelTime;
+                    bestSource = source;
+                }
+            }
+            
+            if (!bestSource) continue;
+
+            // Calculate troops needed with precision.
+            const predictedState = this.api.predictPlanetState(target, bestTravelTime);
+            const troopsNeeded = Math.ceil(predictedState.troops + this.memory.config.ATTACK_BUFFER);
+
+            const availableTroops = bestSource.troops - (reservedTroops[bestSource.id] || 0);
+            
+            // Can we afford this attack?
+            if (availableTroops > troopsNeeded + this.memory.config.MIN_GARRISON) {
+                // Score the action: higher value and lower cost (troops + time) is better.
+                const value = this.api.calculatePlanetValue(target);
+                const cost = troopsNeeded + bestTravelTime;
+                const score = value / cost;
+
+                actions.push({
+                    source: bestSource,
+                    target: target,
+                    troopsNeeded: troopsNeeded,
+                    travelTime: bestTravelTime,
+                    score: score
+                });
+            }
+        }
+        return actions;
+    }
+    
+    /**
+     * Finds the opponent with the highest strength (troops + production).
+     * @returns {object|null} The stats object of the strongest opponent, or null.
+     */
+    findStrongestOpponent() {
+        const opponentIds = this.api.getOpponentIds();
+        if (opponentIds.length === 0) return null;
+
+        const opponentStats = opponentIds
+            .map(id => this.api.getPlayerStats(id))
+            .filter(stats => stats.isActive);
+            
+        if (opponentStats.length === 0) return null;
+
+        // A simple strength score: total troops plus 10 seconds worth of production.
+        opponentStats.forEach(stats => {
+            stats.strength = stats.totalTroops + (stats.totalProduction * 10);
+        });
+
+        opponentStats.sort((a, b) => b.strength - a.strength);
+        return opponentStats[0];
     }
 }
