@@ -191,44 +191,21 @@ header h1 {
 .instructions-section li {
     margin-bottom: 0.5rem;
 }
-/* COMBATANTS SCREEN */
-.combatants-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-.combatant-entry {
-    border: 1px solid #555;
-    transition: all 0.3s ease;
-    border-radius: 0;
-}
-.combatant-entry.active {
-    border-color: #ffaa00;
-}
-.combatant-name {
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    color: #00ffff;
-    margin: 0;
-    font-size: 1.2rem;
-}
-.combatant-card {
+/* COMBATANTS / STANDINGS CARD (MERGED) */
+.standings-card {
     background-color: rgba(30, 30, 30, 0.8);
-    padding: 0 1rem 1rem 1rem;
+    padding: 1rem;
     border-top: 1px solid #555;
 }
-.combatant-card h4 {
-    display: none;
-}
-.combatant-card p {
+.standings-card p {
     margin: 0.5rem 0 0 0;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.9rem;
     line-height: 1.4;
     color: #ccc;
+    white-space: normal; /* Override table nowrap */
 }
-.combatant-card p.blurb {
+.standings-card p.blurb {
     opacity: 0.8;
 }
 /* GAME SETUP MENU */
@@ -663,16 +640,39 @@ header h1 {
     color: #ffcc00;
     font-weight: bold;
 }
+.standings-main-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.standings-main-row:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+.standings-main-row.active {
+    background-color: rgba(255, 170, 0, 0.15);
+}
+.standings-detail-row td {
+    padding: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.standings-detail-row .standings-card {
+    background-color: rgba(50, 50, 50, 0.9);
+}
 /* COLUMN WIDTHS */
 .leaderboard.standings .col-rank { width: 10%; }
-.leaderboard.standings .col-fighter { width: 20%; }
+.leaderboard.standings .col-fighter { width: 25%; }
 .leaderboard.standings .col-score { width: 10%; }
-.leaderboard.standings .col-games { width: 20%; }
+.leaderboard.standings .col-games { width: 10%; }
 .leaderboard.standings .col-winrate { width: 10%; }
-.leaderboard.standings .col-survival { width: 10%; }
+.leaderboard.standings .col-survival { width: 15%; }
 .leaderboard.standings .col-avgrank { width: 10%; }
-.leaderboard.standings .col-planets { width: 20%; }
-.leaderboard.standings .col-troops  { width: 20%; }
+
+/* Game Over Screen has different widths */
+#game-over-screen .col-rank { width: 15%; }
+#game-over-screen .col-fighter { width: 40%; }
+#game-over-screen .col-planets { width: 15%; }
+#game-over-screen .col-troops  { width: 15%; }
+#game-over-screen .col-score { width: 15%; }
+
 /* STATS */
 .overall-stats {
     width: 98%;

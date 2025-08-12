@@ -5,6 +5,7 @@
 import MenuBuilderBase from '../MenuBuilderBase.js';
 import { formatTime } from '../utils.js';
 import eventManager from '../EventManager.js';
+import botRegistry from '../bots/index.js'; // Import the full list of bots
 
 export default class StandingsBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager, menuManager, statsTracker) {
@@ -13,6 +14,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
         this.statsTracker = statsTracker;
     }
     getArchetype(player) { // determines a bot's "personality" from its stats
+        if (player.gamesPlayed === 0) return 'Rookie'; // New: Archetype for bots that haven't played
         const scorePerGame = player.totalCultureScore / player.gamesPlayed;
         const avgGameDuration = 180; // rough baseline for average game length
         if (player.winRate > 60 && scorePerGame > 1.5) return 'Tyrant';
@@ -29,66 +31,99 @@ export default class StandingsBuilder extends MenuBuilderBase {
         const menuContainer = this.createMenuContainer();
         const content = document.createElement('div');
         content.className = 'instructions-content';
-        const standingsData = this.statsTracker.getAggregatedStats();
-        let leaderboardHTML;
-        let hasData = standingsData.length > 0;
-        if (!hasData) {
-            leaderboardHTML = `
-                <h2>STANDINGS</h2>
-                <p style="text-align: center; opacity: 0.7; margin: 2rem 0;">
-                    No game data found.<br>
-                    Play a few matches to populate the table!
-                </p>
+        // 1. Get stats and create a lookup map
+        const aggregatedStats = this.statsTracker.getAggregatedStats();
+        const statsMap = new Map(aggregatedStats.map(s => [s.nickname, s]));
+        // 2. Combine bot registry data with stats
+        const combinedData = botRegistry.map(bot => {
+            const stats = statsMap.get(bot.name);
+            return {
+                ...bot, // value, name, class, creationDate, description
+                stats: stats || { // Default stats if bot has not played
+                    nickname: bot.name, wins: 0, gamesPlayed: 0, totalSurvivalTime: 0,
+                    totalCultureScore: 0, totalRank: 0, winRate: 0, avgSurvival: 0, avgRank: 0
+                }
+            };
+        });
+        // 3. Sort by culture score, then alphabetically for those with 0 score
+        combinedData.sort((a, b) => {
+            if (b.stats.totalCultureScore !== a.stats.totalCultureScore) {
+                return b.stats.totalCultureScore - a.stats.totalCultureScore;
+            }
+            return a.name.localeCompare(b.name);
+        });
+        // 4. Build the HTML table with expandable rows
+        let tableBody = '';
+        combinedData.forEach((player, index) => {
+            const rank = player.stats.gamesPlayed > 0 ? index + 1 : '—';
+            const winRate = player.stats.gamesPlayed > 0 ? `${player.stats.winRate.toFixed(1)}%` : '—';
+            const scoreText = player.stats.gamesPlayed > 0 ? (player.stats.totalCultureScore > 0 ? `+${player.stats.totalCultureScore.toFixed(1)}` : player.stats.totalCultureScore.toFixed(1)) : '—';
+            const avgSurvival = player.stats.gamesPlayed > 0 ? formatTime(player.stats.avgSurvival) : '—';
+            const avgRank = player.stats.gamesPlayed > 0 ? player.stats.avgRank.toFixed(1) : '—';
+            const archetype = this.getArchetype(player.stats);
+            // Main row (always visible)
+            tableBody += `
+                <tr class="standings-main-row" data-bot-name="${player.name}">
+                    <td class="col-rank">${rank}</td>
+                    <td class="col-fighter">
+                        <div>${player.name}</div>
+                        <div style="font-size: 0.8em; opacity: 1;">${archetype}</div>
+                    </td>
+                    <td class="col-score">${scoreText}</td>
+                    <td class="col-games">${player.stats.gamesPlayed}</td>
+                    <td class="col-winrate">${winRate}</td>
+                    <td class="col-survival">${avgSurvival}</td>
+                    <td class="col-avgrank">${avgRank}</td>
+                </tr>
             `;
-        } else {
-            let tableBody = '';
-            standingsData.forEach((player, index) => {
-                const rank = index + 1;
-                const winRate = player.winRate.toFixed(1);
-                const scoreText = player.totalCultureScore > 0 ? `+${player.totalCultureScore.toFixed(1)}` : player.totalCultureScore.toFixed(1);
-                const avgSurvival = formatTime(player.avgSurvival);
-                const archetype = this.getArchetype(player); // get bot's title
-                const avgRank = player.avgRank.toFixed(1);
-                tableBody += `
-                    <tr>
-                        <td class="col-rank">${rank}</td>
-                        <td class="col-fighter">
-                            <div>${player.nickname}</div>
-                            <div style="font-size: 0.8em; opacity: 1;">${archetype}</div>
-                        </td>
-                        <td class="col-score">${scoreText}</td>
-                        <td class="col-games">${player.gamesPlayed}</td>
-                        <td class="col-winrate">${winRate}%</td>
-                        <td class="col-survival">${avgSurvival}</td>
-                        <td class="col-avgrank">${avgRank}</td>
-                    </tr>
-                `;
-            });
-            leaderboardHTML = `
-                <h2>STANDINGS</h2>
-                <div class="leaderboard standings">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="col-rank" title="Overall Rank by Culture Score">Rank</th>
-                                <th class="col-fighter" title="Bot Name and Archetype">Fighter</th>
-                                <th class="col-score" title="Elo Accumulation Across All Games">Score</th>
-                                <th class="col-games" title="Total Games Played">Games Played</th>
-                                <th class="col-winrate" title="First-Place Percentage">Win %</th>
-                                <th class="col-survival" title="Average Survival Time">Avg. Life</th>
-                                <th class="col-avgrank" title="Average Match Ranking">Avg. Rank</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableBody}
-                        </tbody>
-                    </table>
-                </div>
+            // Detail row (initially hidden)
+            tableBody += `
+                <tr class="standings-detail-row" style="display: none;">
+                    <td colspan="7">
+                        <div class="combatant-card standings-card">
+                            <p><strong>Commissioned:</strong> ${player.creationDate}</p>
+                            <p class="blurb">${player.description}</p>
+                        </div>
+                    </td>
+                </tr>
             `;
-        }
+        });
+        const leaderboardHTML = `
+            <h2>STANDINGS</h2>
+            <div class="leaderboard standings">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-rank" title="Overall Rank by Culture Score">Rank</th>
+                            <th class="col-fighter" title="Bot Name and Archetype">Fighter</th>
+                            <th class="col-score" title="Elo Accumulation Across All Games">Score</th>
+                            <th class="col-games" title="Total Games Played">Games</th>
+                            <th class="col-winrate" title="First-Place Percentage">Win %</th>
+                            <th class="col-survival" title="Average Survival Time">Avg. Life</th>
+                            <th class="col-avgrank" title="Average Match Ranking">Avg. Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableBody}
+                    </tbody>
+                </table>
+            </div>
+        `;
         content.innerHTML = leaderboardHTML;
         menuContainer.appendChild(content);
-        if (hasData) {
+        // 5. Add event listeners for expanding/collapsing rows
+        menuContainer.querySelectorAll('.standings-main-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const detailRow = row.nextElementSibling;
+                if (detailRow && detailRow.classList.contains('standings-detail-row')) {
+                    const isHidden = detailRow.style.display === 'none';
+                    detailRow.style.display = isHidden ? 'table-row' : 'none';
+                    row.classList.toggle('active', isHidden);
+                }
+            });
+        });
+        // "Clear Stats" button logic remains the same
+        if (aggregatedStats.length > 0) {
             const clearButton = document.createElement('button');
             clearButton.id = 'clear-stats-button';
             clearButton.className = 'menu-button';

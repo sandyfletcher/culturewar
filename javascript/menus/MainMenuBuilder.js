@@ -22,12 +22,6 @@ export default class MainMenuBuilder extends MenuBuilderBase {
                 handler: () => this.parentBuilder.buildInstructionsScreen()
             },
             { 
-                id: 'combatants', 
-                name: 'COMBATANTS', 
-                description: 'view the available bots',
-                handler: () => this.parentBuilder.buildCombatantsScreen()
-            },
-            { 
                 id: 'standings', 
                 name: 'STANDINGS', 
                 description: 'track bot rankings',
