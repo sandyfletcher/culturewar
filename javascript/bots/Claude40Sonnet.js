@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/Claude40SonnetC.js
+// root/javascript/bots/Claude40Sonnet.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -14,7 +14,7 @@ import BaseBot from './BaseBot.js';
  * 4. Advanced threat assessment and resource allocation
  * 5. Predictive combat calculations for maximum efficiency
  */
-export default class Claude40SonnetC extends BaseBot {
+export default class Claude40Sonnet extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
         

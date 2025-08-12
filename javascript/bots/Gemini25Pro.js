@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/Gemini25ProA.js
+// root/javascript/bots/Gemini25Pro.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -14,7 +14,7 @@ import BaseBot from './BaseBot.js';
  * 
  * It prioritizes actions in this order: Urgent Defense > Strategic Offense > Force Consolidation, ensuring survival and efficiency.
  */
-export default class Gemini25ProA extends BaseBot {
+export default class Gemini25Pro extends BaseBot {
 
     // --- Configuration Constants for easy tuning ---
     GARRISON_SIZE = 10;         // Minimum troops to leave on a planet after sending a fleet.

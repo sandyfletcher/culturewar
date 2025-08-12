@@ -1,5 +1,5 @@
 // =============================================
-// root/javascript/bots/CGPT5B.js
+// root/javascript/bots/CGPT5.js
 // =============================================
 
 import BaseBot from './BaseBot.js';
@@ -19,7 +19,7 @@ import BaseBot from './BaseBot.js';
  * 4) Mission tracking: avoid over-committing to the same target from multiple planets when unnecessary.
  */
 
-export default class CGPT5B extends BaseBot {
+export default class CGPT5 extends BaseBot {
     constructor(api, playerId) {
         super(api, playerId);
 
