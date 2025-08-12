@@ -47,20 +47,19 @@ export default class StandingsBuilder extends MenuBuilderBase {
                 const winRate = player.winRate.toFixed(1);
                 const scoreText = player.totalCultureScore > 0 ? `+${player.totalCultureScore.toFixed(1)}` : player.totalCultureScore.toFixed(1);
                 const avgSurvival = formatTime(player.avgSurvival);
-                const archetype = this.getArchetype(player); // Get the bot's title
+                const archetype = this.getArchetype(player); // get bot's title
                 const avgRank = player.avgRank.toFixed(1);
-
                 tableBody += `
                     <tr>
                         <td class="col-rank">${rank}</td>
-                        <td class="col-combatant">
+                        <td class="col-fighter">
                             <div>${player.nickname}</div>
-                            <div style="font-size: 0.8em; opacity: 0.7;">${archetype}</div>
+                            <div style="font-size: 0.8em; opacity: 1;">${archetype}</div>
                         </td>
                         <td class="col-score">${scoreText}</td>
+                        <td class="col-games">${player.gamesPlayed}</td>
                         <td class="col-winrate">${winRate}%</td>
                         <td class="col-survival">${avgSurvival}</td>
-                        <td class="col-games">${player.gamesPlayed}</td>
                         <td class="col-avgrank">${avgRank}</td>
                     </tr>
                 `;
@@ -71,13 +70,13 @@ export default class StandingsBuilder extends MenuBuilderBase {
                     <table>
                         <thead>
                             <tr>
-                                <th class="col-rank" title="Overall rank based on Culture Score">Rank</th>
-                                <th class="col-combatant" title="Bot's name and calculated archetype">Combatant</th>
-                                <th class="col-score" title="Total points earned across all games. Rewards high placement.">Score</th>
-                                <th class="col-winrate" title="Percentage of games where the bot placed first">Win %</th>
-                                <th class="col-survival" title="Average time the bot survived in each match">Avg. Survival</th>
-                                <th class="col-games" title="Total games played">Games</th>
-                                <th class="col-avgrank" title="Average placement in each match">Avg. Rank</th>
+                                <th class="col-rank" title="Overall Rank by Culture Score">Rank</th>
+                                <th class="col-fighter" title="Bot Name and Archetype">Fighter</th>
+                                <th class="col-score" title="Elo Accumulation Across All Games">Score</th>
+                                <th class="col-games" title="Total Games Played">Games Played</th>
+                                <th class="col-winrate" title="First-Place Percentage">Win %</th>
+                                <th class="col-survival" title="Average Survival Time">Avg. Life</th>
+                                <th class="col-avgrank" title="Average Match Ranking">Avg. Rank</th>
                             </tr>
                         </thead>
                         <tbody>

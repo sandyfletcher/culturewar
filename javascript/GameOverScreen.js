@@ -13,15 +13,18 @@ export default class GameOverScreen {
         this.remove();
         this.gameOverScreen = document.createElement('div');
         this.gameOverScreen.id = 'game-over-screen';
-        const playerStats = gameInstance.playersController.getPlayerStats()
-            .filter(player => player.id !== 'neutral');
         const allPlayersData = gameInstance.playersController.players;
-        const playerStatsMap = new Map(gameInstance.playersController.getPlayerStats().map(p => [p.id, p]));
+        const playerStatsMap = new Map(
+            gameInstance.playersController.getPlayerStats()
+                .filter(p => p.id !== 'neutral')
+                .map(p => [p.id, p])
+        );
+        const playerCount = allPlayersData.length;
         const eliminationTimes = gameInstance.gameState.eliminationTimes || {};
         const gameTime = stats.time;
 
         const leaderboardData = allPlayersData.map(playerData => {
-            const playerStat = playerStatsMap.get(playerData.id) || { planets: 0, troops: 0 }; // More efficient lookup
+            const playerStat = playerStatsMap.get(playerData.id) || { planets: 0, troops: 0 };
             const isWinner = playerData.id === stats.winner;
             const survivalTime = eliminationTimes[playerData.id] || gameTime;
             return {
@@ -43,18 +46,19 @@ export default class GameOverScreen {
         if (stats.hasHumanPlayer) {
             headerText = `<h1>${stats.playerWon ? 'VICTORY!' : 'DEFEAT'}</h1><h2>Successful Subjugation</h2>`;
         } else {
-            headerText = `<h1>BATTLE COMPLETE</h1><h2>Successful Subjugation:<br>${leaderboardData[0].displayName}</h2>`;
+            const winnerName = leaderboardData.length > 0 ? leaderboardData[0].displayName : 'Nobody';
+            headerText = `<h1>BATTLE COMPLETE</h1><h2>Successful Subjugation:<br>${winnerName}</h2>`;
         }
         let leaderboardHTML = `
             <div class="leaderboard">
                 <table>
                     <thead>
                         <tr>
-                            <th>Rank</th>
-                            <th>Player</th>
-                            <th>Planets</th>
-                            <th>Troops</th>
-                            <th>Score</th>
+                            <th class="col-rank">Rank</th>
+                            <th class="col-fighter">Fighter</th>
+                            <th class="col-planets">Planets</th>
+                            <th class="col-troops">Troops</th>
+                            <th class="col-score">Score</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,11 +73,11 @@ export default class GameOverScreen {
             const rowClass = player.isWinner ? 'winner' : '';
             leaderboardHTML += `
                 <tr class="${rowClass}">
-                    <td>${player.rank}</td>
-                    <td>${player.displayName}</td>
-                    <td>${player.planets}</td>
-                    <td>${player.troops}</td>
-                    <td>${scoreText}</td>
+                    <td class="col-rank">${player.rank}</td>
+                    <td class="col-fighter">${player.displayName}</td>
+                    <td class="col-planets">${player.planets}</td>
+                    <td class="col-troops">${player.troops}</td>
+                    <td class="col-score">${scoreText}</td>
                 </tr>
             `;
         });

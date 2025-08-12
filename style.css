@@ -458,7 +458,7 @@ header h1 {
     border-top: 2px solid #ffaa00;
     display: flex;
     flex-direction: column;
-    padding: 1rem 1rem 5rem 1rem; /* 1rem for its own padding + 4rem for the buttons = 5rem total bottom space */
+    padding: 1rem 1rem 5rem 1rem; /* 1rem for own padding + 4rem for buttons = 5rem bottom space */
     z-index: 10;
     transform: translateY(100%);
     transition: transform 0.4s ease-out;
@@ -663,21 +663,16 @@ header h1 {
     color: #ffcc00;
     font-weight: bold;
 }
-/* COLUMN WIDTHS FOR GAME OVER SCREEN */
-.leaderboard:not(.standings) .col-rank    { width: 12%; }
-.leaderboard:not(.standings) .col-player  { width: 28%; }
-.leaderboard:not(.standings) .col-planets { width: 20%; }
-.leaderboard:not(.standings) .col-troops  { width: 20%; }
-.leaderboard:not(.standings) .col-score   { width: 20%; }
-
-/* COLUMN WIDTHS FOR STANDINGS SCREEN */
-.leaderboard.standings .col-rank      { width: 10%; }
-.leaderboard.standings .col-combatant { width: 26%; }
-.leaderboard.standings .col-score     { width: 12%; }
-.leaderboard.standings .col-winrate   { width: 12%; }
-.leaderboard.standings .col-survival  { width: 15%; }
-.leaderboard.standings .col-games     { width: 10%; }
-.leaderboard.standings .col-avgrank   { width: 15%; }
+/* COLUMN WIDTHS */
+.leaderboard.standings .col-rank { width: 10%; }
+.leaderboard.standings .col-fighter { width: 20%; }
+.leaderboard.standings .col-score { width: 10%; }
+.leaderboard.standings .col-games { width: 20%; }
+.leaderboard.standings .col-winrate { width: 10%; }
+.leaderboard.standings .col-survival { width: 10%; }
+.leaderboard.standings .col-avgrank { width: 10%; }
+.leaderboard.standings .col-planets { width: 20%; }
+.leaderboard.standings .col-troops  { width: 20%; }
 /* STATS */
 .overall-stats {
     width: 98%;
