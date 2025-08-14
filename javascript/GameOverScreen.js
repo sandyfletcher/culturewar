@@ -2,6 +2,8 @@
 // root/javascript/GameOverScreen.js
 // ===========================================
 
+import { formatTime } from './utils.js';
+
 export default class GameOverScreen {
     constructor(parentContainer, configManager, menuManager) {
         this.parentContainer = parentContainer || document.getElementById('inner-container');
@@ -88,7 +90,7 @@ export default class GameOverScreen {
                 <div class="stats-container">
                     <div class="stat-item">
                         <span class="stat-label">Preservation:</span>
-                        <span class="stat-value">${this.menuManager.formatTime(stats.time)}</span>
+                        <span class="stat-value">${formatTime(stats.time)}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Persuasions:</span>
@@ -105,7 +107,6 @@ export default class GameOverScreen {
                 </div>
             </div>
         `;
-        // NEW: Add a container for buttons
         const gameIsReplayable = !gameInstance.config.players.some(p => p.type === 'human');
         const buttonsHTML = `
             <div class="game-over-buttons">
@@ -126,7 +127,6 @@ export default class GameOverScreen {
                 onPlayAgainCallback();
             }
         });
-        // NEW: Add event listener for the save replay button
         if (gameIsReplayable) {
             document.getElementById('save-replay-button').addEventListener('click', (e) => {
                 const replayName = `Game: ${gameInstance.config.players.map(p => p.aiController).join(' vs ')}`;

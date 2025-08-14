@@ -2,6 +2,8 @@
 // root/javascript/RendererModule.js
 // ===========================================
 
+import { formatTime } from './utils.js';
+
 export default class Renderer {
     constructor(game) {
         this.game = game; // The game instance
@@ -73,7 +75,7 @@ export default class Renderer {
         ctx.fillText(`${totalTroops}`, padding, topY);
         // --- Draw Time Remaining (Top-Right) ---
         const timeRemaining = this.game.timerManager.getTimeRemaining();
-        const formattedTime = this.game.menuManager.formatTime(timeRemaining);
+        const formattedTime = formatTime(timeRemaining);
         ctx.textAlign = 'right';
         ctx.fillText(formattedTime, this.canvas.width - padding, topY);
         // --- Restore context state ---

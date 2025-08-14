@@ -12,10 +12,7 @@ export default class UIManager {
         this.menuScreen = document.getElementById('menu-screen');
         this.gameScreen = document.getElementById('game-screen');
         this.canvas = document.getElementById('game-canvas');
-        
-        // NEW: Tournament UI element
         this.tournamentOverlay = document.getElementById('tournament-overlay');
-
         eventManager.on('show-batch-overlay', () => this.showBatchOverlay());
         eventManager.on('update-batch-overlay', ({ gameNumber, totalGames }) => this.updateBatchOverlay(gameNumber, totalGames));
         eventManager.on('hide-batch-overlay', () => this.hideBatchOverlay());
@@ -63,8 +60,6 @@ export default class UIManager {
             this.batchOverlay = null;
         }
     }
-
-    // NEW: Tournament UI Methods
     showTournamentOverlay(bracketData) {
         this.tournamentOverlay.style.display = 'flex';
         this.tournamentOverlay.innerHTML = `
@@ -74,38 +69,29 @@ export default class UIManager {
         `;
         this.renderBracket(bracketData);
     }
-    
     updateTournamentStatus(status) {
         const statusEl = document.getElementById('tournament-status');
         if (statusEl) {
             statusEl.textContent = status;
         }
     }
-
     hideTournamentOverlay() {
         this.tournamentOverlay.style.display = 'none';
     }
-    
     renderBracket(bracketData) {
         const container = document.getElementById('tournament-bracket-container');
         if (!container) return;
         container.innerHTML = '';
-
         const maxPlayersInRound = Math.max(...bracketData.map(round => round.length));
-
         bracketData.forEach((round, roundIndex) => {
             const roundEl = document.createElement('div');
             roundEl.className = 'bracket-round';
-
             for (let i = 0; i < round.length; i += 2) {
                 const matchEl = document.createElement('div');
                 matchEl.className = 'bracket-match';
-
                 const p1 = round[i];
                 const p2 = round[i + 1];
-
                 const winner = bracketData[roundIndex + 1]?.find(winner => winner.aiController === p1.aiController || (p2 && winner.aiController === p2.aiController));
-
                 matchEl.innerHTML += this.renderPlayer(p1, winner, p2);
                 matchEl.innerHTML += p2 ? this.renderPlayer(p2, winner, p1) : `<div class="bracket-player tbd">(BYE)</div>`;
                 
@@ -114,10 +100,8 @@ export default class UIManager {
             container.appendChild(roundEl);
         });
     }
-    
     renderPlayer(player, winner, opponent) {
         if (!player) return `<div class="bracket-player tbd">TBD</div>`;
-        
         let className = 'bracket-player';
         if (winner) {
             if (winner.aiController === player.aiController) {
@@ -126,7 +110,6 @@ export default class UIManager {
                 className += ' loser';
             }
         }
-        
         const botInfo = botRegistry.find(b => b.value === player.aiController);
         const displayName = botInfo ? botInfo.name : player.aiController;
         return `<div class="${className}">${displayName}</div>`;
