@@ -12,7 +12,8 @@ export default class GameConfigManager {
             planetDensity: config.planetGeneration.density.default,
             batchSize: 1,
             initialGamePace: 1.0,
-            isHeadless: false
+            isHeadless: false,
+            seed: Date.now()
         };
         this.aiOptions = botRegistry.map(bot => ({
             value: bot.value,
@@ -20,6 +21,9 @@ export default class GameConfigManager {
         }));
         this.playerColors = config.player.colors;
         this.setPlayerCount(config.menuDefaults.playerCount);
+    }
+    setSeed(seed) {
+        this.gameConfig.seed = seed;
     }
     setBatchSize(size) {
         const batchSize = parseInt(size, 10);

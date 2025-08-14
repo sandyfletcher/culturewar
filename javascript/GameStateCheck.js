@@ -105,7 +105,10 @@ export default class GameState {
             planetsConquered: this.planetsConquered,
             troopsLost: this.troopsLost
         });
-
+        if (this.game.menuManager && this.game.menuManager.tournament) { // check if this was a tournament match
+            this.game.menuManager.tournament.reportMatchResult(winnerId);
+            return; // prevent regular game over screen from showing
+        }
         playerStats.forEach((player, index) => {
             const rank = index + 1;
             const cultureScore = ((allPlayersData.length + 1) / 2) - rank;

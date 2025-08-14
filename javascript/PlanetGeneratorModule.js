@@ -4,11 +4,13 @@
 
 import Planet from './Planet.js';
 import { config } from './config.js';
+import PRNG from './PRNG.js'; //
 
 export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
         this.canvas = game.canvas;
+        this.prng = new PRNG(this.game.config.seed || Date.now());
         this.config = {
             STARTING_PLANET_SIZE: config.planetGeneration.startingPlanetSize,
             STARTING_TROOPS: config.planetGeneration.startingPlanetTroops,
@@ -77,8 +79,8 @@ export default class PlanetGeneration {
                 pX = chunk.x + chunk.width / 2;
                 pY = chunk.y + chunk.height / 2;
             } else {
-                pX = chunk.x + planetSize + (Math.random() * validPlacementWidth);
-                pY = chunk.y + planetSize + (Math.random() * validPlacementHeight);
+                pX = chunk.x + planetSize + (this.prng.next() * validPlacementWidth);
+                pY = chunk.y + planetSize + (this.prng.next() * validPlacementHeight);
             }
             const playerPlanet = new Planet(
                 pX, pY,
@@ -93,7 +95,7 @@ export default class PlanetGeneration {
     }
     _shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(this.prng.next() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
@@ -115,10 +117,10 @@ export default class PlanetGeneration {
             let attempts = 0;
             let valid = false;
             while (!valid && attempts < this.config.MAX_ATTEMPTS) {
-                const size = this.config.MIN_SIZE + Math.random() * this.config.MAX_SIZE_VARIATION;
+                const size = this.config.MIN_SIZE + this.prng.next() * this.config.MAX_SIZE_VARIATION;
                 const buffer = size + this.config.NEUTRAL_BORDER_BUFFER;
-                const x = buffer + Math.random() * (this.canvas.width - buffer * 2);
-                const y = buffer + Math.random() * (this.canvas.height - buffer * 2);
+                const x = buffer + this.prng.next() * (this.canvas.width - buffer * 2);
+                const y = buffer + this.prng.next() * (this.canvas.height - buffer * 2);
                 valid = this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray]);
                 if (valid) {
                     const startingTroops = Math.floor(size / 3);
@@ -133,8 +135,8 @@ export default class PlanetGeneration {
         const { width, height } = this.canvas;
         let clusterX = 0, clusterY = 0, validCluster = false, attempts = 0;
         while (!validCluster && attempts < this.config.MAX_ATTEMPTS) {
-            clusterX = width * 0.2 + Math.random() * width * 0.6;
-            clusterY = height * 0.2 + Math.random() * height * 0.6;
+            clusterX = width * 0.2 + this.prng.next() * width * 0.6;
+            clusterY = height * 0.2 + this.prng.next() * height * 0.6;
             let minDistance = Number.MAX_VALUE;
             for (const planet of existingPlanets) {
                 const dx = clusterX - planet.x;
@@ -154,9 +156,9 @@ export default class PlanetGeneration {
         for (let i = 0; i < count; i++) {
             let placed = false;
             for (let j = 0; j < this.config.MAX_ATTEMPTS; j++) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * clusterRadius;
-                const size = this.config.MIN_SIZE + Math.random() * (this.config.MAX_SIZE_VARIATION * 0.7);
+                const angle = this.prng.next() * Math.PI * 2;
+                const distance = this.prng.next() * clusterRadius;
+                const size = this.config.MIN_SIZE + this.prng.next() * (this.config.MAX_SIZE_VARIATION * 0.7);
                 const x = clusterX + Math.cos(angle) * distance;
                 const y = clusterY + Math.sin(angle) * distance;
                 if (this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray])) {
@@ -178,7 +180,7 @@ export default class PlanetGeneration {
         const areaFactor = Math.sqrt(mapArea) / 500;
         const playerFactor = Math.sqrt(playerCount);
         const densityFactor = this.config.PLANET_DENSITY;
-        const randomVariation = Math.floor(Math.random() * 3) - 1;
+        const randomVariation = Math.floor(this.prng.next() * 3) - 1;
         return Math.max(3, Math.floor(baseCount * areaFactor * playerFactor * densityFactor) + randomVariation);
     }
     isValidNeutralPosition(x, y, size, existingPlanets) {

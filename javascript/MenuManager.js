@@ -31,6 +31,7 @@ export default class MenuManager {
             this.configManager,
             this
         );
+        this.tournament = null;
         this.isBatchRunning = false;
         this.gamesRemaining = 0;
         this.totalGamesInBatch = 0;
