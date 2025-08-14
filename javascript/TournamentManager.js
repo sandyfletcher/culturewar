@@ -2,17 +2,20 @@
 // root/javascript/TournamentManager.js
 // ===========================================
 
+import PRNG from './PRNG.js';
+
 export default class TournamentManager {
     constructor(participants, menuManager) {
         this.menuManager = menuManager;
         this.participants = participants; // array of AI player configs { type, aiController }
+        this.prng = new PRNG(Date.now());
         this.bracket = this._createBracket(participants);
         this.currentRound = 0;
         this.currentMatchIndex = 0;
         this.finalMatchConfig = null;
     }
     _createBracket(participants) {
-        const shuffled = [...participants].sort(() => 0.5 - Math.random()); // simple logic for single-elimination bracket
+        const shuffled = [...participants].sort(() => 0.5 - this.prng.next()); // simple logic for single-elimination bracket
         return [shuffled]; // first round is just shuffled list of participants
     }
     start() {
@@ -47,7 +50,7 @@ export default class TournamentManager {
                 { id: 'player2', type: 'bot', aiController: player2.aiController }
             ],
             batchSize: 1,
-            isHeadless: true, // Tournaments must be fast! TODO: fix as replays aren't displaying due to headless copy
+            isHeadless: true, // tournaments play out quickly
             seed: Date.now() + Math.random() // unique seed for each match
         };
         if(this.bracket[this.currentRound].length === 2) { // final match in tournament

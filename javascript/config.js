@@ -83,7 +83,7 @@ export const config = {
         footerSlider: {
             defaultValue: 50, // default position of slider (1-100)
             speed: { // multiplier range for bot battles
-                min: 0.01,
+                min: 0.1,
                 mid: 1.0,
                 max: 4.0,
             }
