@@ -10,11 +10,11 @@ export default class InstructionsBuilder extends MenuBuilderBase {
         this.parentBuilder = parentBuilder;
     }
     build() {
+        this.menuManager.uiManager.setHeaderTitle('INSTRUCTIONS'); // <-- ADD THIS LINE
         const menuContainer = this.createMenuContainer();
         const content = document.createElement('div'); // instructions content
         content.className = 'instructions-content';
         content.innerHTML = `
-            <h2>INSTRUCTIONS</h2>
             <div class="instructions-section">
                 <h3>GAMEPLAY</h3>
                 <ul>

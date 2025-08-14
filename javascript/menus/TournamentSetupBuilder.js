@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/menus/TournamentSetupBuilder.js (NEW FILE)
+// root/javascript/menus/TournamentSetupBuilder.js
 // ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
@@ -12,10 +12,10 @@ export default class TournamentSetupBuilder extends MenuBuilderBase {
         this.selectedBots = new Set();
     }
     build() {
+        this.menuManager.uiManager.setHeaderTitle('SETUP TOURNAMENT'); // Set the header title
         const menuContainer = this.createMenuContainer();
         menuContainer.innerHTML = `
             <div class="instructions-content">
-                <h2>SETUP TOURNAMENT</h2>
                 <p style="text-align: center; margin-bottom: 1rem;">Select the bots to compete in a single-elimination tournament.</p>
                 <div id="tournament-bot-list" class="tournament-bot-list"></div>
                 <button id="start-tournament-button" class="menu-button start-game" disabled>START TOURNAMENT</button>

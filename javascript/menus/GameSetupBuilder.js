@@ -12,6 +12,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         this.startGameCallback = startGameCallback;
     }
     build() {
+        this.menuManager.uiManager.setHeaderTitle('CREATE GAME');
         const menuContainer = this.createMenuContainer();
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';

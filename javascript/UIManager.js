@@ -14,11 +14,17 @@ export default class UIManager {
         this.canvas = document.getElementById('game-canvas');
         this.tournamentOverlay = document.getElementById('tournament-overlay');
         this.tournamentCompleteScreen = document.getElementById('tournament-complete-screen'); 
+        this.headerTitle = document.querySelector('header h1');
         this.lastBracketData = null; // cache last bracket state for animations
         eventManager.on('show-batch-overlay', () => this.showBatchOverlay());
         eventManager.on('update-batch-overlay', ({ gameNumber, totalGames }) => this.updateBatchOverlay(gameNumber, totalGames));
         eventManager.on('hide-batch-overlay', () => this.hideBatchOverlay());
         eventManager.on('screen-changed', (screenName) => this.switchToScreen(screenName));
+    }
+    setHeaderTitle(title) {
+        if (this.headerTitle) {
+            this.headerTitle.textContent = title.toUpperCase();
+        }
     }
     getMenuScreenElement() {
         return this.menuScreen;

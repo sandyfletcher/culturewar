@@ -28,6 +28,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
         return 'Mysterious';
     }
     build() {
+        this.menuManager.uiManager.setHeaderTitle('STANDINGS'); // Set the header title
         const menuContainer = this.createMenuContainer();
         const content = document.createElement('div');
         content.className = 'instructions-content';
@@ -89,7 +90,6 @@ export default class StandingsBuilder extends MenuBuilderBase {
             `;
         });
         const leaderboardHTML = `
-            <h2>STANDINGS</h2>
             <div class="leaderboard standings">
                 <table>
                     <thead>

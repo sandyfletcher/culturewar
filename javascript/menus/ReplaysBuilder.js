@@ -9,11 +9,10 @@ export default class ReplaysBuilder extends MenuBuilderBase {
         super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
     }
-
     build() {
+        this.menuManager.uiManager.setHeaderTitle('SAVED REPLAYS');
         const menuContainer = this.createMenuContainer();
         const replays = this.menuManager.replayManager.getReplays();
-
         let replayListHTML = '';
         if (replays.length > 0) {
             replays.forEach(replay => {
@@ -34,21 +33,16 @@ export default class ReplaysBuilder extends MenuBuilderBase {
         } else {
             replayListHTML = `<p style="text-align: center; margin: 2rem 0;">No replays saved. Play some bot-only games to save replays of the final match!</p>`;
         }
-
         menuContainer.innerHTML = `
             <div class="instructions-content">
-                <h2>SAVED REPLAYS</h2>
                 <div class="replay-list">${replayListHTML}</div>
                 ${replays.length > 0 ? '<button id="clear-replays-button" class="menu-button">Clear All Replays</button>' : ''}
             </div>
         `;
-
         menuContainer.addEventListener('click', (e) => {
             const timestamp = e.target.dataset.timestamp;
             if (!timestamp) return;
-
             const numericTimestamp = parseInt(timestamp, 10);
-
             if (e.target.classList.contains('watch')) {
                 const replay = replays.find(r => r.timestamp === numericTimestamp);
                 if (replay) {
@@ -59,7 +53,6 @@ export default class ReplaysBuilder extends MenuBuilderBase {
                 this.build(); // Refresh the view
             }
         });
-
         const clearButton = menuContainer.querySelector('#clear-replays-button');
         if (clearButton) {
             clearButton.addEventListener('click', () => {
@@ -69,11 +62,9 @@ export default class ReplaysBuilder extends MenuBuilderBase {
                 }
             });
         }
-
         this.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
-
         return menuContainer;
     }
 }

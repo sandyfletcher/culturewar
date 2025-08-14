@@ -10,6 +10,7 @@ export default class MainMenuBuilder extends MenuBuilderBase {
         this.parentBuilder = parentBuilder;
     }
     build() {
+        this.menuManager.uiManager.setHeaderTitle('CULTURE WAR');
         this.menuManager.footerManager.showDefault(); // when main menu is built, ensure footer is set to default
         const menuContainer = this.createMenuContainer();
         const gameModeContainer = document.createElement('div');
