@@ -12,6 +12,7 @@ import StatsTracker from './StatsTracker.js';
 import eventManager from './EventManager.js';
 import TournamentManager from './TournamentManager.js';
 import ReplayManager from './ReplayManager.js';
+import botRegistry from './bots/index.js';
 
 export default class MenuManager {
     constructor(uiManager) {
@@ -157,22 +158,49 @@ export default class MenuManager {
         this.uiManager.hideTournamentOverlay();
     }
     showTournamentCompleteScreen(champion, finalMatchConfig) {
-        this.hideTournamentUI(); // Hide the bracket
-        this.tournament = null; // Clear tournament state
-        const onWatchReplay = () => {
-            this.uiManager.hideTournamentCompleteScreen();
-            if (finalMatchConfig) {
+        this.tournament = null;
+        this.hideTournamentUI(); // Hide the bracket overlay
+        const completeScreen = this.uiManager.getTournamentCompleteScreenElement();
+        if (!completeScreen) {
+            console.error("Tournament complete screen element not found!");
+            return;
+        }
+        // Find the full bot name from the registry
+        const botInfo = botRegistry.find(b => b.value === champion.aiController);
+        const championName = botInfo ? botInfo.name : champion.aiController;
+        // Build the summary content using existing styles for consistency
+        completeScreen.innerHTML = `
+            <div id="game-over-screen">
+                <h1>TOURNAMENT COMPLETE</h1>
+                <h2 style="color: #ffff00;">CHAMPION: ${championName.toUpperCase()}</h2>
+                <div class="game-over-buttons" style="margin-top: 4rem; flex-direction: column; gap: 1.5rem;">
+                    <button id="tournament-replay-button" class="game-mode-button primary-action"><h3>WATCH FINAL MATCH</h3></button>
+                    <button id="tournament-return-button" class="game-mode-button"><h3>RETURN TO MENU</h3></button>
+                </div>
+            </div>
+        `;
+        const replayButton = completeScreen.querySelector('#tournament-replay-button');
+        const returnButton = completeScreen.querySelector('#tournament-return-button');
+        // Wire up the "Watch Final" button
+        if (finalMatchConfig && replayButton) {
+            replayButton.addEventListener('click', () => {
+                this.uiManager.hideTournamentCompleteScreen();
                 this.startReplay(finalMatchConfig);
-            } else {
-                console.error("Final match config not available for replay.");
+            }, { once: true });
+        } else if (replayButton) {
+            replayButton.disabled = true;
+            replayButton.innerHTML = '<h3>FINAL NOT AVAILABLE</h3>';
+        }
+        // Wire up the "Return to Menu" button
+        if (returnButton) {
+            returnButton.addEventListener('click', () => {
+                this.uiManager.hideTournamentCompleteScreen();
                 this.menuBuilder.buildMainMenu();
-            }
-        };
-        const onBackToMenu = () => {
-            this.uiManager.hideTournamentCompleteScreen();
-            this.menuBuilder.buildMainMenu();
-        };
-        this.uiManager.showTournamentCompleteScreen(champion, onWatchReplay, onBackToMenu);
+                this.switchToScreen('menu');
+            }, { once: true });
+        }
+        // Finally, display the newly built summary screen
+        this.uiManager.showTournamentCompleteScreen();
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
