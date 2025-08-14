@@ -15,17 +15,11 @@ export default class MainMenuBuilder extends MenuBuilderBase {
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';
         const options = [
-            {
-                id: 'tournament',
-                name: 'TOURNAMENT',
-                description: 'pit bots against each other',
-                handler: () => this.parentBuilder.buildTournamentSetup()
-            },
             { 
-                id: 'standings', 
-                name: 'STANDINGS', 
-                description: 'track bot rankings',
-                handler: () => this.parentBuilder.buildStandingsScreen()
+                id: 'instructions', 
+                name: 'INSTRUCTIONS', 
+                description: 'how to play the game',
+                handler: () => this.parentBuilder.buildInstructionsScreen()
             },
             {
                 id: 'replays',
@@ -34,10 +28,10 @@ export default class MainMenuBuilder extends MenuBuilderBase {
                 handler: () => this.parentBuilder.buildReplaysScreen()
             },
             { 
-                id: 'instructions', 
-                name: 'INSTRUCTIONS', 
-                description: 'how to play the game',
-                handler: () => this.parentBuilder.buildInstructionsScreen()
+                id: 'standings', 
+                name: 'STANDINGS', 
+                description: 'track bot rankings',
+                handler: () => this.parentBuilder.buildStandingsScreen()
             },
             { 
                 id: 'creategame',
@@ -45,6 +39,12 @@ export default class MainMenuBuilder extends MenuBuilderBase {
                 description: 'configure and start game',
                 handler: () => this.parentBuilder.buildGameSetup(),
                 primary: true 
+            },
+            {
+                id: 'tournament',
+                name: 'CREATE TOURNAMENT',
+                description: 'pit bots against each other',
+                handler: () => this.parentBuilder.buildTournamentSetup()
             },
         ];
         options.forEach(option => {

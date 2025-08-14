@@ -11,7 +11,6 @@ export default class TournamentSetupBuilder extends MenuBuilderBase {
         this.parentBuilder = parentBuilder;
         this.selectedBots = new Set();
     }
-
     build() {
         const menuContainer = this.createMenuContainer();
         menuContainer.innerHTML = `
@@ -22,10 +21,8 @@ export default class TournamentSetupBuilder extends MenuBuilderBase {
                 <button id="start-tournament-button" class="menu-button start-game" disabled>START TOURNAMENT</button>
             </div>
         `;
-
         const botListContainer = menuContainer.querySelector('#tournament-bot-list');
         const startButton = menuContainer.querySelector('#start-tournament-button');
-
         botRegistry.forEach(bot => {
             const botEntry = document.createElement('div');
             botEntry.className = 'tournament-bot-entry';
@@ -35,7 +32,6 @@ export default class TournamentSetupBuilder extends MenuBuilderBase {
             `;
             botListContainer.appendChild(botEntry);
         });
-
         botListContainer.addEventListener('change', (e) => {
             if (e.target.type === 'checkbox') {
                 const botValue = e.target.dataset.value;
@@ -48,18 +44,15 @@ export default class TournamentSetupBuilder extends MenuBuilderBase {
                 startButton.textContent = `START TOURNAMENT (${this.selectedBots.size} bots)`;
             }
         });
-
         startButton.addEventListener('click', () => {
             const participants = Array.from(this.selectedBots).map(value => {
                 return { type: 'bot', aiController: value };
             });
             this.menuManager.startTournament(participants);
         });
-
         this.menuManager.footerManager.showBackButton(() => {
             this.parentBuilder.buildMainMenu();
         });
-
         return menuContainer;
     }
 }
