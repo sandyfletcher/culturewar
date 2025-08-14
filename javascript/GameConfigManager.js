@@ -23,7 +23,7 @@ export default class GameConfigManager {
         this.setPlayerCount(config.menuDefaults.playerCount);
     }
     setSeed(seed) {
-        this.gameConfig.seed = seed;
+        this.gameConfig.seed = seed || Date.now();
     }
     setBatchSize(size) {
         const batchSize = parseInt(size, 10);
@@ -68,7 +68,15 @@ export default class GameConfigManager {
         this.gameConfig.planetDensity = parseFloat(density);
     }
     getConfig() {
-        return this.gameConfig;
+        // NEW: Ensure a fresh seed for every new game config request, unless one is already set for a replay
+        if (!this.gameConfig.isReplay) {
+            this.setSeed();
+        }
+        return { ...this.gameConfig };
+    }
+    // NEW: Method to load a specific config for a replay
+    loadConfigForReplay(replayConfig) {
+        this.gameConfig = { ...replayConfig, isReplay: true };
     }
     getAIOptions() {
         return this.aiOptions;

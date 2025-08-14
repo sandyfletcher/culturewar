@@ -105,11 +105,19 @@ export default class GameOverScreen {
                 </div>
             </div>
         `;
+        // NEW: Add a container for buttons
+        const gameIsReplayable = !gameInstance.config.players.some(p => p.type === 'human');
+        const buttonsHTML = `
+            <div class="game-over-buttons">
+                <button id="play-again-button">PLAY AGAIN</button>
+                ${gameIsReplayable ? '<button id="save-replay-button">SAVE REPLAY</button>' : ''}
+            </div>
+        `;
         this.gameOverScreen.innerHTML = `
             ${headerText}
             ${leaderboardHTML}
             ${overallStats}
-            <button id="play-again-button" class="menu-button">PLAY AGAIN</button>
+            ${buttonsHTML}
         `;
         this.parentContainer.appendChild(this.gameOverScreen);
         document.getElementById('play-again-button').addEventListener('click', () => {
@@ -118,6 +126,15 @@ export default class GameOverScreen {
                 onPlayAgainCallback();
             }
         });
+        // NEW: Add event listener for the save replay button
+        if (gameIsReplayable) {
+            document.getElementById('save-replay-button').addEventListener('click', (e) => {
+                const replayName = `Game: ${gameInstance.config.players.map(p => p.aiController).join(' vs ')}`;
+                this.menuManager.replayManager.saveReplay(gameInstance.config, replayName);
+                e.target.textContent = 'SAVED!';
+                e.target.disabled = true;
+            });
+        }
     }
     remove() {
         if (this.gameOverScreen) {

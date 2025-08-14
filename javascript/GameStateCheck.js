@@ -92,6 +92,11 @@ export default class GameState {
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
+        // NEW: Check if this was a tournament match
+        if (this.game.menuManager && this.game.menuManager.tournament) {
+            this.game.menuManager.tournament.reportMatchResult({ id: winnerId });
+            return; // Intercept regular game over flow
+        }
         const allPlayersData = this.game.playersController.players;
         const playerStats = this.game.playersController.getPlayerStats()
             .filter(p => p.id !== 'neutral');
@@ -105,10 +110,6 @@ export default class GameState {
             planetsConquered: this.planetsConquered,
             troopsLost: this.troopsLost
         });
-        if (this.game.menuManager && this.game.menuManager.tournament) { // check if this was a tournament match
-            this.game.menuManager.tournament.reportMatchResult(winnerId);
-            return; // prevent regular game over screen from showing
-        }
         playerStats.forEach((player, index) => {
             const rank = index + 1;
             const cultureScore = ((allPlayersData.length + 1) / 2) - rank;

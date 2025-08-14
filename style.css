@@ -474,11 +474,16 @@ header h1 {
     transition: all 0.3s;
     border-radius: 0;
 }
-.start-game:hover {
+.start-game:hover:not(:disabled) {
     background: #fff;
     color: #000;
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+.start-game:disabled {
+    border-color: #555;
+    color: #555;
+    cursor: not-allowed;
 }
 /* ADVANCED SETTINGS */
 .setup-form {
@@ -562,6 +567,144 @@ header h1 {
 .advanced-toggle.active span {
     transform: rotate(180deg);
 }
+/* NEW: TOURNAMENT SETUP */
+.tournament-bot-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+.tournament-bot-entry {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255,255,255,0.1);
+    padding: 0.5rem;
+}
+.tournament-bot-entry input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 1.2rem;
+    height: 1.2rem;
+}
+.tournament-bot-entry label {
+    font-size: 1rem;
+}
+
+/* NEW: REPLAY LIST */
+.replay-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+.replay-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem;
+    border: 1px solid #444;
+}
+.replay-info {
+    display: flex;
+    flex-direction: column;
+}
+.replay-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #ffaa00;
+}
+.replay-players {
+    font-size: 0.9rem;
+    color: #ccc;
+    white-space: normal;
+}
+.replay-date {
+    font-size: 0.7rem;
+    color: #888;
+    font-family: 'Courier New', Courier, monospace;
+}
+.replay-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.replay-button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 1px solid #fff;
+    background: none;
+    color: #fff;
+    font-family: 'Tourney', monospace;
+}
+.replay-button.watch:hover { background: #ffaa00; color: #000; border-color: #ffaa00; }
+.replay-button.delete:hover { background: #ff0000; color: #000; border-color: #ff0000; }
+
+/* NEW: TOURNAMENT OVERLAY */
+#tournament-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 1500;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    overflow-y: auto;
+}
+#tournament-overlay h2 {
+    color: #ffaa00;
+    margin-bottom: 0.5rem;
+}
+#tournament-status {
+    color: #ccc;
+    font-size: 1rem;
+    height: 2rem;
+    margin-bottom: 1rem;
+}
+.tournament-bracket {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+}
+.bracket-round {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 1rem;
+}
+.bracket-match {
+    background: #222;
+    border: 1px solid #444;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+.bracket-player {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.2rem;
+}
+.bracket-player.winner {
+    font-weight: bold;
+    color: #ffcc00;
+}
+.bracket-player.loser {
+    color: #666;
+    text-decoration: line-through;
+}
+.bracket-player.tbd {
+    color: #555;
+}
+
 /* GAME SCREEN */
 #game-screen {
     position: absolute;
@@ -661,14 +804,12 @@ header h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-
 /* Game Over Screen has different widths */
 #game-over-screen .col-rank { width: 15%; }
 #game-over-screen .col-fighter { width: 40%; }
 #game-over-screen .col-planets { width: 15%; }
 #game-over-screen .col-troops  { width: 15%; }
 #game-over-screen .col-score { width: 15%; }
-
 /* STATS */
 .overall-stats {
     width: 98%;
@@ -704,11 +845,18 @@ header h1 {
     font-weight: bold;
     color: #ffcc00;
 }
-#play-again-button {
+
+/* NEW: Buttons container for game over screen */
+.game-over-buttons {
+    display: flex;
+    gap: 1rem;
     margin-top: 1rem;
+    justify-content: center;
+}
+
+#play-again-button, #save-replay-button {
     padding: 10px 20px;
     font-size: 1rem;
-    background-color: rgba(255, 255, 0, 0.8);
     color: black;
     border: none;
     cursor: pointer;
@@ -717,11 +865,25 @@ header h1 {
     transition: all 0.3s;
     border-radius: 0;
 }
+
+#play-again-button {
+    background-color: rgba(255, 255, 0, 0.8);
+}
 #play-again-button:hover {
     transform: scale(1.05);
     background-color: rgba(255, 255, 0, 1);
     box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
+
+#save-replay-button {
+    background-color: rgba(0, 255, 255, 0.8);
+}
+#save-replay-button:hover {
+    transform: scale(1.05);
+    background-color: rgba(0, 255, 255, 1);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
 /* FOOTER */
 footer {
     display: flex;

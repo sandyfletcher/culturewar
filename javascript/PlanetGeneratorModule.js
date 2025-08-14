@@ -10,7 +10,8 @@ export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
         this.canvas = game.canvas;
-        this.prng = new PRNG(this.game.config.seed || Date.now());
+        // NEW: Use the seed from the game config to create a new PRNG instance
+        this.prng = new PRNG(this.game.config.seed);
         this.config = {
             STARTING_PLANET_SIZE: config.planetGeneration.startingPlanetSize,
             STARTING_TROOPS: config.planetGeneration.startingPlanetTroops,

@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/menus/MainMenuBuilder.js
+// root/javascript/menus/MainMenuBuilder.js (MODIFIED)
 // ===========================================
 
 import MenuBuilderBase from '../MenuBuilderBase.js';
@@ -15,17 +15,29 @@ export default class MainMenuBuilder extends MenuBuilderBase {
         const gameModeContainer = document.createElement('div');
         gameModeContainer.className = 'game-mode-container';
         const options = [
-            { 
-                id: 'instructions', 
-                name: 'INSTRUCTIONS', 
-                description: 'how to play the game',
-                handler: () => this.parentBuilder.buildInstructionsScreen()
+            {
+                id: 'tournament',
+                name: 'TOURNAMENT',
+                description: 'pit bots against each other',
+                handler: () => this.parentBuilder.buildTournamentSetup()
             },
             { 
                 id: 'standings', 
                 name: 'STANDINGS', 
                 description: 'track bot rankings',
                 handler: () => this.parentBuilder.buildStandingsScreen()
+            },
+            {
+                id: 'replays',
+                name: 'REPLAYS',
+                description: 'watch saved matches',
+                handler: () => this.parentBuilder.buildReplaysScreen()
+            },
+            { 
+                id: 'instructions', 
+                name: 'INSTRUCTIONS', 
+                description: 'how to play the game',
+                handler: () => this.parentBuilder.buildInstructionsScreen()
             },
             { 
                 id: 'creategame',

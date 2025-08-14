@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/TournamentManager.js (new file)
+// root/javascript/TournamentManager.js (NEW FILE)
 // ===========================================
 
 export default class TournamentManager {
@@ -8,7 +8,7 @@ export default class TournamentManager {
         this.participants = participants; // Array of AI player configs { type, aiController }
         this.bracket = this._createBracket(participants);
         this.currentRound = 0;
-        this.currentMatch = 0;
+        this.currentMatchIndex = 0;
         this.finalMatchConfig = null;
     }
 
@@ -19,76 +19,90 @@ export default class TournamentManager {
     }
 
     start() {
-        this.runNextMatch();
+        this.menuManager.showTournamentUI(this.bracket);
+        setTimeout(() => this.runNextMatch(), 1500);
     }
 
     runNextMatch() {
-        if (this.bracket[this.currentRound].length < 2) {
-            // We have a winner for this round, move to the next
-            this.currentRound++;
-            this.currentMatch = 0;
-            if (!this.bracket[this.currentRound] || this.bracket[this.currentRound].length < 2) {
+        const round = this.bracket[this.currentRound];
+        if (this.currentMatchIndex * 2 >= round.length) {
+            // End of round
+            if (round.length === 1) {
+                // We have a winner for the whole tournament!
                 this.endTournament();
                 return;
             }
-        }
-
-        const player1 = this.bracket[this.currentRound][this.currentMatch * 2];
-        const player2 = this.bracket[this.currentRound][this.currentMatch * 2 + 1];
-
-        if (!player1 || !player2) {
-            // Odd number of players, someone gets a bye
-            const winner = player1 || player2;
-            this.reportMatchResult(winner.id); // This is simplified, assumes winner has an id
+            // Move to the next round
+            this.currentRound++;
+            this.currentMatchIndex = 0;
+            this.menuManager.showTournamentUI(this.bracket);
+            setTimeout(() => this.runNextMatch(), 1500);
             return;
         }
 
-        // Get the base config and set up the 1v1 match
+        const player1 = round[this.currentMatchIndex * 2];
+        const player2 = round[this.currentMatchIndex * 2 + 1];
+
+        // Handle bye (odd number of players in a round)
+        if (!player2) {
+            this.reportMatchResult({ id: 'player1' }); // Player 1 wins by default
+            return;
+        }
+
+        this.menuManager.updateTournamentStatus(`Round ${this.currentRound + 1}: ${player1.aiController} vs ${player2.aiController}`);
+
         const baseConfig = this.menuManager.getGameConfig();
         const matchConfig = {
             ...baseConfig,
             players: [
-                { id: 'player1', ...player1 },
-                { id: 'player2', ...player2 }
+                { id: 'player1', type: 'bot', aiController: player1.aiController },
+                { id: 'player2', type: 'bot', aiController: player2.aiController }
             ],
             batchSize: 1,
-            isHeadless: true, // Tournaments should be fast!
+            isHeadless: true, // Tournaments must be fast!
             seed: Date.now() + Math.random() // Unique seed for each match
         };
         
-        // If this is the final match (2 players left in the round)
+        // If this is the final match (2 players left in the tournament)
         if(this.bracket[this.currentRound].length === 2) {
             this.finalMatchConfig = { ...matchConfig };
             console.log("Final match config saved for replay.", this.finalMatchConfig);
         }
 
-        // Use MenuManager to start the game
         this.menuManager.startTournamentGame(matchConfig);
     }
 
-    reportMatchResult(winnerId) {
+    reportMatchResult(winnerPlayerId) {
         const round = this.bracket[this.currentRound];
-        const player1 = round[this.currentMatch * 2];
-        const player2 = round[this.currentMatch * 2 + 1];
+        const player1 = round[this.currentMatchIndex * 2];
+        const player2 = round[this.currentMatchIndex * 2 + 1];
 
-        const winner = winnerId === 'player1' ? player1 : player2;
+        // Determine the actual winner object
+        const winner = winnerPlayerId.id === 'player1' ? player1 : player2;
 
         if (!this.bracket[this.currentRound + 1]) {
             this.bracket[this.currentRound + 1] = [];
         }
         this.bracket[this.currentRound + 1].push(winner);
 
-        this.currentMatch++;
+        this.currentMatchIndex++;
         
-        // Short delay before next match for dramatic effect / UI update
+        this.menuManager.showTournamentUI(this.bracket); // Update UI with winner
         setTimeout(() => this.runNextMatch(), 1000); 
     }
 
     endTournament() {
         const champion = this.bracket[this.bracket.length - 1][0];
+        this.menuManager.updateTournamentStatus(`CHAMPION: ${champion.aiController}!`);
         console.log("TOURNAMENT COMPLETE! Champion:", champion.aiController);
 
-        // Tell MenuManager to show the final screen
-        this.menuManager.showTournamentCompleteScreen(champion, this.finalMatchConfig);
+        if (this.finalMatchConfig) {
+            this.menuManager.replayManager.saveReplay(this.finalMatchConfig, `Tournament Final: ${this.finalMatchConfig.players[0].aiController} vs ${this.finalMatchConfig.players[1].aiController}`);
+        }
+
+        setTimeout(() => {
+            this.menuManager.hideTournamentUI();
+            this.menuManager.showTournamentCompleteScreen(champion, this.finalMatchConfig);
+        }, 3000);
     }
 }

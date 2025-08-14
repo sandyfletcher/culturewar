@@ -10,6 +10,8 @@ import FooterManager from './FooterManager.js';
 import Game from './game.js';
 import StatsTracker from './StatsTracker.js';
 import eventManager from './EventManager.js';
+import TournamentManager from './TournamentManager.js';
+import ReplayManager from './ReplayManager.js';
 
 export default class MenuManager {
     constructor(uiManager) {
@@ -19,6 +21,8 @@ export default class MenuManager {
         this.configManager = new GameConfigManager();
         this.footerManager = new FooterManager();
         this.statsTracker = new StatsTracker();
+        this.replayManager = new ReplayManager();
+        this.tournament = null;
         this.menuBuilder = new MenuBuilder(
             this.uiManager.getMenuScreenElement(),
             this.screenManager,
@@ -31,7 +35,6 @@ export default class MenuManager {
             this.configManager,
             this
         );
-        this.tournament = null;
         this.isBatchRunning = false;
         this.gamesRemaining = 0;
         this.totalGamesInBatch = 0;
@@ -95,7 +98,7 @@ export default class MenuManager {
     }
     startGame() {
         const config = this.configManager.getConfig();
-        this.currentBatchConfig = { ...config }; // store a copy of config
+        this.currentBatchConfig = { ...config };
         this.gamesRemaining = this.currentBatchConfig.batchSize;
         this.totalGamesInBatch = this.currentBatchConfig.batchSize;
         this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
@@ -105,21 +108,61 @@ export default class MenuManager {
             }
             this.startNextBatchGame();
         } else {
-            this.switchToScreen('game'); // single-game logic
-            const hasHumanPlayer = config.players.some(p => p.type === 'human');
-            const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
-            this.footerManager.showSlider(initialSliderMode);
-            this.game = new Game(
-                config,
-                this.footerManager,
-                this.configManager,
-                this,
-                this.statsTracker,
-                this.uiManager.getInnerContainerElement(),
-                this.uiManager.getCanvasElement()
-            );
-            this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
+            this._startSingleGame(config);
         }
+    }
+    _startSingleGame(config) {
+        this.switchToScreen('game');
+        const hasHumanPlayer = config.players.some(p => p.type === 'human');
+        const initialSliderMode = hasHumanPlayer ? 'singleplayer' : 'botbattle';
+        this.footerManager.showSlider(initialSliderMode);
+        this.game = new Game(
+            config,
+            this.footerManager,
+            this.configManager,
+            this,
+            this.statsTracker,
+            this.uiManager.getInnerContainerElement(),
+            this.uiManager.getCanvasElement()
+        );
+        this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
+    }
+    startReplay(replayConfig) {
+        this.configManager.loadConfigForReplay(replayConfig);
+        const config = this.configManager.getConfig();
+        this._startSingleGame(config);
+    }
+    startTournament(participants) {
+        this.tournament = new TournamentManager(participants, this);
+        this.tournament.start();
+    }
+    startTournamentGame(config) {
+        // Tournament games are headless and don't need UI setup
+        this.game = new Game(
+            config,
+            null, // No footer manager
+            this.configManager,
+            this,
+            this.statsTracker,
+            this.uiManager.getInnerContainerElement(),
+            this.uiManager.getCanvasElement()
+        );
+    }
+    showTournamentUI(bracket) {
+        this.uiManager.showTournamentOverlay(bracket);
+    }
+    updateTournamentStatus(status) {
+        this.uiManager.updateTournamentStatus(status);
+    }
+    hideTournamentUI() {
+        this.uiManager.hideTournamentOverlay();
+    }
+    showTournamentCompleteScreen(champion, finalMatchConfig) {
+        this.tournament = null;
+        this.menuBuilder.buildMainMenu();
+        // You could build a dedicated "Tournament Over" screen here
+        // For now, just alert and go to main menu.
+        alert(`Tournament Champion: ${champion.aiController}! The final match replay has been saved.`);
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
