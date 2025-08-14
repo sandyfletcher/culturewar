@@ -13,6 +13,7 @@ export default class UIManager {
         this.gameScreen = document.getElementById('game-screen');
         this.canvas = document.getElementById('game-canvas');
         this.tournamentOverlay = document.getElementById('tournament-overlay');
+        this.tournamentCompleteScreen = document.getElementById('tournament-complete-screen');
         eventManager.on('show-batch-overlay', () => this.showBatchOverlay());
         eventManager.on('update-batch-overlay', ({ gameNumber, totalGames }) => this.updateBatchOverlay(gameNumber, totalGames));
         eventManager.on('hide-batch-overlay', () => this.hideBatchOverlay());
@@ -113,5 +114,24 @@ export default class UIManager {
         const botInfo = botRegistry.find(b => b.value === player.aiController);
         const displayName = botInfo ? botInfo.name : player.aiController;
         return `<div class="${className}">${displayName}</div>`;
+    }
+    showTournamentCompleteScreen(champion, onWatchReplay, onBackToMenu) {
+        const botInfo = botRegistry.find(b => b.value === champion.aiController);
+        const championName = botInfo ? botInfo.name : champion.aiController;
+        this.tournamentCompleteScreen.innerHTML = `
+            <h1>CHAMPION</h1>
+            <h2>${championName}</h2>
+            <div class="tournament-complete-buttons">
+                <button id="watch-final-replay-button" class="menu-button">WATCH FINAL</button>
+                <button id="tournament-back-to-menu-button" class="menu-button">MAIN MENU</button>
+            </div>
+        `;
+        this.tournamentCompleteScreen.style.display = 'flex';
+        document.getElementById('watch-final-replay-button').addEventListener('click', onWatchReplay, { once: true });
+        document.getElementById('tournament-back-to-menu-button').addEventListener('click', onBackToMenu, { once: true });
+    }
+    hideTournamentCompleteScreen() {
+        this.tournamentCompleteScreen.style.display = 'none';
+        this.tournamentCompleteScreen.innerHTML = '';
     }
 }

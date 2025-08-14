@@ -67,16 +67,14 @@ export default class GameConfigManager {
     setPlanetDensity(density) {
         this.gameConfig.planetDensity = parseFloat(density);
     }
-    getConfig() {
-        // NEW: Ensure a fresh seed for every new game config request, unless one is already set for a replay
-        if (!this.gameConfig.isReplay) {
+    getConfig() { // ensure fresh seed for every new game config request
+        if (!this.gameConfig.isReplay) { // unless one is already set for replay
             this.setSeed();
         }
         return { ...this.gameConfig };
     }
-    // NEW: Method to load a specific config for a replay
-    loadConfigForReplay(replayConfig) {
-        this.gameConfig = { ...replayConfig, isReplay: true };
+    loadConfigForReplay(replayConfig) { // load a specific config for replay
+        this.gameConfig = { ...replayConfig, isHeadless: false, isReplay: true };
     }
     getAIOptions() {
         return this.aiOptions;

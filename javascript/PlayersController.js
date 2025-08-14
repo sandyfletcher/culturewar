@@ -5,11 +5,13 @@
 import botRegistry from './bots/index.js';
 import { config } from './config.js';
 import GameAPI from './GameAPI.js';
+import PRNG from './PRNG.js';
 
 export default class PlayersController {
     constructor(game, gameConfig) {
         this.game = game;
         this.config = gameConfig;
+        this.prng = new PRNG(this.config.seed);
         this.players = [];
         this.aiControllers = {};
         this.aiCooldowns = {};
@@ -40,7 +42,7 @@ export default class PlayersController {
             if (AIClass) {
                 const gameApiForBot = new GameAPI(this.game, player.id);
                 this.aiControllers[player.id] = new AIClass(gameApiForBot, player.id);
-                this.aiCooldowns[player.id] = 0;
+                this.aiCooldowns[player.id] = config.ai.decisionCooldown * this.prng.next(); // use seedable PRNG to stagger cooldowns
             } else {
                 console.error(`AI type "${player.aiController}" not found in registry!`);
             }

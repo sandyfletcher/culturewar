@@ -136,11 +136,10 @@ export default class MenuManager {
         this.tournament = new TournamentManager(participants, this);
         this.tournament.start();
     }
-    startTournamentGame(config) {
-        // Tournament games are headless and don't need UI setup
+    startTournamentGame(config) { // tournament games are headless, don't need UI setup
         this.game = new Game(
             config,
-            null, // No footer manager
+            null, // no footer manager
             this.configManager,
             this,
             this.statsTracker,
@@ -158,11 +157,22 @@ export default class MenuManager {
         this.uiManager.hideTournamentOverlay();
     }
     showTournamentCompleteScreen(champion, finalMatchConfig) {
-        this.tournament = null;
-        this.menuBuilder.buildMainMenu();
-        // You could build a dedicated "Tournament Over" screen here
-        // For now, just alert and go to main menu.
-        alert(`Tournament Champion: ${champion.aiController}! The final match replay has been saved.`);
+        this.hideTournamentUI(); // Hide the bracket
+        this.tournament = null; // Clear tournament state
+        const onWatchReplay = () => {
+            this.uiManager.hideTournamentCompleteScreen();
+            if (finalMatchConfig) {
+                this.startReplay(finalMatchConfig);
+            } else {
+                console.error("Final match config not available for replay.");
+                this.menuBuilder.buildMainMenu();
+            }
+        };
+        const onBackToMenu = () => {
+            this.uiManager.hideTournamentCompleteScreen();
+            this.menuBuilder.buildMainMenu();
+        };
+        this.uiManager.showTournamentCompleteScreen(champion, onWatchReplay, onBackToMenu);
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {

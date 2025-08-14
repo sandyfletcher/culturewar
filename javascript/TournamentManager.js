@@ -76,9 +76,6 @@ export default class TournamentManager {
         if (this.finalMatchConfig) {
             this.menuManager.replayManager.saveReplay(this.finalMatchConfig, `Tournament Final: ${this.finalMatchConfig.players[0].aiController} vs ${this.finalMatchConfig.players[1].aiController}`);
         }
-        setTimeout(() => {
-            this.menuManager.hideTournamentUI();
-            this.menuManager.showTournamentCompleteScreen(champion, this.finalMatchConfig);
-        }, 3000);
+        this.menuManager.showTournamentCompleteScreen(champion, this.finalMatchConfig);
     }
 }
