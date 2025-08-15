@@ -160,47 +160,20 @@ export default class MenuManager {
     showTournamentCompleteScreen(champion, finalMatchConfig) {
         this.tournament = null;
         this.hideTournamentUI(); // Hide the bracket overlay
-        const completeScreen = this.uiManager.getTournamentCompleteScreenElement();
-        if (!completeScreen) {
-            console.error("Tournament complete screen element not found!");
-            return;
-        }
-        // Find the full bot name from the registry
-        const botInfo = botRegistry.find(b => b.value === champion.aiController);
-        const championName = botInfo ? botInfo.name : champion.aiController;
-        // Build the summary content using existing styles for consistency
-        completeScreen.innerHTML = `
-            <div id="game-over-screen">
-                <h1>TOURNAMENT COMPLETE</h1>
-                <h2 style="color: #ffff00;">CHAMPION: ${championName.toUpperCase()}</h2>
-                <div class="game-over-buttons" style="margin-top: 4rem; flex-direction: column; gap: 1.5rem;">
-                    <button id="tournament-replay-button" class="game-mode-button primary-action"><h3>WATCH FINAL MATCH</h3></button>
-                    <button id="tournament-return-button" class="game-mode-button"><h3>RETURN TO MENU</h3></button>
-                </div>
-            </div>
-        `;
-        const replayButton = completeScreen.querySelector('#tournament-replay-button');
-        const returnButton = completeScreen.querySelector('#tournament-return-button');
-        // Wire up the "Watch Final" button
-        if (finalMatchConfig && replayButton) {
-            replayButton.addEventListener('click', () => {
-                this.uiManager.hideTournamentCompleteScreen();
-                this.startReplay(finalMatchConfig);
-            }, { once: true });
-        } else if (replayButton) {
-            replayButton.disabled = true;
-            replayButton.innerHTML = '<h3>FINAL NOT AVAILABLE</h3>';
-        }
-        // Wire up the "Return to Menu" button
-        if (returnButton) {
-            returnButton.addEventListener('click', () => {
-                this.uiManager.hideTournamentCompleteScreen();
-                this.menuBuilder.buildMainMenu();
-                this.switchToScreen('menu');
-            }, { once: true });
-        }
-        // Finally, display the newly built summary screen
-        this.uiManager.showTournamentCompleteScreen();
+
+        // Define the callbacks that the UI component will execute.
+        const onReplay = () => {
+            this.uiManager.hideTournamentCompleteScreen();
+            this.startReplay(finalMatchConfig);
+        };
+        const onReturn = () => {
+            this.uiManager.hideTournamentCompleteScreen();
+            this.menuBuilder.buildMainMenu();
+            this.switchToScreen('menu');
+        };
+
+        // Delegate the entire UI building and showing process to the UIManager.
+        this.uiManager.showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn);
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
