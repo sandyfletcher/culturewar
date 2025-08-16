@@ -868,7 +868,7 @@ header h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-#game-over-screen .col-rank { width: 15%; } /* Game Over Screen has different widths */
+#game-over-screen .col-rank { width: 15%; } /* Game Over has different widths */
 #game-over-screen .col-fighter { width: 40%; }
 #game-over-screen .col-planets { width: 15%; }
 #game-over-screen .col-troops  { width: 15%; }

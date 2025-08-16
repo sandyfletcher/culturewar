@@ -17,6 +17,11 @@ import CGPT5 from './CGPT5.js';
 import gptoss20b from './gptoss20b.js';
 // --- TNG Tech (Germany) ---
 import DeepSeekR1T2 from './DeepSeekR1T2.js';
+// --- Z.AI (China) ---
+import glm45A from './glm45A.js';
+import glm45B from './glm45B.js';
+import glm45C from './glm45C.js';
+import glm45D from './glm45D.js';
 // --- Mistral AI (France) MistralSmall32 ---
 // --- OpenRouter / OpenAI? (USA?) HorizonBeta ---
 
@@ -81,6 +86,34 @@ const botRegistry = [
         value: 'DSR1T2', 
         name: 'DeepSeekR1T2', 
         class: DeepSeekR1T2, 
+        creationDate: '08/2025', 
+        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
+    },
+    { // Z.AI
+        value: 'glm45A', 
+        name: 'glm45A', 
+        class: glm45A, 
+        creationDate: '08/2025', 
+        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
+    },
+    { // Z.AI
+        value: 'glm45B', 
+        name: 'glm45B', 
+        class: glm45B, 
+        creationDate: '08/2025', 
+        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
+    },
+    { // Z.AI
+        value: 'glm45C', 
+        name: 'glm45C', 
+        class: glm45C, 
+        creationDate: '08/2025', 
+        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
+    },
+    { // Z.AI
+        value: 'glm45D', 
+        name: 'glm45D', 
+        class: glm45D, 
         creationDate: '08/2025', 
         description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
     },
