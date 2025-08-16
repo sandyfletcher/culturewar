@@ -17,7 +17,11 @@ export default class TournamentOverlay {
                 <h2>TOURNAMENT IN PROGRESS</h2>
                 <p id="tournament-status">Initializing bracket...</p>
                 <div id="tournament-bracket-container">
-                    <div id="bracket-html-content" class="tournament-bracket"></div>
+                    <div id="bracket-wings-container">
+                        <div id="bracket-top-wing"></div>
+                        <div id="bracket-final-wing"></div>
+                        <div id="bracket-bottom-wing"></div>
+                    </div>
                     <svg id="tournament-svg-connectors"></svg>
                 </div>
             `;
@@ -71,31 +75,88 @@ export default class TournamentOverlay {
     hideCompleteScreen() {
         this.completeScreenElement.style.display = 'none';
     }
+    createMatchElement(id, p1, p2, winner, roundIndex, matchIndex, playerIndexOffset) {
+        const matchEl = document.createElement('div');
+        matchEl.className = 'bracket-match';
+        matchEl.id = id;
+        matchEl.appendChild(this.renderPlayer(p1, winner, p2, roundIndex, matchIndex, playerIndexOffset));
+        const vs = document.createElement('div');
+        vs.className = 'vs-separator';
+        vs.textContent = 'vs';
+        matchEl.appendChild(vs);
+        if (p2 !== undefined) {
+            matchEl.appendChild(this.renderPlayer(p2, winner, p1, roundIndex, matchIndex, playerIndexOffset + 1));
+        } else {
+            matchEl.appendChild(this.renderPlayer(null, null, null, 0, 0, 0));
+        }
+        return matchEl;
+    }
     renderBracket(bracketData) {
-        const container = this.overlayElement.querySelector('#bracket-html-content');
-        if (!container) return;
-        container.innerHTML = ''; // Clear previous render
-        bracketData.forEach((round, roundIndex) => {
-            const roundEl = document.createElement('div');
-            roundEl.className = 'bracket-round';
-            roundEl.id = `round-${roundIndex}`;
-            for (let i = 0; i < round.length; i += 2) {
+        const topWing = this.overlayElement.querySelector('#bracket-top-wing');
+        const bottomWing = this.overlayElement.querySelector('#bracket-bottom-wing');
+        const finalWing = this.overlayElement.querySelector('#bracket-final-wing');
+        if (!topWing || !bottomWing || !finalWing) return;
+        topWing.innerHTML = '';
+        bottomWing.innerHTML = '';
+        finalWing.innerHTML = '';
+        const totalRounds = bracketData.length;
+        if (totalRounds < 1) return;
+        const finalRoundIndex = totalRounds > 1 ? totalRounds - 2 : 0;
+        const championRoundIndex = totalRounds > 1 ? totalRounds - 1 : 0;
+        for (let roundIndex = 0; roundIndex < finalRoundIndex; roundIndex++) {
+            const roundData = bracketData[roundIndex];
+            const midpoint = Math.ceil(roundData.length / 2);
+            const topRoundEl = document.createElement('div');
+            topRoundEl.className = 'bracket-round';
+            topRoundEl.id = `round-top-${roundIndex}`;
+            const bottomRoundEl = document.createElement('div');
+            bottomRoundEl.className = 'bracket-round';
+            bottomRoundEl.id = `round-bottom-${roundIndex}`;
+            for (let i = 0; i < midpoint; i += 2) {
                 const matchIndex = i / 2;
-                const matchEl = document.createElement('div');
-                matchEl.className = 'bracket-match';
-                matchEl.id = `match-${roundIndex}-${matchIndex}`;
-                const p1 = round[i];
-                const p2 = round[i + 1];
-                const winner = bracketData[roundIndex + 1]?.find(winner =>
-                    winner.aiController === p1.aiController || (p2 && winner.aiController === p2.aiController)
-                );
-                matchEl.innerHTML += `<div class="vs-separator">VS</div>`;
-                matchEl.appendChild(this.renderPlayer(p1, winner, p2, roundIndex, matchIndex, 0));
-                matchEl.appendChild(this.renderPlayer(p2, winner, p1, roundIndex, matchIndex, 1));
-                roundEl.appendChild(matchEl);
+                const p1 = roundData[i];
+                const p2 = roundData[i + 1];
+                const winner = bracketData[roundIndex + 1]?.[matchIndex];
+                const matchEl = this.createMatchElement(`match-top-${roundIndex}-${matchIndex}`, p1, p2, winner, roundIndex, matchIndex, 0);
+                topRoundEl.appendChild(matchEl);
             }
-            container.appendChild(roundEl);
-        });
+            for (let i = midpoint; i < roundData.length; i += 2) {
+                const matchIndex = (i - midpoint) / 2;
+                const p1 = roundData[i];
+                const p2 = roundData[i + 1];
+                const winner = bracketData[roundIndex + 1]?.[Math.floor(midpoint/2) + matchIndex];
+                const matchEl = this.createMatchElement(`match-bottom-${roundIndex}-${matchIndex}`, p1, p2, winner, roundIndex, matchIndex + midpoint / 2, 0);
+                bottomRoundEl.appendChild(matchEl);
+            }
+            if (topRoundEl.hasChildNodes()) topWing.appendChild(topRoundEl);
+            if (bottomRoundEl.hasChildNodes()) bottomWing.appendChild(bottomRoundEl);
+        }
+        const finalRoundEl = document.createElement('div');
+        finalRoundEl.className = 'bracket-round';
+        finalRoundEl.id = `round-final-${finalRoundIndex}`;
+        const finalMatchData = bracketData[finalRoundIndex];
+        const championData = bracketData[championRoundIndex]?.[0];
+        if (finalMatchData && finalMatchData.length >= 1) {
+            const p1 = finalMatchData[0];
+            const p2 = finalMatchData[1];
+            const finalMatchEl = this.createMatchElement(`match-final`, p1, p2, championData, finalRoundIndex, 0, 0);
+            finalRoundEl.appendChild(finalMatchEl);
+        }
+        if (championData) {
+            const championRoundEl = document.createElement('div');
+            championRoundEl.className = 'bracket-round';
+            championRoundEl.id = 'round-champion';
+            const championEl = document.createElement('div');
+            championEl.className = 'bracket-player winner player-wins-animation';
+            championEl.textContent = championData.aiController;
+            const matchWrapper = document.createElement('div');
+            matchWrapper.className = 'bracket-match';
+            matchWrapper.style.border = '2px solid #ffcc00';
+            matchWrapper.appendChild(championEl);
+            championRoundEl.appendChild(matchWrapper);
+            finalWing.appendChild(championRoundEl);
+        }
+        if (finalRoundEl.hasChildNodes()) finalWing.insertBefore(finalRoundEl, finalWing.firstChild);
         requestAnimationFrame(() => this._drawConnectors(bracketData));
     }
     renderPlayer(player, winner, opponent, roundIndex, matchIndex, playerIndex) {
@@ -109,9 +170,7 @@ export default class TournamentOverlay {
         let className = 'bracket-player';
         let animate = false;
         if (winner) {
-            const oldWinner = this.lastBracketData?.[roundIndex + 1]?.find(w =>
-                w.aiController === player.aiController || (opponent && w.aiController === opponent.aiController)
-            );
+            const oldWinner = this.lastBracketData?.[roundIndex + 1]?.[matchIndex];
             if (!oldWinner) {
                 animate = true;
             }
@@ -124,40 +183,68 @@ export default class TournamentOverlay {
             }
         }
         playerEl.className = className;
-        const botInfo = botRegistry.find(b => b.value === player.aiController);
-        playerEl.textContent = botInfo ? botInfo.name : player.aiController;
+        playerEl.textContent = player.aiController;
         return playerEl;
     }
     _drawConnectors(bracketData) {
         const svg = this.overlayElement.querySelector('#tournament-svg-connectors');
         const container = this.overlayElement.querySelector('#tournament-bracket-container');
         if (!svg || !container) return;
+
         svg.innerHTML = '';
         const containerRect = container.getBoundingClientRect();
-        for (let roundIndex = 0; roundIndex < bracketData.length - 1; roundIndex++) {
-            const currentRoundEl = this.overlayElement.querySelector(`#round-${roundIndex}`);
-            const nextRoundEl = this.overlayElement.querySelector(`#round-${roundIndex + 1}`);
-            if (!currentRoundEl || !nextRoundEl) continue;
-            for (let matchIndex = 0; matchIndex < bracketData[roundIndex].length / 2; matchIndex++) {
-                const matchEl = this.overlayElement.querySelector(`#match-${roundIndex}-${matchIndex}`);
-                if (!matchEl) continue;
-                const nextMatchIndex = Math.floor(matchIndex / 2);
-                const nextMatchEl = this.overlayElement.querySelector(`#match-${roundIndex + 1}-${nextMatchIndex}`);
-                if (!nextMatchEl) continue;
-                const startRect = matchEl.getBoundingClientRect();
-                const endRect = nextMatchEl.getBoundingClientRect();
-                const startX = startRect.right - containerRect.left + container.scrollLeft;
-                const startY = startRect.top + startRect.height / 2 - containerRect.top;
-                const endX = endRect.left - containerRect.left + container.scrollLeft;
-                const endY = endRect.top + endRect.height / 2 - containerRect.top;
-                const midX = startX + (endX - startX) / 2;
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`);
-                path.setAttribute('stroke', '#666');
-                path.setAttribute('stroke-width', '2');
-                path.setAttribute('fill', 'none');
-                svg.appendChild(path);
+        const finalRoundIndex = bracketData.length > 1 ? bracketData.length - 2 : 0;
+        const drawPath = (startX, startY, endX, endY) => {
+            const midY = startY + (endY - startY) / 2;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`);
+            path.setAttribute('stroke', '#666');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            svg.appendChild(path);
+        };
+        const connectWing = (wing, isTopWing) => {
+            for (let roundIndex = 0; roundIndex < finalRoundIndex; roundIndex++) {
+                const roundEl = this.overlayElement.querySelector(`#round-${wing}-${roundIndex}`);
+                if (!roundEl) continue;
+                const matchesInRound = roundEl.querySelectorAll('.bracket-match');
+                matchesInRound.forEach((matchEl, matchIndex) => {
+                    let nextMatchEl;
+                    if (roundIndex < finalRoundIndex - 1) {
+                        const nextMatchIndex = Math.floor(matchIndex / 2);
+                        nextMatchEl = this.overlayElement.querySelector(`#match-${wing}-${roundIndex + 1}-${nextMatchIndex}`);
+                    } else {
+                        nextMatchEl = this.overlayElement.querySelector(`#match-final`);
+                    }
+                    if (!nextMatchEl) return;
+                    const startRect = matchEl.getBoundingClientRect();
+                    const endRect = nextMatchEl.getBoundingClientRect();
+                    const startX = startRect.left + startRect.width / 2 - containerRect.left;
+                    const endX = endRect.left + endRect.width / 2 - containerRect.left;
+                    let startY, endY;
+                    if (isTopWing) {
+                        startY = startRect.bottom - containerRect.top;
+                        endY = endRect.top - containerRect.top;
+                    } else {
+                        startY = startRect.top - containerRect.top;
+                        endY = endRect.bottom - containerRect.top;
+                    }
+                    drawPath(startX, startY, endX, endY);
+                });
             }
+        };
+        connectWing('top', true);
+        connectWing('bottom', false);
+        const finalMatchEl = this.overlayElement.querySelector('#match-final');
+        const championRoundEl = this.overlayElement.querySelector('#round-champion .bracket-match');
+        if (finalMatchEl && championRoundEl) {
+            const startRect = finalMatchEl.getBoundingClientRect();
+            const endRect = championRoundEl.getBoundingClientRect();
+            const startX = startRect.left + startRect.width / 2 - containerRect.left;
+            const startY = startRect.bottom - containerRect.top;
+            const endX = endRect.left + endRect.width / 2 - containerRect.left;
+            const endY = endRect.top - containerRect.top;
+            drawPath(startX, startY, endX, endY); // Use the same pathing for consistency
         }
     }
 }

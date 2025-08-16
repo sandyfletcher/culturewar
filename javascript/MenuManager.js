@@ -12,7 +12,6 @@ import StatsTracker from './StatsTracker.js';
 import eventManager from './EventManager.js';
 import TournamentManager from './TournamentManager.js';
 import ReplayManager from './ReplayManager.js';
-import botRegistry from './bots/index.js';
 
 export default class MenuManager {
     constructor(uiManager) {
@@ -159,10 +158,8 @@ export default class MenuManager {
     }
     showTournamentCompleteScreen(champion, finalMatchConfig) {
         this.tournament = null;
-        this.hideTournamentUI(); // Hide the bracket overlay
-
-        // Define the callbacks that the UI component will execute.
-        const onReplay = () => {
+        this.hideTournamentUI(); // hide bracket overlay
+        const onReplay = () => { // define callbacks UI component will execute
             this.uiManager.hideTournamentCompleteScreen();
             this.startReplay(finalMatchConfig);
         };
@@ -171,9 +168,8 @@ export default class MenuManager {
             this.menuBuilder.buildMainMenu();
             this.switchToScreen('menu');
         };
-
-        // Delegate the entire UI building and showing process to the UIManager.
-        this.uiManager.showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn);
+        this.uiManager.showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn); // delegate entire UI building and showing process to UIManager
+        this.footerManager.showBackButton(onReturn, '< MENUS'); // ensure main footer button also uses correct cleanup logic
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {

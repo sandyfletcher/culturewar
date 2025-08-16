@@ -13,6 +13,7 @@ export default class TournamentSetupBuilder extends MenuBuilderBase {
     }
     build() {
         this.menuManager.uiManager.setHeaderTitle('CREATE TOURNAMENT');
+        this.selectedBots.clear(); // reset bots to ensure clean state
         const menuContainer = this.createMenuContainer();
         menuContainer.innerHTML = `
             <div class="instructions-content">

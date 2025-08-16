@@ -567,7 +567,7 @@ header h1 {
 .advanced-toggle.active span {
     transform: rotate(180deg);
 }
-/* NEW: TOURNAMENT SETUP */
+/* TOURNAMENT SETUP */
 .tournament-bot-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -590,8 +590,7 @@ header h1 {
 .tournament-bot-entry label {
     font-size: 1rem;
 }
-
-/* NEW: REPLAY LIST */
+/* REPLAY LIST */
 .replay-list {
     display: flex;
     flex-direction: column;
@@ -642,10 +641,9 @@ header h1 {
 }
 .replay-button.watch:hover { background: #ffaa00; color: #000; border-color: #ffaa00; }
 .replay-button.delete:hover { background: #ff0000; color: #000; border-color: #ff0000; }
-
-/* NEW: TOURNAMENT OVERLAY */
+/* TOURNAMENT OVERLAY */
 #tournament-overlay {
-    justify-content: flex-start; /* Align content to the top */
+    justify-content: flex-start;
     align-items: center;
     position: absolute;
     top: 0; left: 0;
@@ -669,15 +667,32 @@ header h1 {
     margin-bottom: 1rem;
 }
 #tournament-bracket-container {
-    position: relative; /* Parent for the SVG overlay */
+    position: relative;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    overflow-x: auto; /* Allow horizontal scrolling on small screens */
+    min-height: 250px;
+    padding: 1rem 0.5rem;
+    box-sizing: border-box;
 }
-#bracket-html-content {
+#bracket-wings-container {
+    position: relative;
     display: flex;
-    gap: 2.5rem; /* Increased space between rounds for connectors */
-    padding: 1rem;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+#bracket-top-wing, #bracket-bottom-wing, #bracket-final-wing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+#bracket-bottom-wing {
+    flex-direction: column-reverse;
 }
 #tournament-svg-connectors {
     position: absolute;
@@ -685,48 +700,44 @@ header h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Allows clicking through the SVG layer */
+    pointer-events: none;
     z-index: 1;
 }
 .bracket-round {
     display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    gap: 1.5rem; /* Increased space between matches */
-    flex-shrink: 0; /* Prevent rounds from shrinking */
-    z-index: 2; /* Place rounds above the SVG layer */
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
 }
 .bracket-match {
-    position: relative; /* For the 'vs' separator */
+    position: relative;
     background: #1a1a1a;
     border: 1px solid #444;
     padding: 0.3rem 0.5rem;
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 .vs-separator {
-    position: absolute;
-    left: -1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #555;
-    font-size: 0.7rem;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
+    display: block;
+    font-size: 0.6rem;
+    color: #888;
 }
 .bracket-player {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0.3rem;
     background-color: #333;
     border-radius: 3px;
-    width: 120px; /* Give players a fixed width for alignment */
+    width: 65px;
     transition: all 0.4s ease;
+    text-align: center;
 }
 .bracket-player.winner {
     font-weight: bold;
@@ -898,8 +909,7 @@ header h1 {
     font-weight: bold;
     color: #ffcc00;
 }
-/* NEW: Buttons container for game over screen */
-.game-over-buttons {
+.game-over-buttons { /* button container for game over screen */
     display: flex;
     gap: 1rem;
     margin-top: 1rem;

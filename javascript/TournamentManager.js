@@ -15,8 +15,17 @@ export default class TournamentManager {
         this.finalMatchConfig = null;
     }
     _createBracket(participants) {
-        const shuffled = [...participants].sort(() => 0.5 - this.prng.next()); // simple logic for single-elimination bracket
-        return [shuffled]; // first round is just shuffled list of participants
+        const bracket = [];
+        const shuffled = [...participants].sort(() => 0.5 - this.prng.next());
+        bracket.push(shuffled);
+        let currentRoundPlayers = shuffled;
+        while (currentRoundPlayers.length > 1) {
+            const nextRoundPlayerCount = Math.ceil(currentRoundPlayers.length / 2);
+            const nextRound = Array(nextRoundPlayerCount).fill(null);
+            bracket.push(nextRound);
+            currentRoundPlayers = nextRound;
+        }
+        return bracket;
     }
     start() {
         this.menuManager.showTournamentUI(this.bracket);
@@ -24,23 +33,45 @@ export default class TournamentManager {
     }
     runNextMatch() {
         const round = this.bracket[this.currentRound];
+        // Check if all matches in the current round are complete
         if (this.currentMatchIndex * 2 >= round.length) {
-            if (round.length === 1) { // end of round
-                this.endTournament(); // we have a tournament winner!
+            // If the round just completed only had one player, they are the champion.
+            if (round.length === 1) {
+                this.endTournament();
                 return;
             }
-            this.currentRound++; // move to next round
+            // Advance to the next round
+            this.currentRound++;
             this.currentMatchIndex = 0;
             this.menuManager.showTournamentUI(this.bracket);
-            setTimeout(() => this.runNextMatch(), 1500);
+            setTimeout(() => this.runNextMatch(), 1500); // Pause between rounds
             return;
         }
+        // Get the players for the current match
         const player1 = round[this.currentMatchIndex * 2];
         const player2 = round[this.currentMatchIndex * 2 + 1];
-        if (!player2) { // handle bye for odd number of players in round
-            this.reportMatchResult({ id: 'player1' }); // player 1 wins by default
+        // Handle a bye (player1 has no opponent)
+        if (player1 && !player2) {
+            // CRITICAL FIX: Only advance the player if a next round exists in the bracket.
+            if (this.bracket[this.currentRound + 1]) {
+                this.bracket[this.currentRound + 1][this.currentMatchIndex] = player1;
+                this.currentMatchIndex++;
+                this.menuManager.showTournamentUI(this.bracket);
+                // Immediately process the next match in the same round
+                setTimeout(() => this.runNextMatch(), 50);
+                return;
+            } else {
+                // This case should not be reached with proper bracket generation, but as a safeguard:
+                this.endTournament();
+                return;
+            }
+        }
+        // If for some reason a player slot is empty, wait and retry.
+        if (!player1 || !player2) {
+            setTimeout(() => this.runNextMatch(), 1000);
             return;
         }
+        // Proceed with a normal match
         this.menuManager.updateTournamentStatus(`Round ${this.currentRound + 1}: ${player1.aiController} vs ${player2.aiController}`);
         const baseConfig = this.menuManager.getGameConfig();
         const matchConfig = {
@@ -50,10 +81,11 @@ export default class TournamentManager {
                 { id: 'player2', type: 'bot', aiController: player2.aiController }
             ],
             batchSize: 1,
-            isHeadless: true, // tournaments play out quickly
-            seed: Date.now() + Math.random() // unique seed for each match
+            isHeadless: true,
+            seed: Date.now() + Math.random()
         };
-        if(this.bracket[this.currentRound].length === 2) { // final match in tournament
+        // If this match will decide the champion, save its config for replay
+        if (this.bracket[this.currentRound].length === 2) {
             this.finalMatchConfig = { ...matchConfig };
             console.log("Final match config saved for replay.", this.finalMatchConfig);
         }
@@ -63,14 +95,11 @@ export default class TournamentManager {
         const round = this.bracket[this.currentRound];
         const player1 = round[this.currentMatchIndex * 2];
         const player2 = round[this.currentMatchIndex * 2 + 1];
-        const winner = winnerPlayerId.id === 'player1' ? player1 : player2; // determine winner object
-        if (!this.bracket[this.currentRound + 1]) {
-            this.bracket[this.currentRound + 1] = [];
-        }
-        this.bracket[this.currentRound + 1].push(winner);
+        const winner = winnerPlayerId.id === 'player1' ? player1 : player2;
+        this.bracket[this.currentRound + 1][this.currentMatchIndex] = winner;
         this.currentMatchIndex++;
-        this.menuManager.showTournamentUI(this.bracket); // update UI with winner
-        setTimeout(() => this.runNextMatch(), 1000); 
+        this.menuManager.showTournamentUI(this.bracket);
+        setTimeout(() => this.runNextMatch(), 1000);
     }
     endTournament() {
         const champion = this.bracket[this.bracket.length - 1][0];
