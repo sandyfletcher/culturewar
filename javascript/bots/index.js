@@ -18,9 +18,7 @@ import gptoss20b from './gptoss20b.js';
 // --- TNG Tech (Germany) ---
 import DeepSeekR1T2 from './DeepSeekR1T2.js';
 // --- Z.AI (China) ---
-import glm45A from './glm45A.js';
 import glm45B from './glm45B.js';
-import glm45C from './glm45C.js';
 import glm45D from './glm45D.js';
 // --- Mistral AI (France) MistralSmall32 ---
 // --- OpenRouter / OpenAI? (USA?) HorizonBeta ---
