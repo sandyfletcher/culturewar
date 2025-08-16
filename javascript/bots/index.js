@@ -90,23 +90,9 @@ const botRegistry = [
         description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
     },
     { // Z.AI
-        value: 'glm45A', 
-        name: 'glm45A', 
-        class: glm45A, 
-        creationDate: '08/2025', 
-        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
-    },
-    { // Z.AI
         value: 'glm45B', 
         name: 'glm45B', 
         class: glm45B, 
-        creationDate: '08/2025', 
-        description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
-    },
-    { // Z.AI
-        value: 'glm45C', 
-        name: 'glm45C', 
-        class: glm45C, 
         creationDate: '08/2025', 
         description: 'Adaptive strategic dominator using phased warfare and predictive analytics.' 
     },
