@@ -785,7 +785,7 @@ header h1 {
     width: 100%;
     height: 100%;
 }
-/* HEADLESS BATCH OVERLAY */
+/* HEADLESS OVERLAY */
 #batch-overlay {
     position: absolute;
     top: 0;
@@ -868,8 +868,7 @@ header h1 {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-/* Game Over Screen has different widths */
-#game-over-screen .col-rank { width: 15%; }
+#game-over-screen .col-rank { width: 15%; } /* Game Over Screen has different widths */
 #game-over-screen .col-fighter { width: 40%; }
 #game-over-screen .col-planets { width: 15%; }
 #game-over-screen .col-troops  { width: 15%; }
@@ -946,7 +945,6 @@ header h1 {
     background-color: #555;
     cursor: not-allowed;
 }
-
 /* FOOTER */
 footer {
     display: flex;
