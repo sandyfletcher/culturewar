@@ -6,15 +6,14 @@ import { formatTime } from './utils.js';
 
 export default class GameOverScreen {
     constructor(parentContainer, configManager, menuManager) {
-        this.parentContainer = parentContainer || document.getElementById('inner-container');
-        this.gameOverScreen = null;
+        this.container = parentContainer;
         this.configManager = configManager;
         this.menuManager = menuManager;
     }
     show(stats, gameInstance, onPlayAgainCallback) {
         this.remove();
-        this.gameOverScreen = document.createElement('div');
-        this.gameOverScreen.id = 'game-over-screen';
+        const gameOverContent = document.createElement('div');
+        gameOverContent.id = 'game-over-screen';
         const allPlayersData = gameInstance.playersController.players;
         const playerStatsMap = new Map(
             gameInstance.playersController.getPlayerStats()
@@ -45,11 +44,7 @@ export default class GameOverScreen {
         });
         let headerText;
         const winnerName = leaderboardData.length > 0 ? leaderboardData[0].displayName : 'Nobody';
-        if (stats.hasHumanPlayer) {
-            headerText = `<h1>${stats.playerWon ? 'CONSENSUS REACHED' : 'IDEOLOGY REFUTED'}</h1><h2>Prevailing School of Thought:<br>${winnerName}</h2>`;
-        } else {
-            headerText = `<h1>BATTLE COMPLETE</h1><h2>Successful Subjugation:<br>${winnerName}</h2>`;
-        }
+        headerText = `<h2>Successful Subjugation:<br>${winnerName}</h2>`;
         let leaderboardHTML = `
             <div class="leaderboard">
                 <table>
@@ -118,13 +113,13 @@ export default class GameOverScreen {
                 ${gameIsReplayable ? '<button id="save-replay-button">SAVE REPLAY</button>' : ''}
             </div>
         `;
-        this.gameOverScreen.innerHTML = `
+        gameOverContent.innerHTML = `
             ${headerText}
             ${leaderboardHTML}
             ${overallStats}
             ${buttonsHTML}
         `;
-        this.parentContainer.appendChild(this.gameOverScreen);
+        this.container.appendChild(gameOverContent);
         document.getElementById('play-again-button').addEventListener('click', () => {
             this.remove();
             if (onPlayAgainCallback) {
@@ -141,14 +136,8 @@ export default class GameOverScreen {
         }
     }
     remove() {
-        if (this.gameOverScreen) {
-            this.gameOverScreen.remove();
-            this.gameOverScreen = null;
-        } else {
-            const existingScreen = document.getElementById('game-over-screen');
-            if (existingScreen) {
-                existingScreen.remove();
-            }
+        if (this.container) {
+            this.container.innerHTML = ''; // clear content of dedicated screen container
         }
     }
 }

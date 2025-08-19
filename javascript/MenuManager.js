@@ -31,7 +31,7 @@ export default class MenuManager {
         );
         this.game = null;
         this.gameOverScreen = new GameOverScreen(
-            this.uiManager.getInnerContainerElement(),
+            document.getElementById('game-over-container'),
             this.configManager,
             this
         );
@@ -68,6 +68,7 @@ export default class MenuManager {
         window.CULTURE_WAR_USER_ID = userId; // make ID globally accessible for other modules
     }
     switchToScreen(screenName) {
+        this.screenManager.switchToScreen(screenName);
         eventManager.emit('screen-changed', screenName);
         if (screenName === 'game') {
             if (this.game && this.game.troopTracker) {
@@ -87,7 +88,8 @@ export default class MenuManager {
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
-        this.switchToScreen('menu'); // switch to menu screen view, hiding game canvas
+        this.uiManager.setHeaderTitle('BATTLE COMPLETE');
+        this.switchToScreen('game-over'); // switch to dedicated game over screen
         const backToMenuHandler = () => {
             this.gameOverScreen.remove();
             if (onBackToMenu) {
@@ -157,20 +159,22 @@ export default class MenuManager {
     hideTournamentUI() {
         this.uiManager.hideTournamentOverlay();
     }
-    showTournamentCompleteScreen(champion, finalMatchConfig) {
-        this.tournament = null;
-        this.hideTournamentUI(); // hide bracket overlay
-        const onReplay = () => { // define callbacks UI component will execute
-            this.uiManager.hideTournamentCompleteScreen();
+     showTournamentCompleteScreen(champion, finalMatchConfig) {
+         this.tournament = null;
+         this.hideTournamentUI(); // hide bracket overlay
+        // Define callbacks UI component will execute
+        const onReplay = () => {
+            // ScreenManager will hide the current screen when switching to 'game'
             this.startReplay(finalMatchConfig);
         };
         const onReturn = () => {
-            this.uiManager.hideTournamentCompleteScreen();
             this.menuBuilder.buildMainMenu();
             this.switchToScreen('menu');
-        };
-        this.uiManager.showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn); // delegate entire UI building and showing process to UIManager
-        this.footerManager.showBackButton(onReturn, '< MENUS'); // ensure main footer button also uses correct cleanup logic
+         };
+        this.uiManager.setHeaderTitle('TOURNAMENT COMPLETE');
+        this.switchToScreen('tournament-complete');
+        this.uiManager.showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn);
+        this.footerManager.showBackButton(onReturn, '< MENUS');
     }
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {

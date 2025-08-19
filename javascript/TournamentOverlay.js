@@ -8,11 +8,11 @@ export default class TournamentOverlay {
     constructor(overlayElement, completeScreenElement) {
         this.overlayElement = overlayElement;
         this.completeScreenElement = completeScreenElement;
-        this.lastBracketData = null; // Cache last bracket state for animations
+        this.lastBracketData = null; // cache last bracket state for animations
     }
-    show(bracketData) { // Shows and renders the tournament bracket overlay
+    show(bracketData) { // shows and renders tournament bracket overlay
         this.overlayElement.style.display = 'flex';
-        if (!this.lastBracketData) { // If this is the first time showing, populate the initial HTML structure.
+        if (!this.lastBracketData) { // if first time showing, populate initial HTML structure
             this.overlayElement.innerHTML = `
                 <h2>TOURNAMENT IN PROGRESS</h2>
                 <p id="tournament-status">Initializing bracket...</p>
@@ -39,21 +39,14 @@ export default class TournamentOverlay {
             statusEl.textContent = status;
         }
     }
-    /**
-     * Builds and displays the tournament completion screen.
-     * @param {object} champion - The winning player's data.
-     * @param {object} finalMatchConfig - The config for the final match, used for the replay.
-     * @param {function} onReplay - Callback for the "Watch Final" button.
-     * @param {function} onReturn - Callback for the "Return to Menu" button.
-     */
-    showCompleteScreen(champion, finalMatchConfig, onReplay, onReturn) {
+    showCompleteScreen(champion, finalMatchConfig, onReplay, onReturn) { // builds and displays tournament completion screen
         const botInfo = botRegistry.find(b => b.value === champion.aiController);
         const championName = botInfo ? botInfo.name : champion.aiController;
         this.completeScreenElement.innerHTML = `
-            <div id="game-over-screen">
+            <div class="tournament-complete-content">
                 <h1>TOURNAMENT COMPLETE</h1>
-                <h2 style="color: #ffff00;">CHAMPION: ${championName.toUpperCase()}</h2>
-                <div class="game-over-buttons" style="margin-top: 4rem; flex-direction: column; gap: 1.5rem;">
+                <h2>CHAMPION: ${championName.toUpperCase()}</h2>
+                <div class="game-over-buttons tournament-complete-buttons">
                     <button id="tournament-replay-button" class="game-mode-button primary-action"><h3>WATCH FINAL MATCH</h3></button>
                     <button id="tournament-return-button" class="game-mode-button"><h3>RETURN TO MENU</h3></button>
                 </div>
@@ -70,10 +63,6 @@ export default class TournamentOverlay {
         if (returnButton) {
             returnButton.addEventListener('click', onReturn, { once: true });
         }
-        this.completeScreenElement.style.display = 'flex';
-    }
-    hideCompleteScreen() {
-        this.completeScreenElement.style.display = 'none';
     }
     createMatchElement(id, p1, p2, winner, roundIndex, matchIndex, playerIndexOffset) {
         const matchEl = document.createElement('div');
@@ -244,7 +233,7 @@ export default class TournamentOverlay {
             const startY = startRect.bottom - containerRect.top;
             const endX = endRect.left + endRect.width / 2 - containerRect.left;
             const endY = endRect.top - containerRect.top;
-            drawPath(startX, startY, endX, endY); // Use the same pathing for consistency
+            drawPath(startX, startY, endX, endY); // use same pathing for consistency
         }
     }
 }

@@ -86,7 +86,4 @@ export default class UIManager {
     showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn) {
         this.tournamentOverlay.showCompleteScreen(champion, finalMatchConfig, onReplay, onReturn);
     }
-    hideTournamentCompleteScreen() {
-        this.tournamentOverlay.hideCompleteScreen();
-    }
 }

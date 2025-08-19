@@ -6,7 +6,9 @@ export default class ScreenManager {
     constructor() {
         this.screens = {
             'menu': document.getElementById('menu-screen'),
-            'game': document.getElementById('game-screen')
+            'game': document.getElementById('game-screen'),
+            'game-over': document.getElementById('game-over-container'),
+            'tournament-complete': document.getElementById('tournament-complete-screen')
         };
         this.currentScreen = 'menu';
         this.timer = document.getElementById('timer');
@@ -20,7 +22,7 @@ export default class ScreenManager {
         });
         if (this.screens[screenName]) {
             this.screens[screenName].style.display = 
-                screenName === 'menu' ? 'flex' : 'block';
+                screenName === 'game' ? 'block' : 'flex';
             this.currentScreen = screenName;
         } else {
             console.error(`Screen ${screenName} not found!`);
