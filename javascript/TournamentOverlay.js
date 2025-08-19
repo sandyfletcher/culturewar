@@ -7,7 +7,6 @@ import botRegistry from './bots/index.js';
 export default class TournamentOverlay {
     constructor(overlayElement, completeScreenElement) {
         this.overlayElement = overlayElement;
-        this.completeScreenElement = completeScreenElement;
         this.lastBracketData = null; // cache last bracket state for animations
     }
     show(bracketData) { // shows and renders tournament bracket overlay
@@ -37,31 +36,6 @@ export default class TournamentOverlay {
         const statusEl = this.overlayElement.querySelector('#tournament-status'); // use a more robust selector in case element isn't there yet
         if (statusEl) {
             statusEl.textContent = status;
-        }
-    }
-    showCompleteScreen(champion, finalMatchConfig, onReplay, onReturn) { // builds and displays tournament completion screen
-        const botInfo = botRegistry.find(b => b.value === champion.aiController);
-        const championName = botInfo ? botInfo.name : champion.aiController;
-        this.completeScreenElement.innerHTML = `
-            <div class="tournament-complete-content">
-                <h1>TOURNAMENT COMPLETE</h1>
-                <h2>CHAMPION: ${championName.toUpperCase()}</h2>
-                <div class="game-over-buttons tournament-complete-buttons">
-                    <button id="tournament-replay-button" class="game-mode-button primary-action"><h3>WATCH FINAL MATCH</h3></button>
-                    <button id="tournament-return-button" class="game-mode-button"><h3>RETURN TO MENU</h3></button>
-                </div>
-            </div>
-        `;
-        const replayButton = this.completeScreenElement.querySelector('#tournament-replay-button');
-        const returnButton = this.completeScreenElement.querySelector('#tournament-return-button');
-        if (finalMatchConfig && replayButton) {
-            replayButton.addEventListener('click', onReplay, { once: true });
-        } else if (replayButton) {
-            replayButton.disabled = true;
-            replayButton.innerHTML = '<h3>FINAL NOT AVAILABLE</h3>';
-        }
-        if (returnButton) {
-            returnButton.addEventListener('click', onReturn, { once: true });
         }
     }
     createMatchElement(id, p1, p2, winner, roundIndex, matchIndex, playerIndexOffset) {

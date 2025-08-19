@@ -3,27 +3,29 @@
 // ===========================================
 
 import eventManager from './EventManager.js';
-import TournamentOverlay from './TournamentOverlay.js'; // Import the new class
+import GameOverScreen from './GameOverScreen.js';
+import TournamentOverlay from './TournamentOverlay.js';
+import TournamentCompleteScreen from './TournamentCompleteScreen.js';
 
 export default class UIManager {
-    constructor() {
-        this.batchOverlay = null;
-        this.innerContainer = document.getElementById('inner-container');
-        this.menuScreen = document.getElementById('menu-screen');
-        this.gameScreen = document.getElementById('game-screen');
-        this.canvas = document.getElementById('game-canvas');
+    constructor(configManager, menuManager) {
+        // Main Containers
+        this.screenContainer = document.getElementById('screen-container');
+        this.overlayContainer = document.getElementById('overlay-container');
         this.headerTitle = document.querySelector('header h1');
-
-        // Instantiate the tournament overlay manager
-        this.tournamentOverlay = new TournamentOverlay(
-            document.getElementById('tournament-overlay'),
-            document.getElementById('tournament-complete-screen')
-        );
-
-        eventManager.on('show-batch-overlay', () => this.showBatchOverlay());
-        eventManager.on('update-batch-overlay', ({ gameNumber, totalGames }) => this.updateBatchOverlay(gameNumber, totalGames));
-        eventManager.on('hide-batch-overlay', () => this.hideBatchOverlay());
-        eventManager.on('screen-changed', (screenName) => this.switchToScreen(screenName));
+        // Screen Components & Elements
+        this.screens = {
+            'menu': document.getElementById('menu-screen'),
+            'game': document.getElementById('game-screen'),
+            'gameOver': new GameOverScreen(document.getElementById('game-over-screen'), configManager, menuManager),
+            'tournamentComplete': new TournamentCompleteScreen(document.getElementById('tournament-complete-screen'))
+        };
+        // Overlay Components & Elements
+        this.overlays = {
+            'tournament': new TournamentOverlay(document.getElementById('tournament-overlay')),
+            'batch': document.getElementById('batch-overlay')
+        };
+        eventManager.on('screen-changed', (screenName) => this.showScreen(screenName));
     }
     setHeaderTitle(title) {
         if (this.headerTitle) {
@@ -31,59 +33,61 @@ export default class UIManager {
         }
     }
     getMenuScreenElement() {
-        return this.menuScreen;
+        return this.screens.menu;
     }
     getInnerContainerElement() {
-        return this.innerContainer;
+        return document.getElementById('inner-container');
     }
     getCanvasElement() {
-        return this.canvas;
+        return document.getElementById('game-canvas');
     }
-    switchToScreen(screenName) {
-        if (screenName === 'menu') {
-            this.menuScreen.style.display = 'block';
-            this.gameScreen.style.display = 'none';
-        } else if (screenName === 'game') {
-            this.menuScreen.style.display = 'none';
-            this.gameScreen.style.display = 'block';
+    showScreen(screenName, data = {}) {
+        // Hide all screens
+        Object.values(this.screens).forEach(screen => {
+            const el = screen.container || screen; // Handle both components and raw elements
+            el.style.display = 'none';
+        });
+        const target = this.screens[screenName];
+        if (!target) {
+            console.error(`Screen "${screenName}" not found!`);
+            return;
+        }
+        // Show the target screen
+        if (target.show) { // It's a component with a show method
+            target.show(data.payload, data.onPlayAgain, data.onReturn);
+        } else { // It's a simple DOM element
+            target.style.display = 'block';
         }
     }
-    showBatchOverlay() {
-        if (this.batchOverlay) return;
-        this.batchOverlay = document.createElement('div');
-        this.batchOverlay.id = 'batch-overlay';
-        this.batchOverlay.innerHTML = `
-            <h2>RUNNING SIMULATION</h2>
-            <p id="batch-progress-text">Initializing...</p>
-            <div class="spinner"></div>
-        `;
-        this.innerContainer.appendChild(this.batchOverlay);
-    }
-    updateBatchOverlay(gameNumber, totalGames) {
-        if (!this.batchOverlay) return;
-        const progressText = this.batchOverlay.querySelector('#batch-progress-text');
-        if (progressText) {
-            progressText.textContent = `Game ${gameNumber} of ${totalGames}`;
-        }
-    }
-    hideBatchOverlay() {
-        if (this.batchOverlay) {
-            this.batchOverlay.remove();
-            this.batchOverlay = null;
-        }
-    }
+    // --- Overlay Management ---
+    showOverlay(overlayName, data = {}) {
+        const target = this.overlays[overlayName];
+        if (!target) return;
 
-    // --- Tournament Methods (Delegation) ---
-    showTournamentOverlay(bracketData) {
-        this.tournamentOverlay.show(bracketData);
+        if (target.show) { // It's a component
+            target.show(data);
+        } else { // It's a simple DOM element
+            target.style.display = 'flex';
+        }
     }
-    updateTournamentStatus(status) {
-        this.tournamentOverlay.updateStatus(status);
+    updateOverlay(overlayName, data = {}) {
+        const target = this.overlays[overlayName];
+        if (!target) return;
+        if (overlayName === 'batch') {
+             const progressText = target.querySelector('#batch-progress-text');
+             if(progressText) progressText.textContent = `Game ${data.gameNumber} of ${data.totalGames}`;
+        }
+        if (overlayName === 'tournament') {
+             if(target.updateStatus) target.updateStatus(data.status);
+        }
     }
-    hideTournamentOverlay() {
-        this.tournamentOverlay.hide();
-    }
-    showTournamentCompleteScreen(champion, finalMatchConfig, onReplay, onReturn) {
-        this.tournamentOverlay.showCompleteScreen(champion, finalMatchConfig, onReplay, onReturn);
+    hideOverlay(overlayName) {
+        const target = this.overlays[overlayName];
+        if (!target) return;
+        if (target.hide) { // It's a component
+            target.hide();
+        } else { // It's a simple DOM element
+            target.style.display = 'none';
+        }
     }
 }
