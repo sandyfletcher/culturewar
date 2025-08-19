@@ -1,6 +1,10 @@
 /* IMPORTS */
 @font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block} /* header title */
+
 @font-face { font-family: 'BebasNeue'; src: url('./assets/fonts/BebasNeue.ttf') format('truetype'); font-display: block} /* main text */
+@font-face { font-family: 'ShareTech'; src: url('./assets/fonts/ShareTech.ttf') format('truetype'); font-display: block} /* main text */
+
+
 @font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block} /* buttons */
 @font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block} /* in-game UI */
 /* why don't we import courier new? */
@@ -89,7 +93,7 @@ header h1 {
 }
 .troop-bar-name {
     color: black;
-    font-family: 'BebasNeue', monospace;
+    font-family: 'ShareTech', monospace;
     white-space: nowrap;
     transition: font-size 0.3s ease;
     user-select: none;
