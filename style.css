@@ -1,8 +1,9 @@
 /* IMPORTS */
-@font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block} /* main <h1> title */
-@font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block} /* main body text and buttons */
-@font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block} /* player names inside troop bar */
-@font-face { font-family: 'BebasNeue'; src: url('./assets/fonts/BebasNeue.ttf') format('truetype'); font-display: block} /* newly added */
+@font-face { font-family: 'Codystar'; src: url('./assets/fonts/Codystar.ttf') format('truetype'); font-display: block} /* header title */
+@font-face { font-family: 'BebasNeue'; src: url('./assets/fonts/BebasNeue.ttf') format('truetype'); font-display: block} /* main text */
+@font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block} /* buttons */
+@font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block} /* in-game UI */
+/* why don't we import courier new? */
 /* BASE RESET */
 * {
     margin: 0;
@@ -12,7 +13,7 @@
 body {
     background: #000;
     color: #fff;
-    font-family: 'Tourney', monospace;
+    font-family: 'BebasNeue', monospace;
     display: flex;
     justify-content: center;
     align-items: center;

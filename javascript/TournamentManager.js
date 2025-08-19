@@ -87,7 +87,7 @@ export default class TournamentManager {
         // If this match will decide the champion, save its config for replay
         if (this.bracket[this.currentRound].length === 2) {
             this.finalMatchConfig = { ...matchConfig };
-            console.log("Final match config saved for replay.", this.finalMatchConfig);
+            // console.log("Final match config saved for replay.", this.finalMatchConfig);
         }
         this.menuManager.startTournamentGame(matchConfig);
     }
@@ -104,7 +104,7 @@ export default class TournamentManager {
     endTournament() {
         const champion = this.bracket[this.bracket.length - 1][0];
         this.menuManager.updateTournamentStatus(`CHAMPION: ${champion.aiController}!`);
-        console.log("TOURNAMENT COMPLETE! Champion:", champion.aiController);
+        // console.log("TOURNAMENT COMPLETE! Champion:", champion.aiController);
         if (this.finalMatchConfig) {
             this.menuManager.replayManager.saveReplay(this.finalMatchConfig, `Tournament Final: ${this.finalMatchConfig.players[0].aiController} vs ${this.finalMatchConfig.players[1].aiController}`);
         }

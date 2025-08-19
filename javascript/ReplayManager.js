@@ -9,26 +9,20 @@ export default class ReplayManager {
         this.replays = this.loadReplays();
     }
     saveReplay(gameConfig, replayName) {
-        // We only save replays for non-human games to keep it simple
-        if (gameConfig.players.some(p => p.type === 'human')) return;
-
+        if (gameConfig.players.some(p => p.type === 'human')) return; // only save replays for non-human games to keep it simple
         const replayData = {
             name: replayName,
             timestamp: Date.now(),
             config: gameConfig,
             players: gameConfig.players.map(p => p.aiController || 'Human').join(' vs. ')
         };
-        this.replays.unshift(replayData); // Add to the beginning of the array
-
-        // Limit to the last 20 replays
-        if (this.replays.length > 20) {
+        this.replays.unshift(replayData); // add to beginning of array
+        if (this.replays.length > 20) { // limit to last 20 replays
             this.replays.length = 20;
         }
-        
         this._persist();
-        console.log(`Replay '${replayName}' saved.`);
+        // console.log(`Replay '${replayName}' saved.`);
     }
-
     loadReplays() {
         try {
             const stored = localStorage.getItem(REPLAY_STORAGE_KEY);
@@ -38,22 +32,17 @@ export default class ReplayManager {
             return [];
         }
     }
-
-    getReplays() {
-        // Sort by most recent first
+    getReplays() { // sorted by most recent
         return this.replays.sort((a, b) => b.timestamp - a.timestamp);
     }
-
     deleteReplay(timestamp) {
         this.replays = this.replays.filter(r => r.timestamp !== timestamp);
         this._persist();
     }
-
     clearAllReplays() {
         this.replays = [];
         this._persist();
     }
-
     _persist() {
         try {
             localStorage.setItem(REPLAY_STORAGE_KEY, JSON.stringify(this.replays));
