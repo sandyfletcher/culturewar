@@ -10,7 +10,8 @@ export default class GameOverScreen {
         this.configManager = configManager;
         this.menuManager = menuManager;
     }
-    show(stats, gameInstance, onPlayAgainCallback) {
+    show(payload, onPlayAgainCallback) {
+        const { stats, gameInstance } = payload; // destructure payload to get data
         this.remove();
         const gameOverContent = document.createElement('div');
         gameOverContent.id = 'game-over-screen';

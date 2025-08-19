@@ -23,9 +23,9 @@ export default class MenuManager {
         this.game = null;
         this.menuBuilder = new MenuBuilder(
             this.uiManager.getMenuScreenElement(),
-            null, // ScreenManager is removed from the architecture
+            null, // ScreenManager is removed from architecture
             this.configManager,
-            this // Pass this MenuManager instance to the builder
+            this // pass this MenuManager instance to builder
         );
         this.isBatchRunning = false;
         this.gamesRemaining = 0;
@@ -84,7 +84,7 @@ export default class MenuManager {
         };
         this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
         this.uiManager.showScreen('gameOver', { 
-            payload: stats, 
+            payload: { stats, gameInstance }, 
             onPlayAgain, 
             onReturn: onBackToMenu 
         });
@@ -176,7 +176,6 @@ export default class MenuManager {
         const gameNumber = this.totalGamesInBatch - this.gamesRemaining + 1;
         this.uiManager.updateOverlay('batch', { gameNumber, totalGames: this.totalGamesInBatch });
         this.gamesRemaining--;
-
         if (!this.currentBatchConfig.isHeadless) {
             eventManager.emit('screen-changed', 'game');
         }
