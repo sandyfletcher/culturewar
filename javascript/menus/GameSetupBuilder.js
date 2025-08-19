@@ -176,9 +176,11 @@ export default class GameSetupBuilder extends MenuBuilderBase {
             circleLabel.style.backgroundColor = playerColors[player.id];
             circleLabel.innerHTML = `<span>${index + 1}</span>`;
             const typeSelector = document.createElement('select');
+            typeSelector.id = `player-type-selector-${index}`; // assign unique ID
             typeSelector.innerHTML = `<option value="human">Human</option><option value="bot">Bot</option>`;
             typeSelector.value = player.type;
             const aiSelector = document.createElement('select');
+            aiSelector.id = `player-ai-selector-${index}`;
             aiOptions.forEach(opt => {
                 const option = document.createElement('option');
                 option.value = opt.value;

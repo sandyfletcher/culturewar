@@ -42,7 +42,7 @@ export default class PlayersController {
             if (AIClass) {
                 const gameApiForBot = new GameAPI(this.game, player.id);
                 this.aiControllers[player.id] = new AIClass(gameApiForBot, player.id);
-                this.aiCooldowns[player.id] = config.ai.decisionCooldown * this.prng.next(); // use seedable PRNG to stagger cooldowns
+                this.aiCooldowns[player.id] = config.ai.decisionCooldown * this.prng.next(); // stagger initial actions
             } else {
                 console.error(`AI type "${player.aiController}" not found in registry!`);
             }
@@ -51,24 +51,24 @@ export default class PlayersController {
     updateAIPlayers(dt) {
         const activeAiPlayers = this.getAIPlayers()
             .filter(p => this.game.gameState.activePlayers.has(p.id));
-        for (const player of activeAiPlayers) { // iterate through every active AI on every update
-            if (this.aiCooldowns[player.id] > 0) { // controller manages its own authoritative timer and decrements timer regardless of what bot does
-                this.aiCooldowns[player.id] -= dt;
-                continue; // if bot is on cooldown according to *controller*, skip its turn immediately — bot's code isn't even called
+        const currentGameTime = this.game.gameState.elapsedGameTime;
+        for (const player of activeAiPlayers) {
+            if (this.aiCooldowns[player.id] > currentGameTime) { // is current game time past bot's allowed action time?
+                continue; 
             }
-            const aiController = this.aiControllers[player.id]; // if controller's timer has expired, bot is allowed to think
+            const aiController = this.aiControllers[player.id]; 
             if (!aiController) continue;
-            this.aiCooldowns[player.id] = config.ai.decisionCooldown; // set cooldown immediately so bot gets only one chance to act
             const aiDecision = aiController.makeDecision(dt);
-            if (aiDecision) {      
+            if (aiDecision) { // only apply cooldown if bot returns a valid action
                 const fromPlanet = this.game.planets.find(p => p.id === aiDecision.fromId);
                 const toPlanet = this.game.planets.find(p => p.id === aiDecision.toId);
-                if (fromPlanet && toPlanet) { // safety check in case a bot returns a non-existent ID
-                     this.game.sendTroops(
+                if (fromPlanet && toPlanet) {
+                    this.game.sendTroops(
                         fromPlanet,
                         toPlanet,
                         aiDecision.troops
                     );
+                    this.aiCooldowns[player.id] = currentGameTime + config.ai.decisionCooldown; // set next available action time
                 } else {
                     console.warn(`Bot ${player.id} returned a decision with an invalid planet ID.`);
                 }

@@ -243,11 +243,12 @@ export default class Game {
         }
     }
     sendTroops(fromPlanet, toPlanet, amount) {
-        if (!amount || amount <= 0) {
-            return;
+        const troopAmount = Math.floor(amount); // prevent fractional troops
+        if (!troopAmount || troopAmount <= 0 || isNaN(troopAmount)) { // rigorous input validation
+            return; // silently ignore invalid or non-positive troop amounts
         }
         const troopsAvailable = Math.floor(fromPlanet.troops);
-        const sanitizedAmount = Math.min(amount, troopsAvailable);
+        const sanitizedAmount = Math.min(troopAmount, troopsAvailable);
         if (sanitizedAmount < 1) {
             return;
         }
