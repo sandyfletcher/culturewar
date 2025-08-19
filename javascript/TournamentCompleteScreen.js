@@ -30,7 +30,6 @@ export default class TournamentCompleteScreen {
         if (returnButton) {
             returnButton.addEventListener('click', onReturn, { once: true });
         }
-        this.container.style.display = 'flex';
     }
     hide() {
         this.container.style.display = 'none';

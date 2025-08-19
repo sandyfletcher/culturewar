@@ -145,11 +145,11 @@ export default class GameState {
         if (this.game.menuManager) {
             const onPlayAgain = () => {
                 this.game.menuManager.menuBuilder.buildGameSetup();
-                this.game.menuManager.switchToScreen('menu');
+                eventManager.emit('screen-changed', 'menu');
             };
             const onBackToMenu = () => {
                 this.game.menuManager.menuBuilder.buildMainMenu();
-                this.game.menuManager.switchToScreen('menu');
+                eventManager.emit('screen-changed', 'menu');
             };
             this.game.menuManager.showGameOver(stats, this.game, onPlayAgain, onBackToMenu);
         } else {

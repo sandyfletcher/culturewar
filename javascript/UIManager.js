@@ -9,18 +9,15 @@ import TournamentCompleteScreen from './TournamentCompleteScreen.js';
 
 export default class UIManager {
     constructor(configManager, menuManager) {
-        // Main Containers
         this.screenContainer = document.getElementById('screen-container');
         this.overlayContainer = document.getElementById('overlay-container');
         this.headerTitle = document.querySelector('header h1');
-        // Screen Components & Elements
         this.screens = {
             'menu': document.getElementById('menu-screen'),
             'game': document.getElementById('game-screen'),
             'gameOver': new GameOverScreen(document.getElementById('game-over-screen'), configManager, menuManager),
             'tournamentComplete': new TournamentCompleteScreen(document.getElementById('tournament-complete-screen'))
         };
-        // Overlay Components & Elements
         this.overlays = {
             'tournament': new TournamentOverlay(document.getElementById('tournament-overlay')),
             'batch': document.getElementById('batch-overlay')
@@ -42,9 +39,8 @@ export default class UIManager {
         return document.getElementById('game-canvas');
     }
     showScreen(screenName, data = {}) {
-        // Hide all screens
-        Object.values(this.screens).forEach(screen => {
-            const el = screen.container || screen; // Handle both components and raw elements
+        Object.values(this.screens).forEach(screen => { // hide all screens
+            const el = screen.container || screen; // handle both components and raw elements
             el.style.display = 'none';
         });
         const target = this.screens[screenName];
@@ -52,21 +48,25 @@ export default class UIManager {
             console.error(`Screen "${screenName}" not found!`);
             return;
         }
-        // Show the target screen
-        if (target.show) { // It's a component with a show method
+        const targetElement = target.container || target; // get actual root DOM element for target screen
+        if (targetElement.id === 'game-screen' || // make that root element visible, and check ID to apply correct CSS
+            targetElement.id === 'game-over-screen' ||
+            targetElement.id === 'tournament-complete-screen' ||
+            targetElement.id === 'menu-screen') {
+            targetElement.style.display = 'flex';
+        } else {
+            targetElement.style.display = 'block'; // fallback for other potential screens
+        }
+        if (target.show) { // if it's a component with a .show method, call it to populate content
             target.show(data.payload, data.onPlayAgain, data.onReturn);
-        } else { // It's a simple DOM element
-            target.style.display = 'block';
         }
     }
-    // --- Overlay Management ---
     showOverlay(overlayName, data = {}) {
         const target = this.overlays[overlayName];
         if (!target) return;
-
-        if (target.show) { // It's a component
+        if (target.show) { // component
             target.show(data);
-        } else { // It's a simple DOM element
+        } else { // simple DOM element
             target.style.display = 'flex';
         }
     }
@@ -84,9 +84,9 @@ export default class UIManager {
     hideOverlay(overlayName) {
         const target = this.overlays[overlayName];
         if (!target) return;
-        if (target.hide) { // It's a component
+        if (target.hide) {
             target.hide();
-        } else { // It's a simple DOM element
+        } else {
             target.style.display = 'none';
         }
     }

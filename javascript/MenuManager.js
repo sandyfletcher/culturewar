@@ -10,12 +10,13 @@ import StatsTracker from './StatsTracker.js';
 import eventManager from './EventManager.js';
 import TournamentManager from './TournamentManager.js';
 import ReplayManager from './ReplayManager.js';
+import UIManager from './UIManager.js';
 
 export default class MenuManager {
-    constructor(uiManager) {
-        this.uiManager = uiManager;
+    constructor() {
         this.initializeUserIdentity(); // create or load persistent user ID
         this.configManager = new GameConfigManager();
+        this.uiManager = new UIManager(this.configManager, this);
         this.footerManager = new FooterManager();
         this.statsTracker = new StatsTracker();
         this.replayManager = new ReplayManager();
