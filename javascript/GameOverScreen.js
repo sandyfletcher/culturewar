@@ -24,7 +24,6 @@ export default class GameOverScreen {
         const playerCount = allPlayersData.length;
         const eliminationTimes = gameInstance.gameState.eliminationTimes || {};
         const gameTime = stats.time;
-
         const leaderboardData = allPlayersData.map(playerData => {
             const playerStat = playerStatsMap.get(playerData.id) || { planets: 0, troops: 0 };
             const isWinner = playerData.id === stats.winner;
@@ -45,10 +44,10 @@ export default class GameOverScreen {
             return b.survivalTime - a.survivalTime;
         });
         let headerText;
+        const winnerName = leaderboardData.length > 0 ? leaderboardData[0].displayName : 'Nobody';
         if (stats.hasHumanPlayer) {
-            headerText = `<h1>${stats.playerWon ? 'VICTORY!' : 'DEFEAT'}</h1><h2>Successful Subjugation</h2>`;
+            headerText = `<h1>${stats.playerWon ? 'CONSENSUS REACHED' : 'IDEOLOGY REFUTED'}</h1><h2>Prevailing School of Thought:<br>${winnerName}</h2>`;
         } else {
-            const winnerName = leaderboardData.length > 0 ? leaderboardData[0].displayName : 'Nobody';
             headerText = `<h1>BATTLE COMPLETE</h1><h2>Successful Subjugation:<br>${winnerName}</h2>`;
         }
         let leaderboardHTML = `
@@ -84,25 +83,30 @@ export default class GameOverScreen {
             `;
         });
         leaderboardHTML += `</tbody></table></div>`;
+        const persuasionRate = stats.planetsConquered > 0 ? (stats.troopsSent / stats.planetsConquered).toFixed(1) : 'N/A';
         const overallStats = `
             <div class="overall-stats">
                 <h3>BATTLE STATS</h3>
                 <div class="stats-container">
                     <div class="stat-item">
-                        <span class="stat-label">Preservation:</span>
+                        <span class="stat-label">Duration:</span>
                         <span class="stat-value">${formatTime(stats.time)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Persuasions:</span>
+                        <span class="stat-label">Planets Converted:</span>
                         <span class="stat-value">${Math.round(stats.planetsConquered || 0)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Proclamations:</span>
+                        <span class="stat-label">Culture Dispatched:</span>
                         <span class="stat-value">${Math.round(stats.troopsSent || 0)}</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Extirpations:</span>
+                        <span class="stat-label">Casualties:</span>
                         <span class="stat-value">${Math.round(stats.troopsLost || 0)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" >Avg. Persuasion Rate:</span>
+                        <span class="stat-value">${persuasionRate}</span>
                     </div>
                 </div>
             </div>

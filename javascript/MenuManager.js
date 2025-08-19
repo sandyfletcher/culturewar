@@ -87,6 +87,7 @@ export default class MenuManager {
         if (gameInstance && gameInstance.troopTracker) {
             gameInstance.troopTracker.hideTroopBar();
         }
+        this.switchToScreen('menu'); // switch to menu screen view, hiding game canvas
         const backToMenuHandler = () => {
             this.gameOverScreen.remove();
             if (onBackToMenu) {
@@ -94,7 +95,7 @@ export default class MenuManager {
             }
         };
         this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
-        this.gameOverScreen.show(stats, gameInstance, onPlayAgain);
+        this.gameOverScreen.show(stats, gameInstance, onPlayAgain); // show GameOver screen as the main view
     }
     startGame() {
         const config = this.configManager.getConfig();

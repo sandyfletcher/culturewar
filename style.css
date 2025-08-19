@@ -877,7 +877,7 @@ header h1 {
 #game-over-screen .col-rank { width: 15%; } /* Game Over has different widths */
 #game-over-screen .col-fighter { width: 40%; }
 #game-over-screen .col-planets { width: 15%; }
-#game-over-screen .col-troops  { width: 15%; }
+#game-over-screen .col-troops { width: 15%; }
 #game-over-screen .col-score { width: 15%; }
 /* STATS */
 .overall-stats {
