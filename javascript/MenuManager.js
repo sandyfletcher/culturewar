@@ -39,7 +39,6 @@ export default class MenuManager {
         this.gamesRemaining = 0;
         this.totalGamesInBatch = 0;
         this.currentBatchConfig = null;
-        this.gameWorker = null; // property to hold our worker instance
         eventManager.on('confirm-action', this.handleConfirmAction.bind(this)); // listen for confirmation dialog requests from other modules
         eventManager.on('human-players-eliminated', () => { // listen for all human players eliminated to update UI
             if (this.game && !this.game.gameOver && this.footerManager.mode === 'troop') {
@@ -102,9 +101,11 @@ export default class MenuManager {
         this.currentBatchConfig = { ...config };
         this.gamesRemaining = this.currentBatchConfig.batchSize;
         this.totalGamesInBatch = this.currentBatchConfig.batchSize;
-        this.isBatchRunning = this.gamesRemaining > 1; // headless alone doesn't mean batch
-        if (this.isBatchRunning) { // use worker for batches, otherwise start single game
-            eventManager.emit('show-batch-overlay');
+        this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
+        if (this.isBatchRunning) {
+            if (this.currentBatchConfig.isHeadless) {
+                eventManager.emit('show-batch-overlay');
+            }
             this.startNextBatchGame();
         } else {
             this._startSingleGame(config);
@@ -124,41 +125,7 @@ export default class MenuManager {
             this.uiManager.getInnerContainerElement(),
             this.uiManager.getCanvasElement()
         );
-        this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer || !config.isHeadless; // this logic is for single visible games
-    }
-    startNextBatchGame() {
-        if (!this.isBatchRunning || this.gamesRemaining <= 0) {
-            this.isBatchRunning = false;
-            if (this.gameWorker) {
-                this.gameWorker.terminate(); // clean up worker
-                this.gameWorker = null;
-            }
-            eventManager.emit('hide-batch-overlay');
-            this.menuBuilder.buildStandingsScreen();
-            this.switchToScreen('menu');
-            return;
-        }
-        const gameNumber = this.totalGamesInBatch - this.gamesRemaining + 1;
-        eventManager.emit('update-batch-overlay', { gameNumber, totalGames: this.totalGamesInBatch });
-        this.gamesRemaining--;
-        if (!this.gameWorker) { // ensure worker is created only once for the batch
-            this.gameWorker = new Worker('./javascript/gameWorker.js', { type: 'module' }); // path is relative to HTML file
-            this.gameWorker.onmessage = (e) => {
-                if (e.data.status === 'complete') {
-                    this.startNextBatchGame(); // when a game is done, start next one
-                }
-            };
-            this.gameWorker.onerror = (e) => {
-                console.error("Error in Game Worker:", e);
-                this.gamesRemaining = 0; // stop batch on error
-                this.startNextBatchGame();
-            };
-        }
-        this.gameWorker.postMessage({ // send config for next game to worker
-            config: this.currentBatchConfig,
-            gameNumber,
-            totalGames: this.totalGamesInBatch
-        });
+        this.game.timerManager.shouldPauseOnHidden = hasHumanPlayer;
     }
     startReplay(replayConfig) {
         this.configManager.loadConfigForReplay(replayConfig);

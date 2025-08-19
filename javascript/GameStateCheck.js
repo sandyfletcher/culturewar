@@ -102,10 +102,7 @@ export default class GameState {
             .filter(p => p.id !== 'neutral');
         playerStats.sort((a,b) => b.planets - a.planets || b.troops - a.troops);
         const gameId = `${window.CULTURE_WAR_USER_ID}-${Date.now()}`;
-        // --- NEW: Check if running in a worker context ---
-        // 'self' exists in workers but not in the main window scope typically.
-        const isWorker = typeof self !== 'undefined' && typeof self.postMessage === 'function';
-        this.reportStats({
+        this.game.reportStats({
             type: 'GAME_STATS',
             gameId: gameId,
             duration: this.elapsedGameTime,
@@ -130,11 +127,6 @@ export default class GameState {
                 cultureScore: cultureScore
             });
         });
-        // If in a worker, post a message with the results and terminate.
-        if (isWorker) {
-            self.postMessage({ status: 'complete' });
-            return; 
-        }
         if (this.game.menuManager.isBatchRunning) {
             this.game.menuManager.startNextBatchGame();
             return;
