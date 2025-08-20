@@ -125,7 +125,7 @@ export default class StandingsBuilder extends MenuBuilderBase {
         if (aggregatedStats.length > 0) {
             const clearButton = document.createElement('button');
             clearButton.id = 'clear-stats-button';
-            clearButton.className = 'menu-button';
+            clearButton.className = 'menu-button -subtle';
             clearButton.textContent = 'Clear All Stats';
             clearButton.addEventListener('click', () => {
                 eventManager.emit('confirm-action', {

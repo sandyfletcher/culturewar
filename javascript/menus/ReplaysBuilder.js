@@ -24,8 +24,8 @@ export default class ReplaysBuilder extends MenuBuilderBase {
                             <span class="replay-date">${new Date(replay.timestamp).toLocaleString()}</span>
                         </div>
                         <div class="replay-actions">
-                            <button class="replay-button watch" data-timestamp="${replay.timestamp}">Watch</button>
-                            <button class="replay-button delete" data-timestamp="${replay.timestamp}">Delete</button>
+                            <button class="menu-button -small -cyan" data-timestamp="${replay.timestamp}">Watch</button>
+                            <button class="menu-button -small -red" data-timestamp="${replay.timestamp}">Delete</button>
                         </div>
                     </div>
                 `;

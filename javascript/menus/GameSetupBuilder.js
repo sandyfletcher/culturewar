@@ -167,7 +167,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         const container = document.createElement('div');
         const countLabelElement = document.createElement('h2');
         countLabelElement.textContent = 'NUMBER OF PLAYERS';
-        countLabelElement.className = 'setup-title';
+        countLabelElement.className = 'menu-section-header';
         container.appendChild(countLabelElement);
         const countSelect = document.createElement('div');
         countSelect.className = 'player-count-select';
@@ -198,7 +198,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         container.innerHTML = '';
         const selectorsTitle = document.createElement('h3');
         selectorsTitle.textContent = 'PLAYER SETUP';
-        selectorsTitle.className = 'selectors-title';
+        selectorsTitle.className = 'menu-section-header';
         container.appendChild(selectorsTitle);
         const players = this.configManager.getConfig().players;
         const playerColors = this.configManager.getPlayerColors();
@@ -246,7 +246,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         planetDensityContainer.className = 'planet-density-container';
         const densityTitle = document.createElement('h3');
         densityTitle.textContent = 'GALAXY DENSITY';
-        densityTitle.className = 'section-title';
+        densityTitle.className = 'menu-section-header';
         planetDensityContainer.appendChild(densityTitle);
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';

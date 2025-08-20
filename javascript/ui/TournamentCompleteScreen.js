@@ -14,13 +14,13 @@ export default class TournamentCompleteScreen {
             <div class="tournament-complete-content">
                 <h2>CHAMPION: ${championName.toUpperCase()}</h2>
                 <div class="game-over-buttons"> 
-                    <button id="play-again-button">WATCH FINAL</button>
-                    <button id="tournament-return-button">RETURN TO MENU</button>
+                    <button class="menu-button -solid -yellow" id="replay-final-button">WATCH FINAL</button>
+                    <button class="menu-button -solid -grey" id="return-to-menu-button">RETURN TO MENU</button>
                 </div>
             </div>
         `;
-        const replayButton = this.container.querySelector('#play-again-button');
-        const returnButton = this.container.querySelector('#tournament-return-button');
+        const replayButton = this.container.querySelector('#replay-final-button');
+        const returnButton = this.container.querySelector('#return-to-menu-button');
         if (finalMatchConfig && replayButton) {
             replayButton.addEventListener('click', onReplay, { once: true });
         } else if (replayButton) {

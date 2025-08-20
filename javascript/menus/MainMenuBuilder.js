@@ -13,8 +13,8 @@ export default class MainMenuBuilder extends MenuBuilderBase {
         this.menuManager.uiManager.setHeaderTitle('CULTURE WAR');
         this.menuManager.footerManager.showDefault(); // when main menu is built, ensure footer is set to default
         const menuContainer = this.createMenuContainer();
-        const gameModeContainer = document.createElement('div');
-        gameModeContainer.className = 'game-mode-container';
+        const modeContainer = document.createElement('div');
+        modeContainer.className = 'mode-container';
         const options = [
             { 
                 id: 'instructions', 
@@ -60,9 +60,9 @@ export default class MainMenuBuilder extends MenuBuilderBase {
                 <p>${option.description}</p>
             `;
             modeButton.addEventListener('click', option.handler);
-            gameModeContainer.appendChild(modeButton);
+            modeContainer.appendChild(modeButton);
         });
-        menuContainer.appendChild(gameModeContainer);
+        menuContainer.appendChild(modeContainer);
         return menuContainer;
     }
 }

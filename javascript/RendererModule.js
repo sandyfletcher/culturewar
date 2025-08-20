@@ -49,14 +49,10 @@ export default class Renderer {
         if (!this.game.inputHandler) return;
         const selectionBox = this.game.inputHandler.getSelectionBox();
         if (!selectionBox || !selectionBox.isActive) return;
-        // The selection box is in screen coordinates, so we draw it *before* the transform.
-        // Or, we adjust its coordinates to be drawn inside the scaled context.
-        // Let's adjust the coordinates.
         this.ctx.strokeStyle = '#ffff00';
-        this.ctx.lineWidth = 1 / this.game.scale; // Make line width consistent
+        this.ctx.lineWidth = 1 / this.game.scale; // consistent line width
         this.ctx.setLineDash([5 / this.game.scale, 3 / this.game.scale]);
-        // Convert screen coordinates of the box to world coordinates to draw within the scaled context
-        const worldBox = {
+        const worldBox = { // convert screen coordinates of box to world coordinates to draw within scaled context
             left: (selectionBox.left - this.game.offsetX) / this.game.scale,
             top: (selectionBox.top - this.game.offsetY) / this.game.scale,
             width: selectionBox.width / this.game.scale,
@@ -69,8 +65,9 @@ export default class Renderer {
     }
     drawUIOverlays() {
         const ctx = this.ctx;
-        const padding = 10;
-        const topY = 18;
+        // percentage of canvas dimensions for scalable padding
+        const paddingX = this.canvas.width * 0.025; // 2.5% from horizontal edges
+        const paddingY = this.canvas.height * 0.02; // 2% from vertical edge
         const originalFont = ctx.font;
         const originalFillStyle = ctx.fillStyle;
         const originalTextAlign = ctx.textAlign;
@@ -86,12 +83,12 @@ export default class Renderer {
         // draw total troops
         const totalTroops = Math.round(this.game.troopTracker.lastTotalTroops);
         ctx.textAlign = 'left';
-        ctx.fillText(`${totalTroops}`, padding, topY);
+        ctx.fillText(`${totalTroops}`, paddingX, paddingY);
         // draw time remaining
         const timeRemaining = this.game.timerManager.getTimeRemaining();
         const formattedTime = formatTime(timeRemaining);
         ctx.textAlign = 'right';
-        ctx.fillText(formattedTime, this.canvas.width - padding, topY);
+        ctx.fillText(formattedTime, this.canvas.width - paddingX, paddingY);
         // restore context state
         ctx.font = originalFont;
         ctx.fillStyle = originalFillStyle;

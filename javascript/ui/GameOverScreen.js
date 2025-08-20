@@ -109,8 +109,8 @@ export default class GameOverScreen {
         const gameIsReplayable = !gameInstance.config.players.some(p => p.type === 'human');
         const buttonsHTML = `
             <div class="game-over-buttons">
-                <button id="play-again-button">PLAY AGAIN</button>
-                ${gameIsReplayable ? '<button id="save-replay-button">SAVE REPLAY</button>' : ''}
+                <button class="menu-button -solid -yellow" id="play-again-button">PLAY AGAIN</button>
+                ${gameIsReplayable ? '<button class="menu-button -solid -cyan" id="save-replay-button">SAVE REPLAY</button>' : ''}
             </div>
         `;
         // populate container directly instead of creating a new div
