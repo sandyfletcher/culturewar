@@ -18,8 +18,9 @@ export default class Game {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
         this.innerContainer = innerContainer;
-        this.scaleX = 1;
-        this.scaleY = 1;
+        this.scale = 1; // uniform scale
+        this.offsetX = 0; // centering
+        this.offsetY = 0;
         this.config = {
             ...gameConfig,           // players, density, seed, etc
             game: staticConfig.game  // adds { logicalWidth, logicalHeight, ... } object
@@ -69,7 +70,7 @@ export default class Game {
         }
         // --- Event Listeners ---
         eventManager.on('screen-changed', (screenName) => {
-            if (screenName === 'game') { this.troopTracker.showTroopBar(); } 
+            if (screenName === 'game') { this.troopTracker.showTroopBar(); }
             else if (screenName === 'menu') { this.troopTracker.hideTroopBar(); }
         });
         eventManager.on('mouse-moved', (pos) => {
@@ -88,16 +89,16 @@ export default class Game {
         eventManager.on('selection-box', (box) => {
             if (this.gameOver) return;
             const worldBox = {
-                left: box.left / this.scaleX, top: box.top / this.scaleY,
-                right: box.right / this.scaleX, bottom: box.bottom / this.scaleY
+                left: box.left / this.scale, top: box.top / this.scale,
+                right: box.right / this.scale, bottom: box.bottom / this.scale
             };
             this.handleSelectionBox(worldBox);
         });
     }
     screenToWorld(screenX, screenY) {
         return {
-            x: screenX / this.scaleX,
-            y: screenY / this.scaleY,
+            x: (screenX - this.offsetX) / this.scale,
+            y: (screenY - this.offsetY) / this.scale,
         };
     }
     reportStats(data) {
@@ -167,8 +168,16 @@ export default class Game {
     resize() {
         this.canvas.width = this.innerContainer.clientWidth;
         this.canvas.height = this.innerContainer.clientHeight;
-        this.scaleX = this.canvas.width / this.config.game.logicalWidth;
-        this.scaleY = this.canvas.height / this.config.game.logicalHeight;
+        // Calculate the scale to fit the logical size within the canvas while maintaining aspect ratio
+        const scaleX = this.canvas.width / this.config.game.logicalWidth;
+        const scaleY = this.canvas.height / this.config.game.logicalHeight;
+        this.scale = Math.min(scaleX, scaleY); // Use the smaller scale factor to fit completely
+        // Calculate the rendered size
+        const renderedWidth = this.config.game.logicalWidth * this.scale;
+        const renderedHeight = this.config.game.logicalHeight * this.scale;
+        // Calculate offsets to center the game world on the canvas
+        this.offsetX = (this.canvas.width - renderedWidth) / 2;
+        this.offsetY = (this.canvas.height - renderedHeight) / 2;
     }
     initializeGame() {
         this.planets = this.planetGenerator.generatePlanets();
@@ -200,7 +209,7 @@ export default class Game {
         const totalGameDt = rawDt * speedMultiplier;
         const FIXED_TIME_STEP = 1 / 60;
         this.accumulator += totalGameDt;
-        const maxStepsPerFrame = 200; 
+        const maxStepsPerFrame = 200;
         let steps = 0;
         while (this.accumulator >= FIXED_TIME_STEP && steps < maxStepsPerFrame) {
             this.updatePlanets(FIXED_TIME_STEP);

@@ -13,7 +13,9 @@ export default class Renderer {
     draw(alpha = 0) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.save();
-        this.ctx.scale(this.game.scaleX, this.game.scaleY);
+        // First, move the origin to the center offset, then apply the uniform scale
+        this.ctx.translate(this.game.offsetX, this.game.offsetY);
+        this.ctx.scale(this.game.scale, this.game.scale);
         this.drawTrajectory();
         this.drawSelectionBox();
         for (const planet of this.game.planets) {
@@ -27,7 +29,7 @@ export default class Renderer {
     }
     drawTrajectory() {
         if (this.game.selectedPlanets.length > 0) {
-            const targetPlanet = this.game.planets.find(planet => 
+            const targetPlanet = this.game.planets.find(planet =>
                 planet.containsPoint(this.game.worldMousePos.x, this.game.worldMousePos.y));
             if (targetPlanet && !this.game.selectedPlanets.includes(targetPlanet)) {
                 for (const selectedPlanet of this.game.selectedPlanets) {
@@ -47,17 +49,23 @@ export default class Renderer {
         if (!this.game.inputHandler) return;
         const selectionBox = this.game.inputHandler.getSelectionBox();
         if (!selectionBox || !selectionBox.isActive) return;
+        // The selection box is in screen coordinates, so we draw it *before* the transform.
+        // Or, we adjust its coordinates to be drawn inside the scaled context.
+        // Let's adjust the coordinates.
         this.ctx.strokeStyle = '#ffff00';
-        this.ctx.lineWidth = 1;
-        this.ctx.setLineDash([5, 3]);
-        const left = selectionBox.left / this.game.scaleX;
-        const top = selectionBox.top / this.game.scaleY;
-        const width = selectionBox.width / this.game.scaleX;
-        const height = selectionBox.height / this.game.scaleY;
-        this.ctx.strokeRect(left, top, width, height);
+        this.ctx.lineWidth = 1 / this.game.scale; // Make line width consistent
+        this.ctx.setLineDash([5 / this.game.scale, 3 / this.game.scale]);
+        // Convert screen coordinates of the box to world coordinates to draw within the scaled context
+        const worldBox = {
+            left: (selectionBox.left - this.game.offsetX) / this.game.scale,
+            top: (selectionBox.top - this.game.offsetY) / this.game.scale,
+            width: selectionBox.width / this.game.scale,
+            height: selectionBox.height / this.game.scale
+        };
+        this.ctx.strokeRect(worldBox.left, worldBox.top, worldBox.width, worldBox.height);
         this.ctx.setLineDash([]);
         this.ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
-        this.ctx.fillRect(left, top, width, height);
+        this.ctx.fillRect(worldBox.left, worldBox.top, worldBox.width, worldBox.height);
     }
     drawUIOverlays() {
         const ctx = this.ctx;

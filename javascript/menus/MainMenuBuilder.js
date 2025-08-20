@@ -50,7 +50,7 @@ export default class MainMenuBuilder extends MenuBuilderBase {
         ];
         options.forEach(option => {
             const modeButton = document.createElement('div');
-            modeButton.className = 'game-mode-button';
+            modeButton.className = 'mode-button';
             modeButton.dataset.mode = option.id;
             if (option.primary) {
                 modeButton.classList.add('primary-action');
