@@ -21,7 +21,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         setupForm.className = 'setup-form';
         // 1. Create the new scrollable wrapper
         const scrollableContent = document.createElement('div');
-        scrollableContent.className = 'setup-content-scrollable';
+        scrollableContent.className = 'scrollable-content';
         // 2. Add the existing content INSIDE the wrapper
         scrollableContent.appendChild(this.createPlayerCountControl());
         scrollableContent.appendChild(this.createPlanetDensityControl());
@@ -167,7 +167,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         const container = document.createElement('div');
         const countLabelElement = document.createElement('h2');
         countLabelElement.textContent = 'NUMBER OF PLAYERS';
-        countLabelElement.className = 'menu-section-header';
+        countLabelElement.className = 'menu-header';
         container.appendChild(countLabelElement);
         const countSelect = document.createElement('div');
         countSelect.className = 'player-count-select';
@@ -198,7 +198,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         container.innerHTML = '';
         const selectorsTitle = document.createElement('h3');
         selectorsTitle.textContent = 'PLAYER SETUP';
-        selectorsTitle.className = 'menu-section-header';
+        selectorsTitle.className = 'menu-header';
         container.appendChild(selectorsTitle);
         const players = this.configManager.getConfig().players;
         const playerColors = this.configManager.getPlayerColors();
@@ -246,7 +246,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         planetDensityContainer.className = 'planet-density-container';
         const densityTitle = document.createElement('h3');
         densityTitle.textContent = 'GALAXY DENSITY';
-        densityTitle.className = 'menu-section-header';
+        densityTitle.className = 'menu-header';
         planetDensityContainer.appendChild(densityTitle);
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
