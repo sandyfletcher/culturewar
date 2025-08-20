@@ -10,6 +10,9 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         super(container, screenManager, configManager, menuManager);
         this.parentBuilder = parentBuilder;
         this.startGameCallback = startGameCallback;
+        this.advancedPanel = null;
+        this.toggleButton = null;
+        this.handleOutsideClick = this.handleOutsideClick.bind(this);
     }
     build() {
         this.menuManager.uiManager.setHeaderTitle('CREATE GAME');
@@ -28,41 +31,44 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         scrollableContent.appendChild(playerSelectorsContainer);
         // 3. Add the wrapper to the form
         setupForm.appendChild(scrollableContent);
-        const advancedPanel = this.createAdvancedPanel();
-        setupForm.appendChild(advancedPanel);
-        // We need a reference to the toggle button later, so create it here.
-        const { buttonContainer, toggleButton } = this.createBottomButtons(advancedPanel);
+        // Store references to instance properties
+        this.advancedPanel = this.createAdvancedPanel();
+        setupForm.appendChild(this.advancedPanel);
+        const { buttonContainer, toggleButton } = this.createBottomButtons(this.advancedPanel);
+        this.toggleButton = toggleButton;
         setupForm.appendChild(buttonContainer);
         menuContainer.appendChild(setupForm);
-        // --- Logic for "Click Outside to Close" ---
-        const handleOutsideClick = (event) => {
-            // Do nothing if the panel isn't active
-            if (!advancedPanel.classList.contains('active')) {
-                return;
-            }
-            // Check if the click was on the toggle button itself or inside the panel
-            const isClickOnToggleButton = toggleButton.contains(event.target);
-            const isClickInsidePanel = advancedPanel.contains(event.target);
-            if (!isClickOnToggleButton && !isClickInsidePanel) {
-                // If the click was outside both, close the panel
-                advancedPanel.classList.remove('active');
-                toggleButton.classList.remove('active');
-            }
-        };
-        // Add the listener to the whole document
-        document.addEventListener('click', handleOutsideClick);
-        // --- Cleanup Listeners on Navigation ---
+        // Add the global listener
+        document.addEventListener('click', this.handleOutsideClick);
+        // --- Setup Navigation with Cleanup ---
         this.menuManager.footerManager.showBackButton(() => {
-            document.removeEventListener('click', handleOutsideClick); // IMPORTANT: Cleanup
+            this.cleanup(); // Clean up the global listener
             this.parentBuilder.buildMainMenu();
         });
         const startButton = buttonContainer.querySelector('.start-game');
         startButton.addEventListener('click', () => {
-            document.removeEventListener('click', handleOutsideClick); // IMPORTANT: Cleanup
+            this.cleanup(); // Clean up the global listener
             this.startGameCallback();
-        });        
+        });
         this.updatePlayerSelectors();
         return menuContainer;
+    }
+    handleOutsideClick(event) {
+        // Guard clauses to ensure elements exist and panel is active
+        if (!this.advancedPanel || !this.toggleButton || !this.advancedPanel.classList.contains('active')) {
+            return;
+        }
+        const isClickOnToggleButton = this.toggleButton.contains(event.target);
+        const isClickInsidePanel = this.advancedPanel.contains(event.target);
+        // If the click was outside both, close the panel
+        if (!isClickOnToggleButton && !isClickInsidePanel) {
+            this.advancedPanel.classList.remove('active');
+            this.toggleButton.classList.remove('active');
+        }
+    }
+    cleanup() {
+        // Remove the global event listener to prevent memory leaks
+        document.removeEventListener('click', this.handleOutsideClick);
     }
     createAdvancedPanel() {
         const panel = document.createElement('div');
@@ -221,7 +227,7 @@ export default class GameSetupBuilder extends MenuBuilderBase {
             typeSelector.addEventListener('change', (e) => {
                 const newType = e.target.value;
                 aiSelector.style.visibility = newType === 'bot' ? 'visible' : 'hidden';
-                this.configManager.updatePlayerConfig(index, { 
+                this.configManager.updatePlayerConfig(index, {
                     type: newType,
                     aiController: newType === 'bot' ? aiSelector.value : undefined
                 });
