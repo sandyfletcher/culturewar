@@ -3,13 +3,11 @@
 // ===========================================
 
 export const config = {
-    // --- GAME ---
     game: {
         defaultDuration: 300, // duration of game in seconds
         logicalWidth: 400,    // canonical width of the game world.
         logicalHeight: 800,  // canonical height of the game world.
     },
-    // --- PLAYERS ---
     player: {
         defaultAIValue: 'C4', // unique value of default AI to use when one isn't specified
         colors: { // colours assigned to each player ID and neutral faction
@@ -22,7 +20,6 @@ export const config = {
             'neutral': '#ffffff', // white
         },
     },
-    // --- PLANETS ---
     planet: {
         maxTroops: 999, // maximum number of troops a single planet can hold
         productionFactor: 20, // production rate is planet.size/productionFactor, so lower is faster
@@ -43,11 +40,9 @@ export const config = {
             default: 1.3,
         },
     },
-    // --- TROOPS ---
     troop: {
         movementSpeed: 150, // speed in pixels per second
     },
-    // --- AI ---
     ai: {
         scoring: { // weights for calculating strategic value of a planet
             sizeWeight: 1.5,
@@ -60,7 +55,6 @@ export const config = {
         },
         decisionCooldown: 0.5, // seconds between AI being allowed to make a decision
     },
-    // --- UI & INPUT ---
     ui: {
         input: {
             doubleClickThreshold: 300, // time in milliseconds to double-click
@@ -91,7 +85,6 @@ export const config = {
             }
         },
     },
-    // --- MENUS ---
     menuDefaults: {
         playerCount: 6, // default number of players
         playerCountRange: [2, 6], // min and max number of players allowed in a game
