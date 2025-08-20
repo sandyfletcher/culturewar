@@ -29,15 +29,39 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         // 3. Add the wrapper to the form
         setupForm.appendChild(scrollableContent);
         const advancedPanel = this.createAdvancedPanel();
-        setupForm.appendChild(advancedPanel); 
-        // This is now added last and will be at the bottom due to flexbox
-        const bottomButtons = this.createBottomButtons(advancedPanel);
-        setupForm.appendChild(bottomButtons);
+        setupForm.appendChild(advancedPanel);
+        // We need a reference to the toggle button later, so create it here.
+        const { buttonContainer, toggleButton } = this.createBottomButtons(advancedPanel);
+        setupForm.appendChild(buttonContainer);
         menuContainer.appendChild(setupForm);
-        this.updatePlayerSelectors();
+        // --- Logic for "Click Outside to Close" ---
+        const handleOutsideClick = (event) => {
+            // Do nothing if the panel isn't active
+            if (!advancedPanel.classList.contains('active')) {
+                return;
+            }
+            // Check if the click was on the toggle button itself or inside the panel
+            const isClickOnToggleButton = toggleButton.contains(event.target);
+            const isClickInsidePanel = advancedPanel.contains(event.target);
+            if (!isClickOnToggleButton && !isClickInsidePanel) {
+                // If the click was outside both, close the panel
+                advancedPanel.classList.remove('active');
+                toggleButton.classList.remove('active');
+            }
+        };
+        // Add the listener to the whole document
+        document.addEventListener('click', handleOutsideClick);
+        // --- Cleanup Listeners on Navigation ---
         this.menuManager.footerManager.showBackButton(() => {
+            document.removeEventListener('click', handleOutsideClick); // IMPORTANT: Cleanup
             this.parentBuilder.buildMainMenu();
         });
+        const startButton = buttonContainer.querySelector('.start-game');
+        startButton.addEventListener('click', () => {
+            document.removeEventListener('click', handleOutsideClick); // IMPORTANT: Cleanup
+            this.startGameCallback();
+        });        
+        this.updatePlayerSelectors();
         return menuContainer;
     }
     createAdvancedPanel() {
@@ -128,12 +152,10 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         const startButton = document.createElement('button');
         startButton.className = 'menu-button start-game';
         startButton.textContent = 'BATTLE >';
-        startButton.addEventListener('click', () => {
-            this.startGameCallback();
-        });
         buttonContainer.appendChild(toggleButton);
         buttonContainer.appendChild(startButton);
-        return buttonContainer;
+        // Return references to the elements we need
+        return { buttonContainer, toggleButton };
     }
     createPlayerCountControl() {
         const container = document.createElement('div');
