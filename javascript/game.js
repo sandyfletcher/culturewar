@@ -9,7 +9,7 @@ import Renderer from './RendererModule.js';
 import GameState from './GameStateCheck.js';
 import PlayersController from './PlayersController.js';
 import PlanetGeneration from './PlanetGeneratorModule.js';
-import TroopTracker from './TroopTracker.js';
+import TroopTracker from './ui/TroopTracker.js';
 import TimerManager from './TimerManager.js';
 
 export default class Game {

@@ -2,7 +2,7 @@
 // root/javascript/menus/TournamentSetupBuilder.js
 // ===========================================
 
-import MenuBuilderBase from '../MenuBuilderBase.js';
+import MenuBuilderBase from './MenuBuilderBase.js';
 import botRegistry from '../bots/index.js';
 
 export default class TournamentSetupBuilder extends MenuBuilderBase {

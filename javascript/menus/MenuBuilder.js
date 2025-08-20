@@ -3,12 +3,12 @@
 // ===========================================
 
 import MenuBuilderBase from './MenuBuilderBase.js';
-import MainMenuBuilder from './menus/MainMenuBuilder.js';
-import GameSetupBuilder from './menus/GameSetupBuilder.js';
-import InstructionsBuilder from './menus/InstructionsBuilder.js';
-import StandingsBuilder from './menus/StandingsBuilder.js';
-import TournamentSetupBuilder from './menus/TournamentSetupBuilder.js';
-import ReplaysBuilder from './menus/ReplaysBuilder.js';
+import MainMenuBuilder from './MainMenuBuilder.js';
+import GameSetupBuilder from './GameSetupBuilder.js';
+import InstructionsBuilder from './InstructionsBuilder.js';
+import StandingsBuilder from './StandingsBuilder.js';
+import TournamentSetupBuilder from './TournamentSetupBuilder.js';
+import ReplaysBuilder from './ReplaysBuilder.js';
 
 export default class MenuBuilder extends MenuBuilderBase {
     constructor(container, screenManager, configManager, menuManager) {

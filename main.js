@@ -2,7 +2,7 @@
 // root/main.js
 // ===========================================
 
-import MenuManager from './javascript/MenuManager.js';
+import MenuManager from './javascript/ui/MenuManager.js';
 
 class App {
     constructor() {

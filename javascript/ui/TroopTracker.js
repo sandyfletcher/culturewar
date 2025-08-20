@@ -2,7 +2,7 @@
 // root/javascript/TroopTracker.js
 // ===========================================
 
-import { config } from './config.js';
+import { config } from '../config.js';
 
 export default class TroopTracker {
     constructor(game) {

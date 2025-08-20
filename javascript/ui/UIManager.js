@@ -2,7 +2,7 @@
 // root/javascript/UIManager.js
 // ===========================================
 
-import eventManager from './EventManager.js';
+import eventManager from '../EventManager.js';
 import GameOverScreen from './GameOverScreen.js';
 import TournamentOverlay from './TournamentOverlay.js';
 import TournamentCompleteScreen from './TournamentCompleteScreen.js';

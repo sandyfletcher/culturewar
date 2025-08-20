@@ -2,7 +2,7 @@
 // root/javascript/TournamentOverlay.js
 // ===========================================
 
-import botRegistry from './bots/index.js';
+import botRegistry from '../bots/index.js';
 
 export default class TournamentOverlay {
     constructor(overlayElement, completeScreenElement) {

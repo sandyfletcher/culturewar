@@ -2,7 +2,7 @@
 // root/javascript/menus/MainMenuBuilder.js (MODIFIED)
 // ===========================================
 
-import MenuBuilderBase from '../MenuBuilderBase.js';
+import MenuBuilderBase from './MenuBuilderBase.js';
 
 export default class MainMenuBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager, menuManager) {

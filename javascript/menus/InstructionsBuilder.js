@@ -2,7 +2,7 @@
 // root/javascript/menus/InstructionsBuilder.js
 // ===========================================
 
-import MenuBuilderBase from '../MenuBuilderBase.js';
+import MenuBuilderBase from './MenuBuilderBase.js';
 
 export default class InstructionsBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager, menuManager) {

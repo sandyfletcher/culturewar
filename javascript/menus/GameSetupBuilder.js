@@ -2,7 +2,7 @@
 // root/javascript/menus/GameSetupBuilder.js
 // ===========================================
 
-import MenuBuilderBase from '../MenuBuilderBase.js';
+import MenuBuilderBase from './MenuBuilderBase.js';
 import { config } from '../config.js';
 
 export default class GameSetupBuilder extends MenuBuilderBase {

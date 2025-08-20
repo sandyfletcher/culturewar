@@ -3,12 +3,12 @@
 // ===========================================================
 
 import GameConfigManager from './GameConfigManager.js';
-import MenuBuilder from './MenuBuilder.js';
+import MenuBuilder from '../menus/MenuBuilder.js';
 import FooterManager from './FooterManager.js';
-import Game from './game.js';
+import Game from '../game.js';
 import StatsTracker from './StatsTracker.js';
-import eventManager from './EventManager.js';
-import TournamentManager from './TournamentManager.js';
+import eventManager from '../EventManager.js';
+import TournamentManager from '../TournamentManager.js';
 import ReplayManager from './ReplayManager.js';
 import UIManager from './UIManager.js';
 

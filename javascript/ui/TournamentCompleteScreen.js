@@ -1,4 +1,4 @@
-import botRegistry from './bots/index.js';
+import botRegistry from '../bots/index.js';
 
 export default class TournamentCompleteScreen {
     constructor(container) {

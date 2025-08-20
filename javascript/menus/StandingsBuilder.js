@@ -2,10 +2,10 @@
 // root/javascript/menus/StandingsBuilder.js
 // ===========================================
 
-import MenuBuilderBase from '../MenuBuilderBase.js';
+import MenuBuilderBase from './MenuBuilderBase.js';
 import { formatTime } from '../utils.js';
 import eventManager from '../EventManager.js';
-import botRegistry from '../bots/index.js'; // Import the full list of bots
+import botRegistry from '../bots/index.js';
 
 export default class StandingsBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager, menuManager, statsTracker) {

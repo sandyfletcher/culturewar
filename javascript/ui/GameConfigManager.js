@@ -2,8 +2,8 @@
 // root/javascript/GameConfigManager.js
 // ===========================================
 
-import botRegistry from './bots/index.js';
-import { config } from './config.js';
+import botRegistry from '../bots/index.js';
+import { config } from '../config.js';
 
 export default class GameConfigManager {
     constructor() {

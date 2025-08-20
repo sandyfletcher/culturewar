@@ -2,7 +2,7 @@
 // root/javascript/GameOverScreen.js
 // ===========================================
 
-import { formatTime } from './utils.js';
+import { formatTime } from '../utils.js';
 
 export default class GameOverScreen {
     constructor(parentContainer, configManager, menuManager) {

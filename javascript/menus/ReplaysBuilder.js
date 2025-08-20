@@ -1,8 +1,8 @@
 // ===========================================
-// root/javascript/menus/ReplaysBuilder.js (NEW FILE)
+// root/javascript/menus/ReplaysBuilder.js
 // ===========================================
 
-import MenuBuilderBase from '../MenuBuilderBase.js';
+import MenuBuilderBase from './MenuBuilderBase.js';
 
 export default class ReplaysBuilder extends MenuBuilderBase {
     constructor(parentBuilder, container, screenManager, configManager, menuManager) {
