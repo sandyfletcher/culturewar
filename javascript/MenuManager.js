@@ -84,7 +84,7 @@ export default class MenuManager {
             if (onBackToMenu) onBackToMenu();
         };
         this.footerManager.showBackButton(backToMenuHandler, '< MENUS');
-        this.uiManager.showScreen('gameOver', { 
+        this.uiManager.showView('gameOver', { 
             payload: { stats, gameInstance }, 
             onPlayAgain, 
             onReturn: onBackToMenu 
@@ -98,7 +98,7 @@ export default class MenuManager {
         this.isBatchRunning = this.gamesRemaining > 1 || this.currentBatchConfig.isHeadless;
         if (this.isBatchRunning) {
             if (this.currentBatchConfig.isHeadless) {
-                this.uiManager.showOverlay('batch');
+                this.uiManager.showView('batchProgress');
             }
             this.startNextBatchGame();
         } else {
@@ -142,24 +142,20 @@ export default class MenuManager {
         );
     }
     showTournamentUI(bracket) {
-        this.uiManager.showOverlay('tournament', bracket);
+        this.uiManager.showView('tournamentProgress', { payload: bracket });
     }
     updateTournamentStatus(status) {
-        this.uiManager.updateOverlay('tournament', { status });
-    }
-    hideTournamentUI() {
-        this.uiManager.hideOverlay('tournament');
+        this.uiManager.views.tournamentProgress.updateStatus(status);
     }
     showTournamentCompleteScreen(champion, finalMatchConfig) {
         this.tournament = null;
-        this.hideTournamentUI();
         const onReplay = () => this.startReplay(finalMatchConfig);
         const onReturn = () => {
             this.menuBuilder.buildMainMenu();
             eventManager.emit('screen-changed', 'menu');
         };
         this.uiManager.setHeaderTitle('TOURNAMENT COMPLETE');
-        this.uiManager.showScreen('tournamentComplete', {
+        this.uiManager.showView('tournamentComplete', {
             payload: { champion, finalMatchConfig },
             onReplay,
             onReturn
@@ -169,13 +165,12 @@ export default class MenuManager {
     startNextBatchGame() {
         if (!this.isBatchRunning || this.gamesRemaining <= 0) {
             this.isBatchRunning = false;
-            this.uiManager.hideOverlay('batch');
             this.menuBuilder.buildStandingsScreen();
             eventManager.emit('screen-changed', 'menu');
             return;
         }
         const gameNumber = this.totalGamesInBatch - this.gamesRemaining + 1;
-        this.uiManager.updateOverlay('batch', { gameNumber, totalGames: this.totalGamesInBatch });
+        this.uiManager.updateView('batchProgress', { gameNumber, totalGames: this.totalGamesInBatch });
         this.gamesRemaining--;
         if (!this.currentBatchConfig.isHeadless) {
             eventManager.emit('screen-changed', 'game');

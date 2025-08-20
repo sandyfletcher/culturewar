@@ -11,10 +11,9 @@ export default class GameOverScreen {
         this.menuManager = menuManager;
     }
     show(payload, onPlayAgainCallback) {
-        const { stats, gameInstance } = payload; // destructure payload to get data
-        this.remove();
-        const gameOverContent = document.createElement('div');
-        gameOverContent.id = 'game-over-screen';
+        this.container.style.display = 'flex';
+        const { stats, gameInstance } = payload;
+        this.remove(); // clear container's innerHTML
         const allPlayersData = gameInstance.playersController.players;
         const playerStatsMap = new Map(
             gameInstance.playersController.getPlayerStats()
@@ -114,13 +113,13 @@ export default class GameOverScreen {
                 ${gameIsReplayable ? '<button id="save-replay-button">SAVE REPLAY</button>' : ''}
             </div>
         `;
-        gameOverContent.innerHTML = `
+        // populate container directly instead of creating a new div
+        this.container.innerHTML = `
             ${headerText}
             ${leaderboardHTML}
             ${overallStats}
             ${buttonsHTML}
         `;
-        this.container.appendChild(gameOverContent);
         document.getElementById('play-again-button').addEventListener('click', () => {
             this.remove();
             if (onPlayAgainCallback) {
@@ -140,5 +139,9 @@ export default class GameOverScreen {
         if (this.container) {
             this.container.innerHTML = ''; // clear content of dedicated screen container
         }
+    }
+    hide() {
+        this.remove();
+        this.container.style.display = 'none';
     }
 }

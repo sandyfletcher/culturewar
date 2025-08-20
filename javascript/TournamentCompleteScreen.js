@@ -5,7 +5,8 @@ export default class TournamentCompleteScreen {
         this.container = container;
     }
     show(data, onReplay, onReturn) {
-        this.container.innerHTML = ''; // Clear previous content
+        this.container.style.display = 'flex';
+        this.container.innerHTML = ''; // clear previous content
         const { champion, finalMatchConfig } = data;
         const botInfo = botRegistry.find(b => b.value === champion.aiController);
         const championName = botInfo ? botInfo.name : champion.aiController;

@@ -10,7 +10,6 @@ export default class TournamentOverlay {
         this.lastBracketData = null; // cache last bracket state for animations
     }
     show(bracketData) { // shows and renders tournament bracket overlay
-        this.overlayElement.style.display = 'flex';
         if (!this.lastBracketData) { // if first time showing, populate initial HTML structure
             this.overlayElement.innerHTML = `
                 <h2>TOURNAMENT IN PROGRESS</h2>
@@ -26,6 +25,7 @@ export default class TournamentOverlay {
             `;
         }
         this.renderBracket(bracketData);
+        this.overlayElement.style.display = 'flex';
         this.lastBracketData = JSON.parse(JSON.stringify(bracketData)); // deep copy for comparison
     }
     hide() {
@@ -33,7 +33,7 @@ export default class TournamentOverlay {
         this.lastBracketData = null;
     }
     updateStatus(status) {
-        const statusEl = this.overlayElement.querySelector('#tournament-status'); // use a more robust selector in case element isn't there yet
+        const statusEl = this.overlayElement.querySelector('#tournament-status');
         if (statusEl) {
             statusEl.textContent = status;
         }
