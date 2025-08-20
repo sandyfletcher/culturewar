@@ -155,6 +155,7 @@ export default class MenuManager {
             eventManager.emit('screen-changed', 'menu');
         };
         this.uiManager.setHeaderTitle('TOURNAMENT COMPLETE');
+        this.handleScreenChange('tournamentComplete'); // manually trigger side-effects like hiding the troop bar
         this.uiManager.showView('tournamentComplete', {
             payload: { champion, finalMatchConfig },
             onReplay,

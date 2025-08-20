@@ -12,21 +12,20 @@ export default class TournamentCompleteScreen {
         const championName = botInfo ? botInfo.name : champion.aiController;
         this.container.innerHTML = `
             <div class="tournament-complete-content">
-                <h1>TOURNAMENT COMPLETE</h1>
                 <h2>CHAMPION: ${championName.toUpperCase()}</h2>
-                <div class="game-over-buttons tournament-complete-buttons">
-                    <button id="tournament-replay-button" class="game-mode-button primary-action"><h3>WATCH FINAL MATCH</h3></button>
-                    <button id="tournament-return-button" class="game-mode-button"><h3>RETURN TO MENU</h3></button>
+                <div class="game-over-buttons"> 
+                    <button id="play-again-button">WATCH FINAL</button>
+                    <button id="tournament-return-button">RETURN TO MENU</button>
                 </div>
             </div>
         `;
-        const replayButton = this.container.querySelector('#tournament-replay-button');
+        const replayButton = this.container.querySelector('#play-again-button');
         const returnButton = this.container.querySelector('#tournament-return-button');
         if (finalMatchConfig && replayButton) {
             replayButton.addEventListener('click', onReplay, { once: true });
         } else if (replayButton) {
             replayButton.disabled = true;
-            replayButton.innerHTML = '<h3>FINAL NOT AVAILABLE</h3>';
+            replayButton.textContent = 'FINAL NOT AVAILABLE';
         }
         if (returnButton) {
             returnButton.addEventListener('click', onReturn, { once: true });

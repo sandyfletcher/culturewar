@@ -52,7 +52,7 @@ export default class TournamentManager {
         const player2 = round[this.currentMatchIndex * 2 + 1];
         // Handle a bye (player1 has no opponent)
         if (player1 && !player2) {
-            // CRITICAL FIX: Only advance the player if a next round exists in the bracket.
+            // Only advance the player if a next round exists in the bracket.
             if (this.bracket[this.currentRound + 1]) {
                 this.bracket[this.currentRound + 1][this.currentMatchIndex] = player1;
                 this.currentMatchIndex++;
@@ -61,17 +61,17 @@ export default class TournamentManager {
                 setTimeout(() => this.runNextMatch(), 50);
                 return;
             } else {
-                // This case should not be reached with proper bracket generation, but as a safeguard:
+                // this case should not be reached with proper bracket generation, but as a safeguard:
                 this.endTournament();
                 return;
             }
         }
-        // If for some reason a player slot is empty, wait and retry.
+        // if for some reason a player slot is empty, wait and retry
         if (!player1 || !player2) {
             setTimeout(() => this.runNextMatch(), 1000);
             return;
         }
-        // Proceed with a normal match
+        // proceed with a normal match
         this.menuManager.updateTournamentStatus(`Round ${this.currentRound + 1}: ${player1.aiController} vs ${player2.aiController}`);
         const baseConfig = this.menuManager.getGameConfig();
         const matchConfig = {
@@ -84,10 +84,8 @@ export default class TournamentManager {
             isHeadless: true,
             seed: Date.now() + Math.random()
         };
-        // If this match will decide the champion, save its config for replay
-        if (this.bracket[this.currentRound].length === 2) {
+        if (this.bracket[this.currentRound].length === 2) { // if match will decide champion, save config for replay
             this.finalMatchConfig = { ...matchConfig };
-            // console.log("Final match config saved for replay.", this.finalMatchConfig);
         }
         this.menuManager.startTournamentGame(matchConfig);
     }
@@ -104,7 +102,6 @@ export default class TournamentManager {
     endTournament() {
         const champion = this.bracket[this.bracket.length - 1][0];
         this.menuManager.updateTournamentStatus(`CHAMPION: ${champion.aiController}!`);
-        // console.log("TOURNAMENT COMPLETE! Champion:", champion.aiController);
         if (this.finalMatchConfig) {
             this.menuManager.replayManager.saveReplay(this.finalMatchConfig, `Tournament Final: ${this.finalMatchConfig.players[0].aiController} vs ${this.finalMatchConfig.players[1].aiController}`);
         }

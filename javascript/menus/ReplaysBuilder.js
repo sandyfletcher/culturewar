@@ -31,7 +31,7 @@ export default class ReplaysBuilder extends MenuBuilderBase {
                 `;
             });
         } else {
-            replayListHTML = `<p style="text-align: center; margin: 2rem 0;">No replays saved. Play some bot-only games to save replays of the final match!</p>`;
+            replayListHTML = `<p style="text-align: center; margin: 2rem 0;">No replays saved. Replays are automatically saved for bot-only games and tournament finals.</p>`;
         }
         menuContainer.innerHTML = `
             <div class="instructions-content">

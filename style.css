@@ -962,7 +962,7 @@ header h1 {
     margin-top: 1rem;
     justify-content: center;
 }
-#play-again-button, #save-replay-button {
+#play-again-button {
     padding: 10px 20px;
     font-size: 1rem;
     color: black;
@@ -972,16 +972,24 @@ header h1 {
     font-weight: bold;
     transition: all 0.3s;
     border-radius: 0;
+        background-color: rgba(255, 255, 0, 0.8);
+
 }
 #play-again-button:hover {
     transform: scale(1.05);
     background-color: rgba(255, 255, 0, 1);
     box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
 }
-#play-again-button {
-    background-color: rgba(255, 255, 0, 0.8);
-}
 #save-replay-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: black;
+    border: none;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    transition: all 0.3s;
+    border-radius: 0;
     background-color: rgba(0, 255, 255, 0.8);
 }
 #save-replay-button:hover:not(:disabled) {
@@ -992,6 +1000,23 @@ header h1 {
 #save-replay-button:disabled {
     background-color: #555;
     cursor: not-allowed;
+}
+#tournament-return-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: black;
+    background-color: rgba(180, 180, 180, 0.8); /* A neutral grey */
+    border: none;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    transition: all 0.3s;
+    border-radius: 0;
+}
+#tournament-return-button:hover {
+    transform: scale(1.05);
+    background-color: rgba(220, 220, 220, 1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 /* FOOTER */
 footer {
