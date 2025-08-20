@@ -4,7 +4,6 @@
 @font-face { font-family: 'BebasNeue'; src: url('./assets/fonts/BebasNeue.ttf') format('truetype'); font-display: block} /* main text */
 @font-face { font-family: 'ShareTech'; src: url('./assets/fonts/ShareTech.ttf') format('truetype'); font-display: block} /* main text */
 
-
 @font-face { font-family: 'Tourney'; src: url('./assets/fonts/Tourney.ttf') format('truetype'); font-display: block} /* buttons */
 @font-face { font-family: 'Wallpoet'; src: url('./assets/fonts/Wallpoet.ttf') format('truetype'); font-display: block} /* in-game UI */
 /* why don't we import courier new? */
@@ -29,10 +28,11 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 98vh;
-    max-width: 400px;
-    max-height: 800px;
+    width: 100vw; /* Try to fill the width */
+    height: 100vh; /* Try to fill the height (dvh is handled below) */
+    max-width: 450px; /* A slightly wider max for modern phones */
+    max-height: 900px;
+    aspect-ratio: 1 / 2; /* This is the key! Enforces a 1:2 ratio */
     border: 2px solid #fff;
     overflow: hidden;
     margin: 0 auto;
@@ -280,7 +280,14 @@ header h1 {
     width: 100%;
     height: 100%;
     margin: auto;
-  }
+    position: relative; /* Keep this for the advanced panel */
+    overflow: hidden;  /* Keep this for the advanced panel */
+}
+.setup-content-scrollable {
+    flex-grow: 1; /* Allows this element to take up all available vertical space */
+    overflow-y: auto; /* Adds a scrollbar ONLY when content overflows */
+    padding: 0 1rem; /* Add some horizontal padding */
+}
 .setup-title {
     font-size: 1.25rem;
     color: #fff;
@@ -372,6 +379,7 @@ header h1 {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+    padding-bottom: 1rem; /* Add padding so last item doesn't touch the bottom */
 }
 .selectors-title {
     font-size: 1.25rem;
@@ -430,14 +438,14 @@ header h1 {
 }
 .setup-buttons {
     width: 100%;
-    position: absolute;
-    bottom: 1rem;
-    left: 0;
-    right: 0;
+    flex-shrink: 0; /* Prevents the button container from shrinking */
     display: flex;
-    justify-content: center;
-    padding: 0 0.5rem;
+    justify-content: space-between; /* This was already good */
+    align-items: center;
+    padding: 0.5rem 1rem; /* Adjust padding */
     gap: 1rem;
+    z-index: 11; /* Keep on top of advanced panel */
+    height: 4rem; /* Keep this */
 }
 .menu-button {
     display: block;
@@ -505,13 +513,15 @@ header h1 {
     border-top: 2px solid #ffaa00;
     display: flex;
     flex-direction: column;
-    padding: 1rem 1rem 5rem 1rem; /* 1rem for own padding + 4rem for buttons = 5rem bottom space */
+    padding: 1rem;
     z-index: 10;
     transform: translateY(100%);
     transition: transform 0.4s ease-out;
+    overflow-y: auto;
+    max-height: calc(100% - 4rem);
 }
 .advanced-settings-panel.active {
-    transform: translateY(0);
+    transform: translateY(-4rem);
 }
 .advanced-settings-content {
     display: flex;

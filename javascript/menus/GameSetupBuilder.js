@@ -16,14 +16,21 @@ export default class GameSetupBuilder extends MenuBuilderBase {
         const menuContainer = this.createMenuContainer();
         const setupForm = document.createElement('div');
         setupForm.className = 'setup-form';
-        setupForm.appendChild(this.createPlayerCountControl());
-        setupForm.appendChild(this.createPlanetDensityControl());
+        // 1. Create the new scrollable wrapper
+        const scrollableContent = document.createElement('div');
+        scrollableContent.className = 'setup-content-scrollable';
+        // 2. Add the existing content INSIDE the wrapper
+        scrollableContent.appendChild(this.createPlayerCountControl());
+        scrollableContent.appendChild(this.createPlanetDensityControl());
         const playerSelectorsContainer = document.createElement('div');
         playerSelectorsContainer.className = 'ai-selectors-container';
         playerSelectorsContainer.id = 'player-selectors-container';
-        setupForm.appendChild(playerSelectorsContainer);
+        scrollableContent.appendChild(playerSelectorsContainer);
+        // 3. Add the wrapper to the form
+        setupForm.appendChild(scrollableContent);
         const advancedPanel = this.createAdvancedPanel();
         setupForm.appendChild(advancedPanel); 
+        // This is now added last and will be at the bottom due to flexbox
         const bottomButtons = this.createBottomButtons(advancedPanel);
         setupForm.appendChild(bottomButtons);
         menuContainer.appendChild(setupForm);
