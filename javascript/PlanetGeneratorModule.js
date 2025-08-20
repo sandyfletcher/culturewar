@@ -4,13 +4,11 @@
 
 import Planet from './Planet.js';
 import { config } from './config.js';
-import PRNG from './PRNG.js'; //
+import PRNG from './PRNG.js';
 
 export default class PlanetGeneration {
     constructor(game) {
         this.game = game;
-        this.canvas = game.canvas;
-        // NEW: Use the seed from the game config to create a new PRNG instance
         this.prng = new PRNG(this.game.config.seed);
         this.config = {
             STARTING_PLANET_SIZE: config.planetGeneration.startingPlanetSize,
@@ -25,23 +23,13 @@ export default class PlanetGeneration {
             PLANET_DENSITY: config.planetGeneration.density.default,
         };
     }
-    
-    /**
-     * Main planet generation function.
-     * It orchestrates the creation of player and neutral planets, then assigns
-     * a unique, stable ID to every planet in the game.
-     * @returns {Planet[]} An array of all generated planets.
-     */
     generatePlanets() {
         const planets = [];
         const allPlayers = this.game.playersController.players;
-        // Step 1: Generate all player and neutral planets without IDs first.
         const playerPlanets = this.generatePlayerPlanets(allPlayers);
         planets.push(...playerPlanets);
         const neutralPlanets = this.generateNeutralPlanets(planets);
         planets.push(...neutralPlanets);
-        // Step 2: Iterate through the final list and assign a unique ID to each planet.
-        // This ensures every planet has a stable identifier for the entire game.
         for (let i = 0; i < planets.length; i++) {
             planets[i].id = `p-${i}`;
         }
@@ -51,7 +39,7 @@ export default class PlanetGeneration {
         const playerPlanets = [];
         const playerCount = players.length;
         if (playerCount === 0) return [];
-        const { width, height } = this.canvas;
+        const { logicalWidth: width, logicalHeight: height } = this.game.config.game;
         const planetSize = this.config.STARTING_PLANET_SIZE;
         const cols = Math.ceil(Math.sqrt(playerCount));
         const rows = Math.ceil(playerCount / cols);
@@ -60,12 +48,7 @@ export default class PlanetGeneration {
         let chunks = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                chunks.push({
-                    x: c * cellWidth,
-                    y: r * cellHeight,
-                    width: cellWidth,
-                    height: cellHeight
-                });
+                chunks.push({ x: c * cellWidth, y: r * cellHeight, width: cellWidth, height: cellHeight });
             }
         }
         this._shuffleArray(chunks);
@@ -83,13 +66,7 @@ export default class PlanetGeneration {
                 pX = chunk.x + planetSize + (this.prng.next() * validPlacementWidth);
                 pY = chunk.y + planetSize + (this.prng.next() * validPlacementHeight);
             }
-            const playerPlanet = new Planet(
-                pX, pY,
-                planetSize,
-                this.config.STARTING_TROOPS,
-                player.id,
-                this.game
-            );
+            const playerPlanet = new Planet(pX, pY, planetSize, this.config.STARTING_TROOPS, player.id, this.game);
             playerPlanets.push(playerPlanet);
         }
         return playerPlanets;
@@ -120,8 +97,8 @@ export default class PlanetGeneration {
             while (!valid && attempts < this.config.MAX_ATTEMPTS) {
                 const size = this.config.MIN_SIZE + this.prng.next() * this.config.MAX_SIZE_VARIATION;
                 const buffer = size + this.config.NEUTRAL_BORDER_BUFFER;
-                const x = buffer + this.prng.next() * (this.canvas.width - buffer * 2);
-                const y = buffer + this.prng.next() * (this.canvas.height - buffer * 2);
+                const x = buffer + this.prng.next() * (this.game.config.game.logicalWidth - buffer * 2);
+                const y = buffer + this.prng.next() * (this.game.config.game.logicalHeight - buffer * 2);
                 valid = this.isValidNeutralPosition(x, y, size, [...existingPlanets, ...targetArray]);
                 if (valid) {
                     const startingTroops = Math.floor(size / 3);
@@ -133,7 +110,7 @@ export default class PlanetGeneration {
         }
     }
     generateClusteredNeutralPlanets(count, existingPlanets, targetArray) {
-        const { width, height } = this.canvas;
+        const { logicalWidth: width, logicalHeight: height } = this.game.config.game;
         let clusterX = 0, clusterY = 0, validCluster = false, attempts = 0;
         while (!validCluster && attempts < this.config.MAX_ATTEMPTS) {
             clusterX = width * 0.2 + this.prng.next() * width * 0.6;
@@ -175,7 +152,7 @@ export default class PlanetGeneration {
         }
     }
     calculateOptimalNeutralCount() {
-        const mapArea = this.canvas.width * this.canvas.height;
+        const mapArea = this.game.config.game.logicalWidth * this.game.config.game.logicalHeight;
         const playerCount = this.game.config.players.length;
         const baseCount = this.config.NEUTRAL_COUNT;
         const areaFactor = Math.sqrt(mapArea) / 500;
@@ -195,8 +172,8 @@ export default class PlanetGeneration {
             }
         }
         const borderBuffer = this.config.NEUTRAL_BORDER_BUFFER;
-        if (x - size - borderBuffer < 0 || x + size + borderBuffer > this.canvas.width || 
-            y - size - borderBuffer < 0 || y + size + borderBuffer > this.canvas.height) {
+        if (x - size - borderBuffer < 0 || x + size + borderBuffer > this.game.config.game.logicalWidth || 
+            y - size - borderBuffer < 0 || y + size + borderBuffer > this.game.config.game.logicalHeight) {
             return false;
         }
         return true;

@@ -11,19 +11,25 @@ import PlayersController from './PlayersController.js';
 import PlanetGeneration from './PlanetGeneratorModule.js';
 import TroopTracker from './ui/TroopTracker.js';
 import TimerManager from './TimerManager.js';
+import { config as staticConfig } from './config.js';
 
 export default class Game {
     constructor(gameConfig, footerManager = null, configManager = null, menuManager = null, statsTracker = null, innerContainer, canvas) {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
         this.innerContainer = innerContainer;
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.config = {
+            ...gameConfig,           // players, density, seed, etc
+            game: staticConfig.game  // adds { logicalWidth, logicalHeight, ... } object
+        };
         this.resize();
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => this.resize(), 100);
         });
-        this.config = gameConfig;
         this.footerManager = footerManager;
         this.configManager = configManager;
         this.menuManager = menuManager;
@@ -32,14 +38,12 @@ export default class Game {
         this.troopMovements = [];
         this.selectedPlanets = [];
         this.accumulator = 0;
-        this.renderAlpha = 0; // MOD: Add property for interpolation factor
-        this.mousePos = { x: 0, y: 0 };
+        this.renderAlpha = 0; // property for interpolation factor
+        this.worldMousePos = { x: 0, y: 0 };
         this.timerManager = new TimerManager(this);
         this.isActive = false;
         this.gameOver = false;
         this.humanPlayerIds = this.config.players.filter(p => p.type === 'human').map(p => p.id);
-        // --- Phase 1: Construction ---
-        // All modules are created here, but they should not access each other yet.
         this.playersController = new PlayersController(this, this.config);
         this.inputHandler = this.humanPlayerIds.length > 0 && !this.config.isHeadless
             ? new InputHandler(this.canvas, this.footerManager, this.humanPlayerIds, this)
@@ -48,10 +52,7 @@ export default class Game {
         this.gameState = new GameState(this);
         this.troopTracker = new TroopTracker(this);
         this.planetGenerator = new PlanetGeneration(this);
-        // --- Phase 2: Initialization ---
-        // Now that all modules exist, we can call their init methods to wire them up.
-        this.gameState.init(); // This will now safely access this.playersController.
-        
+        this.gameState.init();
         if (this.config && this.config.planetDensity !== undefined) {
             this.planetGenerator.setPlanetDensity(this.config.planetDensity);
         }
@@ -68,19 +69,17 @@ export default class Game {
         }
         // --- Event Listeners ---
         eventManager.on('screen-changed', (screenName) => {
-            if (screenName === 'game') {
-                this.troopTracker.showTroopBar();
-            } else if (screenName === 'menu') {
-                this.troopTracker.hideTroopBar();
-            }
+            if (screenName === 'game') { this.troopTracker.showTroopBar(); } 
+            else if (screenName === 'menu') { this.troopTracker.hideTroopBar(); }
         });
         eventManager.on('mouse-moved', (pos) => {
             if (this.gameOver) return;
-            this.mousePos = pos;
+            this.worldMousePos = this.screenToWorld(pos.x, pos.y);
         });
         eventManager.on('click', (data) => {
             if (this.gameOver) return;
-            this.handleClick(data);
+            const worldCoords = this.screenToWorld(data.x, data.y);
+            this.handleClick({ target: data.target, x: worldCoords.x, y: worldCoords.y });
         });
         eventManager.on('planet-double-clicked', (planet) => {
             if (this.gameOver) return;
@@ -88,18 +87,31 @@ export default class Game {
         });
         eventManager.on('selection-box', (box) => {
             if (this.gameOver) return;
-            this.handleSelectionBox(box);
+            const worldBox = {
+                left: box.left / this.scaleX, top: box.top / this.scaleY,
+                right: box.right / this.scaleX, bottom: box.bottom / this.scaleY
+            };
+            this.handleSelectionBox(worldBox);
         });
+    }
+    screenToWorld(screenX, screenY) {
+        return {
+            x: screenX / this.scaleX,
+            y: screenY / this.scaleY,
+        };
     }
     reportStats(data) {
         if (this.statsTracker) {
             this.statsTracker.report(data);
         }
     }
-    handleClick({ target: clickedPlanet }) {
+    handleClick({ target: clickedPlanet, x, y }) {
         if (!clickedPlanet) {
-            this.clearSelection();
-            return;
+            clickedPlanet = this.planets.find(planet => planet.containsPoint(x, y));
+            if (!clickedPlanet) {
+                this.clearSelection();
+                return;
+            }
         }
         const isHumanPlanet = this.humanPlayerIds.includes(clickedPlanet.owner);
         if (this.selectedPlanets.length > 0 && !this.selectedPlanets.includes(clickedPlanet)) {
@@ -155,6 +167,8 @@ export default class Game {
     resize() {
         this.canvas.width = this.innerContainer.clientWidth;
         this.canvas.height = this.innerContainer.clientHeight;
+        this.scaleX = this.canvas.width / this.config.game.logicalWidth;
+        this.scaleY = this.canvas.height / this.config.game.logicalHeight;
     }
     initializeGame() {
         this.planets = this.planetGenerator.generatePlanets();
@@ -265,7 +279,7 @@ export default class Game {
     }
     gameLoop() {
         this.update();
-        this.renderer.draw(this.renderAlpha); // MOD: Pass alpha to the renderer
+        this.renderer.draw(this.renderAlpha); // pass alpha to the renderer
         if (!this.gameOver) {
             requestAnimationFrame(() => this.gameLoop());
         }

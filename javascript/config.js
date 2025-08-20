@@ -3,9 +3,11 @@
 // ===========================================
 
 export const config = {
-    // --- GAME TIMER ---
+    // --- GAME ---
     game: {
         defaultDuration: 300, // duration of game in seconds
+        logicalWidth: 800,    // canonical width of the game world.
+        logicalHeight: 1600,  // canonical height of the game world.
     },
     // --- PLAYERS ---
     player: {
