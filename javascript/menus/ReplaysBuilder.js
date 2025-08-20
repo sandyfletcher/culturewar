@@ -24,8 +24,8 @@ export default class ReplaysBuilder extends MenuBuilderBase {
                             <span class="replay-date">${new Date(replay.timestamp).toLocaleString()}</span>
                         </div>
                         <div class="replay-actions">
-                            <button class="menu-button -small -cyan" data-timestamp="${replay.timestamp}">Watch</button>
-                            <button class="menu-button -small -red" data-timestamp="${replay.timestamp}">Delete</button>
+                            <button class="menu-button -small -cyan" data-timestamp="${replay.timestamp}" data-action="watch">Watch</button>
+                            <button class="menu-button -small -red" data-timestamp="${replay.timestamp}" data-action="delete">Delete</button>
                         </div>
                     </div>
                 `;
@@ -42,15 +42,17 @@ export default class ReplaysBuilder extends MenuBuilderBase {
         menuContainer.addEventListener('click', (e) => {
             const timestamp = e.target.dataset.timestamp;
             if (!timestamp) return;
-            const numericTimestamp = parseInt(timestamp, 10);
-            if (e.target.classList.contains('watch')) {
+            const action = e.target.dataset.action; // get action
+            if (action === 'watch') {
+                const numericTimestamp = parseInt(timestamp, 10);
                 const replay = replays.find(r => r.timestamp === numericTimestamp);
                 if (replay) {
                     this.menuManager.startReplay(replay.config);
                 }
-            } else if (e.target.classList.contains('delete')) {
+            } else if (action === 'delete') {
+                const numericTimestamp = parseInt(timestamp, 10);
                 this.menuManager.replayManager.deleteReplay(numericTimestamp);
-                this.build(); // Refresh the view
+                this.build(); // refresh view
             }
         });
         const clearButton = menuContainer.querySelector('#clear-replays-button');
