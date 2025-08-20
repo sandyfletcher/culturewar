@@ -6,12 +6,12 @@ export const config = {
     // --- GAME ---
     game: {
         defaultDuration: 300, // duration of game in seconds
-        logicalWidth: 800,    // canonical width of the game world.
-        logicalHeight: 1600,  // canonical height of the game world.
+        logicalWidth: 400,    // canonical width of the game world.
+        logicalHeight: 800,  // canonical height of the game world.
     },
     // --- PLAYERS ---
     player: {
-        defaultAIValue: 'C3.5A', // unique value of default AI to use when one isn't specified
+        defaultAIValue: 'C4', // unique value of default AI to use when one isn't specified
         colors: { // colours assigned to each player ID and neutral faction
             'player1': '#ffff00', // yellow
             'player2': '#ff0000', // red
@@ -23,6 +23,10 @@ export const config = {
         },
     },
     // --- PLANETS ---
+    planet: {
+        maxTroops: 999, // maximum number of troops a single planet can hold
+        productionFactor: 20, // production rate is planet.size/productionFactor, so lower is faster
+    },
     planetGeneration: {
         startingPlanetSize: 30,
         startingPlanetTroops: 30,
@@ -38,10 +42,6 @@ export const config = {
             max: 2.0,
             default: 1.3,
         },
-    },
-    planet: {
-        maxTroops: 999, // maximum number of troops a single planet can hold
-        productionFactor: 20, // production rate is planet.size/productionFactor, so lower is faster
     },
     // --- TROOPS ---
     troop: {
