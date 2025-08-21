@@ -89,7 +89,7 @@ export default class GameState {
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-        if (this.game.config.isTournamentMatch) { // intercept for tournament matches
+        if (this.game.config.isTournamentMatch && !this.game.config.isReplay) { // intercept for tournament matches, but not replays of them
             if (this.game.menuManager && this.game.menuManager.tournament) {
                 this.game.menuManager.tournament.reportMatchResult({ id: winnerId });
                 // if game was watched (not headless), navigate back to tournament screen
