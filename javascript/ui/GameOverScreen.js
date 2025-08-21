@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/GameOverScreen.js
+// root/javascript/ui/GameOverScreen.js
 // ===========================================
 
 import { formatTime } from '../utils.js';

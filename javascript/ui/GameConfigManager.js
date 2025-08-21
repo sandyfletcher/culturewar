@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/GameConfigManager.js
+// root/javascript/ui/GameConfigManager.js
 // ===========================================
 
 import botRegistry from '../bots/index.js';

@@ -1,3 +1,7 @@
+// ===========================================
+// root/javascript/ui/TournamentCompleteScreen.js
+// ===========================================
+
 import botRegistry from '../bots/index.js';
 
 export default class TournamentCompleteScreen {

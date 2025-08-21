@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/ReplayManager.js
+// root/javascript/ui/ReplayManager.js
 // ===========================================
 
 const REPLAY_STORAGE_KEY = 'cultureWarReplays';

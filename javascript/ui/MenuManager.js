@@ -1,5 +1,5 @@
 // ===========================================================
-// root/javascript/MenuManager.js
+// root/javascript/ui/MenuManager.js
 // ===========================================================
 
 import GameConfigManager from './GameConfigManager.js';

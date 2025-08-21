@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/FooterManager.js
+// root/javascript/ui/FooterManager.js
 // ===========================================
 
 import { config } from '../config.js';

@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/TroopTracker.js
+// root/javascript/ui/TroopTracker.js
 // ===========================================
 
 import { config } from '../config.js';

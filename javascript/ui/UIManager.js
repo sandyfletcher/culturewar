@@ -1,12 +1,12 @@
 // ===========================================
-// root/javascript/UIManager.js
+// root/javascript/ui/UIManager.js
 // ===========================================
 
 import eventManager from '../EventManager.js';
 import GameOverScreen from './GameOverScreen.js';
 import TournamentOverlay from './TournamentOverlay.js';
 import TournamentCompleteScreen from './TournamentCompleteScreen.js';
-import BatchOverlay from './BatchOverlay.js';
+import BatchOverlay from './BatchScreen.js';
 
 export default class UIManager {
     constructor(configManager, menuManager) {

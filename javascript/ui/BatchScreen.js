@@ -1,8 +1,8 @@
 // ===========================================
-// root/javascript/BatchOverlay.js
+// root/javascript/ui/BatchScreen.js
 // ===========================================
 
-export default class BatchOverlay {
+export default class BatchScreen {
     constructor(element) {
         this.element = element;
         this.progressText = this.element.querySelector('#batch-progress-text');

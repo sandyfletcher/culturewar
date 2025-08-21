@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/TournamentOverlay.js
+// root/javascript/ui/TournamentOverlay.js
 // ===========================================
 
 import botRegistry from '../bots/index.js';

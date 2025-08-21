@@ -1,5 +1,5 @@
 // ===========================================
-// root/javascript/StatsTracker.js
+// root/javascript/ui/StatsTracker.js
 // ===========================================
 
 export default class StatsTracker { // singleton class to intercept game stat logs, parse them, and persist them in localStorage for aggregation
