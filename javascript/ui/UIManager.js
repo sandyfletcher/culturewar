@@ -4,9 +4,8 @@
 
 import eventManager from '../EventManager.js';
 import GameOverScreen from './GameOverScreen.js';
-import TournamentOverlay from './TournamentOverlay.js';
-import TournamentCompleteScreen from './TournamentCompleteScreen.js';
-import BatchOverlay from './BatchScreen.js';
+import TournamentScreen from './TournamentScreen.js';
+import BatchScreen from './BatchScreen.js';
 
 export default class UIManager {
     constructor(configManager, menuManager) {
@@ -16,9 +15,8 @@ export default class UIManager {
             'menu': { element: document.getElementById('menu-screen'), show: () => this.views.menu.element.style.display = 'flex', hide: () => this.views.menu.element.style.display = 'none' },
             'game': { element: document.getElementById('game-screen'), show: () => this.views.game.element.style.display = 'flex', hide: () => this.views.game.element.style.display = 'none' },
             'gameOver': new GameOverScreen(document.getElementById('game-over-screen'), configManager, menuManager),
-            'tournamentComplete': new TournamentCompleteScreen(document.getElementById('tournament-complete-screen')),
-            'tournamentProgress': new TournamentOverlay(document.getElementById('tournament-overlay')),
-            'batchProgress': new BatchOverlay(document.getElementById('batch-overlay')),
+            'tournament': new TournamentScreen(document.getElementById('tournament-screen')),
+            'batch': new BatchScreen(document.getElementById('batch-screen')),
         };
         Object.values(this.views).forEach(view => view.hide()); // initial setup hides all views
         eventManager.on('screen-changed', (viewName) => this.showView(viewName));
@@ -41,7 +39,7 @@ export default class UIManager {
         Object.values(this.views).forEach(view => view.hide());
         const target = this.views[viewName];
         if (!target) {
-            console.error(`Screen "${screenName}" not found!`);
+            console.error(`Screen "${viewName}" not found!`);
             return;
         }
         if (target.show) {

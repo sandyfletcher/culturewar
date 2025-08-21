@@ -17,15 +17,12 @@ export default class GameState {
         this.planetsConquered = 0;
         this.elapsedGameTime = 0;
         this.eliminationTimes = {};
-        // activePlayers will be initialized in the init() method.
         this.activePlayers = new Set();
         this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
         this.memory_human_eliminated = false;
     }
-    // New init() method for second-phase initialization
     init() {
-        // This line is now safe to run because playersController is guaranteed to exist.
         this.activePlayers = new Set(this.game.playersController.players.map(player => player.id));
     }
     handleVisibilityChange() {
@@ -92,10 +89,15 @@ export default class GameState {
         this.victoryType = victoryType;
         this.gameOver = true;
         this.game.gameOver = true;
-        // NEW: Check if this was a tournament match
-        if (this.game.menuManager && this.game.menuManager.tournament) {
-            this.game.menuManager.tournament.reportMatchResult({ id: winnerId });
-            return; // Intercept regular game over flow
+        if (this.game.config.isTournamentMatch) { // intercept for tournament matches
+            if (this.game.menuManager && this.game.menuManager.tournament) {
+                this.game.menuManager.tournament.reportMatchResult({ id: winnerId });
+                // if game was watched (not headless), navigate back to tournament screen
+                if (!this.game.config.isHeadless) {
+                    eventManager.emit('screen-changed', 'tournament');
+                }
+            }
+            return; // halt regular game over flow
         }
         const allPlayersData = this.game.playersController.players;
         const playerStats = this.game.playersController.getPlayerStats()
