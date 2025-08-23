@@ -35,12 +35,15 @@ export default class MenuManager {
         // --- Event Listeners ---
         eventManager.on('confirm-action', this.handleConfirmAction.bind(this));
         eventManager.on('screen-changed', this.handleScreenChange.bind(this));
-        eventManager.on('human-players-eliminated', () => {
-            if (this.game && !this.game.gameOver && this.footerManager.mode === 'troop') {
-                this.footerManager.switchToSpeedMode();
-                this.game.timerManager.shouldPauseOnHidden = false;
+    eventManager.on('human-players-eliminated', () => {
+        if (this.game && !this.game.gameOver && this.footerManager.mode === 'troop') {
+            this.footerManager.switchToSpeedMode();
+            if (this.game.config.initialGamePace) { // re-apply initial pace setting after switching modes
+                this.footerManager.setSpeedFromMultiplier(this.game.config.initialGamePace);
             }
-        });
+            this.game.timerManager.shouldPauseOnHidden = false;
+        }
+    });
         this.menuBuilder.buildMainMenu(); // initialize first screen
         eventManager.emit('screen-changed', 'menu');
     }
