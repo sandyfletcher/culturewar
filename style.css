@@ -17,7 +17,7 @@
 body {
     background: #010; /* TODO: solid colour to be converted to moving space image */
     color: #fff;
-    font-family: 'HennyPenny', monospace; /* placeholder to be corrected */
+    font-family: 'ShareTech', monospace; /* placeholder to be corrected */
     display: flex;
     justify-content: center;
     align-items: center;
