@@ -10,6 +10,11 @@ import Claude40Sonnet from './Claude40Sonnet.js';
 // import Gemma3nE2B from './Gemma3nE2B.js';
 import Gemini20Flash from './Gemini20Flash.js';
 import Gemini25Pro from './Gemini25Pro.js';
+import Gemini3Pro from './Gemini3Pro.js';
+
+
+
+
 // --- Moonshot AI (China)  ---
 import KimiK2 from './KimiK2.js';
 // --- OpenAI (USA) ---
@@ -51,6 +56,13 @@ const botRegistry = [
         class: Gemini25Pro, 
         creationDate: '06/2025', 
         description: 'An opportunistic AI that adapts its strategy based on game phase, balancing aggressive expansion, calculated enemy strikes, and intelligent defense.'
+    },
+    {
+        value: 'G3', 
+        name: 'Gemini 3 Pro', 
+        class: Gemini3Pro, 
+        creationDate: '06/2025', 
+        description: 'A predictive, utility-based AI.'
     },
     { // MOONSHOT
         value: 'KK2', 
